@@ -18,7 +18,7 @@ export default function LoginPage() {
     setEntrando(true);
     try {
       await entrar(email.trim(), senha);
-      router.replace('/funil');
+      router.replace('/dashboard');
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : 'Não foi possível entrar.');
     } finally {
