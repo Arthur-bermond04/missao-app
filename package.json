@@ -1,0 +1,7 @@
+{
+  "name": "missao-app",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}
