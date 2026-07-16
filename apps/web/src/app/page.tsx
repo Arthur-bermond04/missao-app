@@ -10,7 +10,7 @@ export default function Home() {
 
   useEffect(() => {
     if (carregando) return;
-    router.replace(session ? '/funil' : '/login');
+    router.replace(session ? '/dashboard' : '/login');
   }, [carregando, session, router]);
 
   return (

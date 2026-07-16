@@ -1,11 +1,14 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ListaContatosScreen } from '../screens/ListaContatosScreen';
 import { CadastroContatoScreen } from '../screens/CadastroContatoScreen';
 import { ConfirmacaoContatoScreen } from '../screens/ConfirmacaoContatoScreen';
 import { PerfilContatoScreen } from '../screens/PerfilContatoScreen';
+import { RetirosListScreen } from '../screens/RetirosListScreen';
+import { NovoRetiroScreen } from '../screens/NovoRetiroScreen';
+import { RetiroDetalheScreen } from '../screens/RetiroDetalheScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { useAuth } from '../lib/useAuth';
 import { colors } from '../theme/colors';
@@ -21,7 +24,12 @@ export type RootStackParamList = {
     nivelInteresse: 'quente' | 'morno' | 'frio';
   };
   PerfilContato: { contatoId: string };
+  RetirosLista: undefined;
+  NovoRetiro: undefined;
+  RetiroDetalhe: { retiroId: string; nome: string };
 };
+
+const PERFIS_GESTAO_RETIROS = ['coordenador', 'admin'];
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -63,7 +71,19 @@ export function AppNavigator() {
           headerTitleStyle: { fontWeight: '700' },
         }}
       >
-        <Stack.Screen name="ListaContatos" options={{ title: 'Minha Missão' }}>
+        <Stack.Screen
+          name="ListaContatos"
+          options={({ navigation }) => ({
+            title: 'Minha Missão',
+            headerRight: PERFIS_GESTAO_RETIROS.includes(usuario.perfil)
+              ? () => (
+                  <Pressable onPress={() => navigation.navigate('RetirosLista')}>
+                    <Text style={styles.headerBotao}>Retiros</Text>
+                  </Pressable>
+                )
+              : undefined,
+          })}
+        >
           {() => <ListaContatosScreen comunidadeId={comunidadeId} missionarioId={missionarioId} />}
         </Stack.Screen>
         <Stack.Screen name="CadastroContato" options={{ title: 'Nova pessoa' }}>
@@ -79,6 +99,17 @@ export function AppNavigator() {
           component={PerfilContatoScreen}
           options={{ title: 'Perfil do contato' }}
         />
+        <Stack.Screen name="RetirosLista" options={{ title: 'Retiros' }}>
+          {() => <RetirosListScreen comunidadeId={comunidadeId} />}
+        </Stack.Screen>
+        <Stack.Screen name="NovoRetiro" options={{ title: 'Novo retiro' }}>
+          {() => <NovoRetiroScreen comunidadeId={comunidadeId} />}
+        </Stack.Screen>
+        <Stack.Screen
+          name="RetiroDetalhe"
+          component={RetiroDetalheScreen}
+          options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Retiro' })}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -93,4 +124,5 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   mensagem: { textAlign: 'center', color: colors.textMuted, fontSize: 14 },
+  headerBotao: { color: '#fff', fontWeight: '700', fontSize: 14, marginRight: 4 },
 });

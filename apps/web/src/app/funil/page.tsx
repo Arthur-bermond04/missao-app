@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 import { useSession } from '../../lib/useSession';
 import { supabase } from '../../lib/supabase';
+import { PainelHeader } from '../../components/PainelHeader';
 import { ETAPAS_FUNIL, type Contato, type Usuario } from '../../types/database';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export default function FunilPage() {
-  const { session, usuario, carregando, sair } = useSession();
+  const { session, usuario, carregando } = useSession();
   const router = useRouter();
 
   const [contatos, setContatos] = useState<Contato[]>([]);
@@ -113,18 +114,7 @@ export default function FunilPage() {
   return (
     <div className="min-h-screen bg-[--color-primary-light] px-6 py-8">
       <div className="mx-auto max-w-5xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[--color-primary]">Funil de evangelização</h1>
-            <p className="text-sm text-zinc-500">Olá, {usuario.nome}</p>
-          </div>
-          <button
-            onClick={() => sair().then(() => router.replace('/login'))}
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600"
-          >
-            Sair
-          </button>
-        </div>
+        <PainelHeader titulo="Funil de evangelização" nomeUsuario={usuario.nome} />
 
         {/* Filtros */}
         <div className="mt-6 flex flex-wrap gap-3 rounded-2xl bg-white p-4 shadow-sm">
