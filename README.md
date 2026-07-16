@@ -65,9 +65,15 @@ Nunca commitar chaves reais. Use sempre `.env` / `.env.local` (já ignorados no 
 ## Status do desenvolvimento
 
 - [x] Schema do banco + RLS
-- [ ] Módulo 1 — Evangelização de campo (mobile)
-- [ ] Módulo 2 — Funil de evangelização (web)
-- [ ] Módulo 3 — Retiros
-- [ ] Módulo 4 — Comunicação automatizada
-- [ ] Módulo 5 — Dashboard admin
-- [ ] Módulo 6 — Financeiro
+- [x] Módulo 1 — Evangelização de campo (mobile)
+- [x] Módulo 2 — Funil de evangelização (web)
+- [x] Módulo 3 — Retiros (mobile + web)
+- [x] Módulo 4 — Comunicação automatizada (registro em banco; falta ligar FCM/Z-API/Resend para disparo real)
+- [x] Módulo 5 — Dashboard admin
+- [x] Módulo 6 — Financeiro
+
+## Pendências conhecidas
+
+- `SUPABASE_SERVICE_ROLE_KEY` não configurada em `apps/web/.env.local` — sem ela, o formulário público de inscrição em retiro (`/inscricao/[retiroId]`) não funciona (as rotas de API que o suportam usam o service role para contornar o RLS).
+- Envio real de mensagens (push/WhatsApp/e-mail) ainda não está integrado com FCM, Z-API e Resend — hoje o Módulo 4 só registra a mensagem no banco.
+- Controle de dispositivo único (anti-compartilhamento de conta) descrito no briefing original ainda não foi implementado.
