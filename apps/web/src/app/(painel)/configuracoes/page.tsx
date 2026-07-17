@@ -1,0 +1,72 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Settings } from 'lucide-react';
+import { usePainelSession } from '@/lib/PainelSessionContext';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { AbaComunidade } from '@/components/configuracoes/AbaComunidade';
+import { AbaPlano } from '@/components/configuracoes/AbaPlano';
+import { AbaNotificacoes } from '@/components/configuracoes/AbaNotificacoes';
+import { AbaSeguranca } from '@/components/configuracoes/AbaSeguranca';
+import { buscarComunidade } from '@/lib/comunidades';
+import type { Comunidade, Usuario } from '@/types/database';
+
+type Aba = 'comunidade' | 'plano' | 'notificacoes' | 'seguranca';
+
+const ABAS: { valor: Aba; label: string }[] = [
+  { valor: 'comunidade', label: 'Comunidade' },
+  { valor: 'plano', label: 'Plano' },
+  { valor: 'notificacoes', label: 'Notificações' },
+  { valor: 'seguranca', label: 'Segurança' },
+];
+
+export default function ConfiguracoesPage() {
+  const { usuario } = usePainelSession();
+  const [aba, setAba] = useState<Aba>('comunidade');
+  const [comunidade, setComunidade] = useState<Comunidade | null>(null);
+  const [usuarioLocal, setUsuarioLocal] = useState<Usuario | null>(usuario ?? null);
+
+  useEffect(() => {
+    setUsuarioLocal(usuario ?? null);
+  }, [usuario]);
+
+  useEffect(() => {
+    if (!usuario?.comunidade_id) return;
+    buscarComunidade(usuario.comunidade_id).then(setComunidade);
+  }, [usuario?.comunidade_id]);
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      <PageHeader icon={Settings} title="Configurações" subtitle="Comunidade, plano, notificações e segurança" />
+
+      <div className="mt-6 flex gap-1 border-b border-border">
+        {ABAS.map((a) => (
+          <button
+            key={a.valor}
+            onClick={() => setAba(a.valor)}
+            className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+              aba === a.valor ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        {aba === 'comunidade' && (comunidade ? <AbaComunidade comunidade={comunidade} onAtualizada={setComunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
+        {aba === 'plano' && (comunidade ? <AbaPlano comunidade={comunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
+        {aba === 'notificacoes' && (usuarioLocal ? <AbaNotificacoes usuario={usuarioLocal} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
+        {aba === 'seguranca' &&
+          (usuarioLocal ? (
+            <AbaSeguranca
+              usuario={usuarioLocal}
+              onAtualizado={(campos) => setUsuarioLocal((atual) => (atual ? { ...atual, ...campos } : atual))}
+            />
+          ) : (
+            <p className="text-sm text-text-secondary">Carregando...</p>
+          ))}
+      </div>
+    </div>
+  );
+}

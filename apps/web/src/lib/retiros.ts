@@ -29,6 +29,17 @@ export async function criarRetiro(dados: {
   return data as Retiro;
 }
 
+export async function contarInscritosPorRetiro(retiroIds: string[]): Promise<Record<string, number>> {
+  if (retiroIds.length === 0) return {};
+  const { data, error } = await supabase.from('inscricoes_retiro').select('retiro_id').in('retiro_id', retiroIds);
+  if (error) throw error;
+  const contagem: Record<string, number> = {};
+  for (const linha of (data as { retiro_id: string }[]) ?? []) {
+    contagem[linha.retiro_id] = (contagem[linha.retiro_id] ?? 0) + 1;
+  }
+  return contagem;
+}
+
 export async function listarInscritos(retiroId: string): Promise<InscricaoRetiro[]> {
   const { data, error } = await supabase
     .from('inscricoes_retiro')

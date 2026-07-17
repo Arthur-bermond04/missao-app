@@ -67,7 +67,7 @@ export default function InscricaoPage({ params }: { params: Promise<{ retiroId: 
 
   if (concluido) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[--color-primary-light] px-6">
+      <div className="flex min-h-screen items-center justify-center bg-[--color-primary-xlight] px-6">
         <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm">
           <h1 className="text-xl font-extrabold text-[--color-success]">Inscrição confirmada! 🎉</h1>
           <p className="mt-2 text-sm text-zinc-600">
@@ -80,7 +80,7 @@ export default function InscricaoPage({ params }: { params: Promise<{ retiroId: 
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[--color-primary-light] px-6">
+    <div className="flex min-h-screen items-center justify-center bg-[--color-primary-xlight] px-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm">
         <h1 className="text-center text-xl font-extrabold text-[--color-primary]">{retiro.nome}</h1>
         <p className="mt-1 text-center text-sm text-zinc-500">

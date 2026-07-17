@@ -14,7 +14,7 @@ export default function Home() {
   }, [carregando, session, router]);
 
   return (
-    <div className="flex min-h-screen flex-1 items-center justify-center bg-[--color-primary-light] text-zinc-500">
+    <div className="flex min-h-screen flex-1 items-center justify-center bg-[--color-primary-xlight] text-zinc-500">
       Carregando...
     </div>
   );

@@ -15,6 +15,20 @@ export interface Usuario {
   telefone: string | null;
   perfil: Perfil;
   ativo: boolean;
+  dispositivo_id: string | null;
+  ultimo_acesso: string | null;
+  preferencias_notificacao: Record<string, boolean> | null;
+  criado_em: string;
+}
+
+export interface Comunidade {
+  id: string;
+  nome: string;
+  tipo: string;
+  plano: Plano;
+  max_contatos: number | null;
+  telefone: string | null;
+  logo_url: string | null;
   criado_em: string;
 }
 
@@ -116,5 +130,14 @@ export interface MensagemEnviada {
   corpo: string;
   enviado_em: string | null;
   total_enviados: number;
+  criado_em: string;
+}
+
+export interface MensagemTemplate {
+  id: string;
+  comunidade_id: string;
+  nome: string;
+  titulo: string | null;
+  corpo: string;
   criado_em: string;
 }

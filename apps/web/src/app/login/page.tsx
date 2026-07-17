@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '../../lib/useSession';
+import { useSession } from '@/lib/useSession';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 export default function LoginPage() {
   const { entrar } = useSession();
@@ -27,43 +29,60 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-1 items-center justify-center bg-[--color-primary-light] px-6">
-      <form
-        onSubmit={handleEntrar}
-        className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm"
-      >
-        <h1 className="text-center text-2xl font-extrabold text-[--color-primary]">MissãoApp</h1>
-        <p className="mt-1 text-center text-sm text-zinc-500">Painel da liderança</p>
+    <div className="flex min-h-screen">
+      {/* Coluna esquerda — identidade */}
+      <div className="hidden w-2/5 flex-col justify-between bg-gradient-to-br from-primary to-primary-light p-10 text-white lg:flex">
+        <div />
+        <div>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="mb-6">
+            <path d="M12 2v20M6 8h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <h2 className="text-3xl font-bold leading-tight">Cada pessoa importa na missão.</h2>
+          <p className="mt-3 text-sm text-primary-xlight">
+            Acompanhe sua equipe, seus contatos e seus retiros em um só lugar.
+          </p>
+        </div>
+        <p className="text-sm font-semibold text-primary-xlight">MissãoApp</p>
+      </div>
 
-        <label className="mt-6 block text-xs font-semibold text-zinc-500">E-mail</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-[--color-primary]"
-          placeholder="voce@exemplo.com"
-          required
-        />
+      {/* Coluna direita — formulário */}
+      <div className="flex flex-1 items-center justify-center bg-white px-6">
+        <form onSubmit={handleEntrar} className="w-full max-w-sm">
+          <h1 className="text-2xl font-bold text-text-primary">Bem-vindo de volta</h1>
+          <p className="mt-1 text-sm text-text-secondary">Painel da liderança</p>
 
-        <label className="mt-4 block text-xs font-semibold text-zinc-500">Senha</label>
-        <input
-          type="password"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-[--color-primary]"
-          required
-        />
+          <div className="mt-6">
+            <Input
+              label="E-mail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="voce@exemplo.com"
+              required
+            />
+          </div>
 
-        {!!erro && <p className="mt-3 text-sm text-red-600">{erro}</p>}
+          <div className="mt-4">
+            <Input
+              label="Senha"
+              type="password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={entrando}
-          className="mt-6 w-full rounded-xl bg-[--color-primary] py-3 text-sm font-bold text-white disabled:opacity-60"
-        >
-          {entrando ? 'Entrando...' : 'Entrar'}
-        </button>
-      </form>
+          {!!erro && <p className="mt-3 text-sm text-danger">{erro}</p>}
+
+          <Button type="submit" loading={entrando} fullWidth size="lg" className="mt-6">
+            {entrando ? 'Entrando...' : 'Entrar'}
+          </Button>
+
+          <p className="mt-4 text-center text-xs text-text-secondary hover:text-primary">
+            <a href="#">Esqueci minha senha</a>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
