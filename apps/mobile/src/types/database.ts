@@ -162,3 +162,126 @@ export const TAGS_INTERESSE = [
   'Interesse em célula',
   'Já é católico praticante',
 ] as const;
+
+// =========================================================
+// MINISTÉRIOS
+// =========================================================
+
+export type TipoMinisterio = 'servico' | 'pastoral' | 'formacao';
+export type CargoMinisterio = 'coordenador' | 'vice-coordenador' | 'membro';
+
+export interface Ministerio {
+  id: string;
+  comunidade_id: string;
+  nome: string;
+  descricao: string | null;
+  tipo: TipoMinisterio;
+  coordenador_id: string | null;
+  cor: string;
+  ativo: boolean;
+  criado_em: string;
+}
+
+export interface MinisterioMembro {
+  id: string;
+  ministerio_id: string;
+  usuario_id: string;
+  cargo: CargoMinisterio;
+  ativo: boolean;
+  entrou_em: string;
+  saiu_em: string | null;
+  criado_em: string;
+}
+
+export interface MinisterioEncontro {
+  id: string;
+  ministerio_id: string;
+  titulo: string;
+  descricao: string | null;
+  data: string;
+  horario: string | null;
+  local: string | null;
+  criado_em: string;
+}
+
+export interface MinisterioFinanceiro {
+  id: string;
+  ministerio_id: string;
+  comunidade_id: string;
+  tipo: TipoFinanceiro;
+  categoria: string;
+  descricao: string | null;
+  valor: number;
+  doador_id: string | null;
+  doador_nome: string | null;
+  data: string;
+  criado_em: string;
+}
+
+// =========================================================
+// ACOMPANHAMENTO PASTORAL
+// =========================================================
+
+export type EstadoEspiritual = 'crescendo' | 'estavel' | 'atencao' | 'risco';
+export type EtapaFormacao = 'inicio' | 'cv' | 'cal' | 'obra' | 'integrado';
+export type FrequenciaAcompanhamento = 'semanal' | 'quinzenal' | 'mensal' | 'sob_demanda';
+export type TipoEncontroPastoral = 'presencial' | 'online' | 'telefone' | 'mensagem';
+export type EstadoOvelhaEncontro = 'muito_bem' | 'bem' | 'estavel' | 'dificuldade' | 'crise';
+
+export interface PastoralOvelha {
+  id: string;
+  comunidade_id: string;
+  pastor_id: string;
+  usuario_id: string | null;
+  nome: string;
+  telefone: string | null;
+  email: string | null;
+  idade: number | null;
+  etapa_formacao: EtapaFormacao;
+  estado_espiritual: EstadoEspiritual;
+  data_inicio_acompanhamento: string;
+  frequencia_acompanhamento: FrequenciaAcompanhamento;
+  objetivo_atual: string | null;
+  proxima_reuniao: string | null;
+  ativo: boolean;
+  criado_em: string;
+}
+
+export interface PastoralEncontro {
+  id: string;
+  ovelha_id: string;
+  pastor_id: string;
+  data: string;
+  duracao_minutos: number | null;
+  tipo: TipoEncontroPastoral;
+  estado_ovelha: EstadoOvelhaEncontro;
+  temas_abordados: string[] | null;
+  relato: string;
+  encaminhamentos: string | null;
+  proxima_reuniao: string | null;
+  nivel_abertura: number | null;
+  criado_em: string;
+}
+
+export const ESTADOS_ESPIRITUAL: { valor: EstadoEspiritual; label: string; cor: string }[] = [
+  { valor: 'crescendo', label: 'Crescendo', cor: '#0F6E56' },
+  { valor: 'estavel', label: 'Estável', cor: '#3C3489' },
+  { valor: 'atencao', label: 'Atenção', cor: '#854F0B' },
+  { valor: 'risco', label: 'Risco', cor: '#993C1D' },
+];
+
+export const ESTADOS_OVELHA_ENCONTRO: { valor: EstadoOvelhaEncontro; label: string; emoji: string }[] = [
+  { valor: 'muito_bem', label: 'Muito bem', emoji: '😊' },
+  { valor: 'bem', label: 'Bem', emoji: '🙂' },
+  { valor: 'estavel', label: 'Estável', emoji: '😐' },
+  { valor: 'dificuldade', label: 'Dificuldade', emoji: '😟' },
+  { valor: 'crise', label: 'Crise', emoji: '😰' },
+];
+
+export const ETAPAS_FORMACAO: { valor: EtapaFormacao; label: string }[] = [
+  { valor: 'inicio', label: 'Início' },
+  { valor: 'cv', label: 'CV' },
+  { valor: 'cal', label: 'CAL' },
+  { valor: 'obra', label: 'Obra' },
+  { valor: 'integrado', label: 'Integrado' },
+];

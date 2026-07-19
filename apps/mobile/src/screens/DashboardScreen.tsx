@@ -1,17 +1,30 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Users, UserPlus, Tent, Wallet, ArrowRight } from 'lucide-react-native';
+import { Users, UserPlus, Tent, Wallet, ArrowRight, HandHeart, Heart, ChevronRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { MetricCard } from '../components/ui/MetricCard';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Button } from '../components/ui/Button';
 import { carregarDashboard, type DadosDashboard } from '../lib/dashboard';
+import type { Perfil } from '../types/database';
 
-export function DashboardScreen({ comunidadeId }: { comunidadeId: string }) {
+// Perfis que acompanham ovelhas (não existe perfil "pastor" no schema — usamos liderança)
+const PERFIS_PASTORAL: Perfil[] = ['lider', 'coordenador', 'padre', 'admin'];
+
+export function DashboardScreen({
+  comunidadeId,
+  usuarioId,
+  perfil,
+}: {
+  comunidadeId: string;
+  usuarioId: string;
+  perfil: Perfil;
+}) {
   const navigation = useNavigation<any>();
   const [dados, setDados] = useState<DadosDashboard | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const podePastoral = PERFIS_PASTORAL.includes(perfil);
 
   useFocusEffect(
     useCallback(() => {
@@ -102,6 +115,25 @@ export function DashboardScreen({ comunidadeId }: { comunidadeId: string }) {
           style={styles.verFunil}
         />
       </View>
+
+      {/* Acesso a Ministérios e Pastoral */}
+      <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Ministerios')}>
+        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+          <HandHeart size={18} color={colors.primary} />
+        </View>
+        <Text style={styles.acessoLabel}>Meus ministérios</Text>
+        <ChevronRight size={18} color={colors.textMuted} />
+      </Pressable>
+
+      {podePastoral && (
+        <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Pastoral')}>
+          <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+            <Heart size={18} color={colors.primary} />
+          </View>
+          <Text style={styles.acessoLabel}>Acompanhamento pastoral</Text>
+          <ChevronRight size={18} color={colors.textMuted} />
+        </Pressable>
+      )}
     </ScrollView>
   );
 }
@@ -124,6 +156,19 @@ const styles = StyleSheet.create({
   },
   secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text },
   vazio: { fontSize: 14, color: colors.textMuted, marginTop: 12 },
+  acessoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  acessoIcone: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  acessoLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
   funilLista: { marginTop: 12, gap: 12 },
   funilItem: { gap: 6 },
   funilLinha: { flexDirection: 'row', justifyContent: 'space-between' },

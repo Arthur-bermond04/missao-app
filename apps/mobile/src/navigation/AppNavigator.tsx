@@ -15,6 +15,10 @@ import { RetiroDetalheScreen } from '../screens/RetiroDetalheScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { FunilScreen } from '../screens/FunilScreen';
+import { MinisteriosScreen } from '../screens/MinisteriosScreen';
+import { MinisterioDetalheScreen } from '../screens/MinisterioDetalheScreen';
+import { PastoralScreen } from '../screens/PastoralScreen';
+import { OvelhaDetalheScreen } from '../screens/OvelhaDetalheScreen';
 import { FinanceiroScreen } from '../screens/FinanceiroScreen';
 import { MensagensScreen } from '../screens/MensagensScreen';
 import { PerfilScreen } from '../screens/PerfilScreen';
@@ -92,15 +96,32 @@ function MissaoStackNavigator({ usuario }: { usuario: Usuario }) {
 // ---------------------------------------------------------------------------
 const DashboardStack = createNativeStackNavigator();
 
-function DashboardStackNavigator({ comunidadeId }: { comunidadeId: string }) {
+function DashboardStackNavigator({ usuario }: { usuario: Usuario }) {
+  const comunidadeId = usuario.comunidade_id as string;
   return (
     <DashboardStack.Navigator screenOptions={stackScreenOptions}>
       <DashboardStack.Screen name="Dashboard" options={{ title: 'Dashboard' }}>
-        {() => <DashboardScreen comunidadeId={comunidadeId} />}
+        {() => <DashboardScreen comunidadeId={comunidadeId} usuarioId={usuario.id} perfil={usuario.perfil} />}
       </DashboardStack.Screen>
       <DashboardStack.Screen name="Funil" options={{ title: 'Funil' }}>
         {() => <FunilScreen comunidadeId={comunidadeId} />}
       </DashboardStack.Screen>
+      <DashboardStack.Screen name="Ministerios" options={{ title: 'Ministérios' }}>
+        {() => <MinisteriosScreen usuarioId={usuario.id} />}
+      </DashboardStack.Screen>
+      <DashboardStack.Screen
+        name="MinisterioDetalhe"
+        component={MinisterioDetalheScreen}
+        options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Ministério' })}
+      />
+      <DashboardStack.Screen name="Pastoral" options={{ title: 'Pastoral' }}>
+        {() => <PastoralScreen comunidadeId={comunidadeId} usuarioId={usuario.id} />}
+      </DashboardStack.Screen>
+      <DashboardStack.Screen
+        name="OvelhaDetalhe"
+        component={OvelhaDetalheScreen}
+        options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Ovelha' })}
+      />
     </DashboardStack.Navigator>
   );
 }
@@ -196,7 +217,7 @@ function TabsAutenticado({
         {() => <MissaoStackNavigator usuario={usuario} />}
       </Tab.Screen>
       <Tab.Screen name="DashboardTab" options={{ title: 'Dashboard', tabBarIcon: iconePara(LayoutDashboard) }}>
-        {() => <DashboardStackNavigator comunidadeId={comunidadeId} />}
+        {() => <DashboardStackNavigator usuario={usuario} />}
       </Tab.Screen>
       <Tab.Screen name="FinanceiroTab" options={{ title: 'Financeiro', tabBarIcon: iconePara(Wallet) }}>
         {() => <FinanceiroStackNavigator comunidadeId={comunidadeId} />}
