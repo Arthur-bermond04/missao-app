@@ -12,7 +12,7 @@ import {
   Users,
   Settings,
   HandHeart,
-  Heart,
+  HeartHandshake,
   type LucideIcon,
   LogOut,
 } from 'lucide-react';
@@ -25,7 +25,7 @@ export const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/funil', label: 'Funil', icon: Filter },
   { href: '/retiros', label: 'Retiros', icon: Tent },
   { href: '/ministerios', label: 'Ministérios', icon: HandHeart },
-  { href: '/pastoral', label: 'Pastoral', icon: Heart },
+  { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake },
   { href: '/mensagens', label: 'Mensagens', icon: MessageCircle },
   { href: '/financeiro', label: 'Financeiro', icon: Wallet },
   { href: '/membros', label: 'Membros', icon: Users },

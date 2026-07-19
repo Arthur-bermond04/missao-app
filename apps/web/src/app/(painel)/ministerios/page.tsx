@@ -194,7 +194,6 @@ export default function MinisteriosPage() {
                     }`}
                   >
                     {a.label}
-                    {a.bloqueada && <Lock size={12} />}
                   </button>
                 ))}
               </div>
@@ -215,15 +214,12 @@ export default function MinisteriosPage() {
                 )}
                 {aba === 'presenca' && <AbaPresenca membros={membros} encontros={encontros} presencas={presencas} />}
                 {(aba === 'caixa' || aba === 'doacoes') && semCaixa ? (
-                  <div className="rounded-lg border border-warning-light bg-warning-light/40 p-6 text-center">
-                    <Lock className="mx-auto text-warning" size={28} />
-                    <p className="mt-3 text-sm font-semibold text-text-primary">
-                      Caixa e relatório de doadores estão disponíveis no plano Missão
-                    </p>
-                    <Button className="mt-4" onClick={() => setModalUpgrade(true)}>
-                      Fazer upgrade
-                    </Button>
-                  </div>
+                  <EmptyState
+                    icon={Lock}
+                    title="Disponível no plano Missão"
+                    description="Controle o caixa do ministério, registre doações e gere relatórios de doadores."
+                    action={{ label: 'Ver planos', onClick: () => setModalUpgrade(true) }}
+                  />
                 ) : (
                   <>
                     {aba === 'caixa' && comunidadeId && (

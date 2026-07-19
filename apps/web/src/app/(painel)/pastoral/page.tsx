@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Heart, Sprout, AlertTriangle, ShieldAlert, Users, Lock, ChevronRight } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
@@ -14,20 +15,23 @@ import { NovaOvelhaModal } from '@/components/pastoral/NovaOvelhaModal';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { avaliarOvelha, listarOvelhas } from '@/lib/pastoral';
-import type { Comunidade, PastoralEncontro, PastoralOvelha, PastoralPresenca } from '@/types/database';
+import type { Comunidade, PastoralEncontro, PastoralOvelha, PastoralPresenca, Usuario } from '@/types/database';
 
 const LIMITE_OVELHAS_SEMENTE = 5;
 
 export default function PastoralPage() {
   const { usuario } = usePainelSession();
   const comunidadeId = usuario?.comunidade_id ?? null;
+  const searchParams = useSearchParams();
 
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
   const [presencas, setPresencas] = useState<PastoralPresenca[]>([]);
   const [modalNova, setModalNova] = useState(false);
   const [modalUpgrade, setModalUpgrade] = useState(false);
+  const [prefill, setPrefill] = useState<{ nome?: string; telefone?: string } | null>(null);
 
   const plano = comunidade?.plano ?? 'semente';
   const temIndicadores = plano !== 'semente';
@@ -54,8 +58,23 @@ export default function PastoralPage() {
   useEffect(() => {
     if (!comunidadeId) return;
     buscarComunidade(comunidadeId).then(setComunidade);
+    supabase
+      .from('usuarios')
+      .select('*')
+      .eq('comunidade_id', comunidadeId)
+      .order('nome', { ascending: true })
+      .then(({ data }) => setUsuarios((data as Usuario[]) ?? []));
     carregar();
   }, [comunidadeId, carregar]);
+
+  // Integração (P4a/P4b): abre o modal pré-preenchido quando chega de um contato/inscrito
+  useEffect(() => {
+    const nome = searchParams.get('nome');
+    if (nome) {
+      setPrefill({ nome, telefone: searchParams.get('telefone') ?? undefined });
+      setModalNova(true);
+    }
+  }, [searchParams]);
 
   const ativas = ovelhas.filter((o) => o.ativo);
   const contagem = {
@@ -118,15 +137,24 @@ export default function PastoralPage() {
         icon={Heart}
         title="Acompanhamento Pastoral"
         subtitle="Suas ovelhas · registros confidenciais"
-        actions={<Button onClick={handleNova}>+ Nova ovelha</Button>}
+        actions={
+          <Button onClick={handleNova} title="Adicionar uma pessoa ao seu acompanhamento pastoral">
+            + Adicionar pessoa
+          </Button>
+        }
       />
 
       {comunidadeId && usuario && (
         <NovaOvelhaModal
           open={modalNova}
-          onClose={() => setModalNova(false)}
+          onClose={() => {
+            setModalNova(false);
+            setPrefill(null);
+          }}
           comunidadeId={comunidadeId}
           pastorId={usuario.id}
+          usuarios={usuarios}
+          prefill={prefill}
           onCriada={carregar}
         />
       )}
@@ -215,7 +243,7 @@ export default function PastoralPage() {
             icon={Heart}
             title="Nenhuma ovelha ainda"
             description="Comece registrando as pessoas que você acompanha pastoralmente."
-            action={{ label: '+ Nova ovelha', onClick: handleNova }}
+            action={{ label: '+ Adicionar pessoa', onClick: handleNova }}
           />
         ) : (
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">

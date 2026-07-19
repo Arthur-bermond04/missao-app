@@ -36,6 +36,7 @@ export async function criarOvelha(dados: {
   comunidade_id: string;
   pastor_id: string;
   nome: string;
+  usuario_id?: string;
   telefone?: string;
   email?: string;
   idade?: number;
@@ -51,6 +52,7 @@ export async function criarOvelha(dados: {
       comunidade_id: dados.comunidade_id,
       pastor_id: dados.pastor_id,
       nome: dados.nome,
+      usuario_id: dados.usuario_id || null,
       telefone: dados.telefone || null,
       email: dados.email || null,
       idade: dados.idade ?? null,

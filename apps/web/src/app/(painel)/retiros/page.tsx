@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Tent, Search } from 'lucide-react';
+import Link from 'next/link';
+import { Tent, Search, HeartHandshake } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -365,6 +366,17 @@ export default function RetirosPage() {
                       ),
                     },
                   ]}
+                  rowActions={(i) => (
+                    <Link
+                      href={`/pastoral?nome=${encodeURIComponent(i.nome ?? '')}${
+                        i.telefone ? `&telefone=${encodeURIComponent(i.telefone)}` : ''
+                      }`}
+                      title="Adicionar ao acompanhamento pastoral"
+                      className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-primary px-2 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
+                    >
+                      <HeartHandshake size={12} /> Pastoral
+                    </Link>
+                  )}
                   emptyState={
                     <EmptyState
                       icon={Tent}

@@ -13,6 +13,8 @@ import { FunilBarChart } from '@/components/dashboard/FunilBarChart';
 import { MembrosLineChart } from '@/components/dashboard/MembrosLineChart';
 import { ReceitaDespesaChart } from '@/components/dashboard/ReceitaDespesaChart';
 import { LimiteContatosBanner } from '@/components/dashboard/LimiteContatosBanner';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { OnboardingBanner } from '@/components/dashboard/OnboardingBanner';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { ETAPAS_FUNIL, type Comunidade, type Contato, type Financeiro, type Retiro, type Usuario } from '@/types/database';
@@ -176,6 +178,11 @@ export default function DashboardPage() {
         <p className="mt-6 text-sm text-text-secondary">Carregando dados...</p>
       ) : (
         <>
+          {/* Onboarding: só quando a comunidade está zerada */}
+          {usuario && membrosAtivos <= 1 && contatos.length === 0 && !proximoRetiro && (
+            <OnboardingBanner usuario={usuario} />
+          )}
+
           {/* Cards */}
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
             <MetricCard
@@ -271,6 +278,11 @@ export default function DashboardPage() {
                 </span>
               </div>
             </Link>
+          </div>
+
+          {/* Ações rápidas */}
+          <div className="mt-6">
+            <QuickActions />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">

@@ -1,18 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Lock } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
+import { Combobox } from '@/components/ui/Combobox';
 import { criarOvelha } from '@/lib/pastoral';
+import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
 import {
   ETAPAS_FORMACAO,
   FREQUENCIAS_ACOMPANHAMENTO,
   type EtapaFormacao,
   type FrequenciaAcompanhamento,
+  type Usuario,
 } from '@/types/database';
 
 interface NovaOvelhaModalProps {
@@ -20,10 +24,21 @@ interface NovaOvelhaModalProps {
   onClose: () => void;
   comunidadeId: string;
   pastorId: string;
+  usuarios: Usuario[];
+  prefill?: { nome?: string; telefone?: string } | null;
   onCriada: () => void;
 }
 
-export function NovaOvelhaModal({ open, onClose, comunidadeId, pastorId, onCriada }: NovaOvelhaModalProps) {
+export function NovaOvelhaModal({
+  open,
+  onClose,
+  comunidadeId,
+  pastorId,
+  usuarios,
+  prefill,
+  onCriada,
+}: NovaOvelhaModalProps) {
+  const [usuarioId, setUsuarioId] = useState('');
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [idade, setIdade] = useState('');
@@ -31,6 +46,23 @@ export function NovaOvelhaModal({ open, onClose, comunidadeId, pastorId, onCriad
   const [frequencia, setFrequencia] = useState<FrequenciaAcompanhamento>('mensal');
   const [objetivo, setObjetivo] = useState('');
   const [salvando, setSalvando] = useState(false);
+
+  // aplica o pré-preenchimento (vindo de contato/retiro) ao abrir
+  useEffect(() => {
+    if (open && prefill) {
+      setNome(prefill.nome ?? '');
+      setTelefone(prefill.telefone ?? '');
+    }
+  }, [open, prefill]);
+
+  function selecionarMembro(id: string) {
+    setUsuarioId(id);
+    const u = usuarios.find((x) => x.id === id);
+    if (u) {
+      setNome(u.nome);
+      if (u.telefone) setTelefone(u.telefone);
+    }
+  }
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
@@ -40,12 +72,14 @@ export function NovaOvelhaModal({ open, onClose, comunidadeId, pastorId, onCriad
         comunidade_id: comunidadeId,
         pastor_id: pastorId,
         nome: nome.trim(),
+        usuario_id: usuarioId || undefined,
         telefone: telefone.trim() || undefined,
         idade: idade ? Number(idade) : undefined,
         etapa_formacao: etapa,
         frequencia_acompanhamento: frequencia,
         objetivo_atual: objetivo.trim() || undefined,
       });
+      setUsuarioId('');
       setNome('');
       setTelefone('');
       setIdade('');
@@ -54,17 +88,29 @@ export function NovaOvelhaModal({ open, onClose, comunidadeId, pastorId, onCriad
       setFrequencia('mensal');
       onCriada();
       onClose();
-      toastSuccess('Ovelha adicionada!');
+      toastSuccess('Pessoa adicionada ao acompanhamento!');
     } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Erro ao adicionar ovelha.');
+      toastError(err instanceof Error ? err.message : 'Erro ao adicionar.');
     } finally {
       setSalvando(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nova ovelha">
+    <Modal open={open} onClose={onClose} title="Nova pessoa — Acompanhamento Pastoral">
+      <p className="mb-4 flex items-start gap-2 rounded-md bg-primary-xlight p-3 text-xs text-primary">
+        <Lock size={14} className="mt-0.5 shrink-0" />
+        Registre alguém que você acompanha pastoralmente. Os registros são confidenciais e visíveis apenas por você.
+      </p>
       <form onSubmit={handleSalvar} className="space-y-3">
+        <Combobox
+          label="Vincular a membro cadastrado (opcional)"
+          value={usuarioId}
+          onChange={selecionarMembro}
+          placeholder="Buscar membro..."
+          emptyMessage="Nenhum membro encontrado"
+          options={usuarios.map((u) => ({ value: u.id, label: u.nome, sublabel: PERFIL_LABEL[u.perfil] }))}
+        />
         <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
         <div className="flex gap-2">
           <div className="flex-1">

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Filter, PartyPopper } from 'lucide-react';
+import Link from 'next/link';
+import { Filter, PartyPopper, HeartHandshake } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -178,12 +179,22 @@ export default function FunilPage() {
         ) : (
           <ul className="mt-3 divide-y divide-border">
             {travados.map((c) => (
-              <li key={c.id} className="flex justify-between py-2 text-sm">
-                <span className="text-text-primary">{c.nome}</span>
-                <span className="text-text-secondary">
-                  {c.local_abordagem ?? 'Local não informado'} ·{' '}
-                  {new Date(c.data_abordagem).toLocaleDateString('pt-BR')}
-                </span>
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                <div>
+                  <span className="text-text-primary">{c.nome}</span>
+                  <span className="ml-2 text-text-secondary">
+                    {c.local_abordagem ?? 'Local não informado'} ·{' '}
+                    {new Date(c.data_abordagem).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+                <Link
+                  href={`/pastoral?nome=${encodeURIComponent(c.nome)}${
+                    c.telefone ? `&telefone=${encodeURIComponent(c.telefone)}` : ''
+                  }`}
+                  className="inline-flex items-center gap-1 rounded-md border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
+                >
+                  <HeartHandshake size={13} /> Iniciar acompanhamento
+                </Link>
               </li>
             ))}
           </ul>

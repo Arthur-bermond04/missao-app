@@ -1,9 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, CalendarPlus } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, CalendarPlus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
+import { Combobox } from '@/components/ui/Combobox';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RegistrarEncontroModal } from './RegistrarEncontroModal';
@@ -12,6 +14,7 @@ import {
   calcularFrequencia,
   type MembroDetalhe,
 } from '@/lib/ministerios';
+import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
 import {
   CARGOS_MINISTERIO,
@@ -90,32 +93,44 @@ export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios
       />
 
       {/* Adicionar membro */}
-      <div className="flex flex-wrap items-end gap-2 rounded-lg bg-bg-page p-3">
-        <div className="min-w-[180px] flex-1">
-          <Select
-            label="Adicionar membro"
-            value={novoUsuarioId}
-            onChange={(e) => setNovoUsuarioId(e.target.value)}
-            options={[
-              { value: '', label: 'Selecione um usuário' },
-              ...usuariosDisponiveis.map((u) => ({ value: u.id, label: u.nome })),
-            ]}
-          />
+      <div className="rounded-lg bg-bg-page p-3">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="min-w-[200px] flex-1">
+            <Combobox
+              label="Adicionar membro"
+              value={novoUsuarioId}
+              onChange={setNovoUsuarioId}
+              placeholder="Buscar por nome..."
+              emptyMessage="Nenhum usuário encontrado"
+              options={usuariosDisponiveis.map((u) => ({
+                value: u.id,
+                label: u.nome,
+                sublabel: PERFIL_LABEL[u.perfil],
+              }))}
+            />
+          </div>
+          <div className="w-40">
+            <Select
+              label="Cargo"
+              value={novoCargo}
+              onChange={(e) => setNovoCargo(e.target.value as CargoMinisterio)}
+              options={CARGOS_MINISTERIO.map((c) => ({ value: c.valor, label: c.label }))}
+            />
+          </div>
+          <Button icon={Plus} onClick={handleAdicionar} loading={adicionando} disabled={!novoUsuarioId}>
+            Adicionar
+          </Button>
+          <Button variant="secondary" icon={CalendarPlus} onClick={() => setModalEncontro(true)}>
+            Registrar encontro
+          </Button>
         </div>
-        <div className="w-40">
-          <Select
-            label="Cargo"
-            value={novoCargo}
-            onChange={(e) => setNovoCargo(e.target.value as CargoMinisterio)}
-            options={CARGOS_MINISTERIO.map((c) => ({ value: c.valor, label: c.label }))}
-          />
-        </div>
-        <Button icon={Plus} onClick={handleAdicionar} loading={adicionando} disabled={!novoUsuarioId}>
-          Adicionar
-        </Button>
-        <Button variant="secondary" icon={CalendarPlus} onClick={() => setModalEncontro(true)}>
-          Registrar encontro
-        </Button>
+        {/* P4e: só é possível adicionar quem já está cadastrado como usuário */}
+        <p className="mt-2 text-xs text-text-secondary">
+          Não encontrou a pessoa? Ela precisa estar cadastrada no app.{' '}
+          <Link href="/membros" className="inline-flex items-center gap-0.5 font-medium text-primary">
+            Convidar em Membros <ArrowRight size={12} />
+          </Link>
+        </p>
       </div>
 
       {/* Lista de membros */}

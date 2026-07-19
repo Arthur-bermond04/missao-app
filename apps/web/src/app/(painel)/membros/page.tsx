@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Users, UserPlus, Search } from 'lucide-react';
+import Link from 'next/link';
+import { Users, UserPlus, Search, HeartHandshake } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/Input';
@@ -125,7 +126,14 @@ export default function MembrosPage() {
               { key: 'ativo', header: 'Status', render: (m) => <Badge variant={m.ativo ? 'ativo' : 'inativo'} /> },
             ]}
             rowActions={(m) => (
-              <div className="flex justify-end gap-2">
+              <div className="flex items-center justify-end gap-2">
+                <Link
+                  href={`/pastoral?nome=${encodeURIComponent(m.nome)}${m.telefone ? `&telefone=${encodeURIComponent(m.telefone)}` : ''}`}
+                  title="Iniciar/ver acompanhamento pastoral"
+                  className="rounded-md p-1.5 text-primary hover:bg-primary-xlight"
+                >
+                  <HeartHandshake size={16} />
+                </Link>
                 <Button size="sm" variant="secondary" onClick={() => setMembroEditando(m)}>
                   Editar
                 </Button>
