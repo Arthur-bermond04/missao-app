@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { LayoutDashboard, Users, UserPlus, HeartHandshake, Tent, Wallet } from 'lucide-react';
+import Link from 'next/link';
+import { LayoutDashboard, Users, UserPlus, HeartHandshake, Tent, Wallet, HandHeart, Heart } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
+import { resumoMinisterios } from '@/lib/ministerios';
+import { resumoPastoral, type ResumoPastoral } from '@/lib/pastoral';
 import { FunilBarChart } from '@/components/dashboard/FunilBarChart';
 import { MembrosLineChart } from '@/components/dashboard/MembrosLineChart';
 import { ReceitaDespesaChart } from '@/components/dashboard/ReceitaDespesaChart';
@@ -42,10 +45,19 @@ export default function DashboardPage() {
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [modalUpgradeAberto, setModalUpgradeAberto] = useState(false);
+  const [resumoMin, setResumoMin] = useState<{ totalAtivos: number; totalMembros: number; saldo: number } | null>(null);
+  const [resumoPast, setResumoPast] = useState<ResumoPastoral | null>(null);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
     buscarComunidade(usuario.comunidade_id).then(setComunidade).catch(() => setComunidade(null));
+  }, [usuario?.comunidade_id]);
+
+  useEffect(() => {
+    if (!usuario?.comunidade_id) return;
+    const comunidadeId = usuario.comunidade_id;
+    resumoMinisterios(comunidadeId).then(setResumoMin).catch(() => setResumoMin(null));
+    resumoPastoral(comunidadeId).then(setResumoPast).catch(() => setResumoPast(null));
   }, [usuario?.comunidade_id]);
 
   useEffect(() => {
@@ -207,6 +219,58 @@ export default function DashboardPage() {
                   : undefined
               }
             />
+          </div>
+
+          {/* Ministérios + Pastoral */}
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Link href="/ministerios" className="rounded-lg bg-bg-card p-5 shadow-card transition-all hover:shadow-hover">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-xlight text-primary">
+                  <HandHeart size={16} />
+                </div>
+                <h3 className="text-sm font-bold text-text-primary">Ministérios</h3>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                <span className="text-text-secondary">
+                  Ativos: <span className="font-bold text-text-primary">{resumoMin?.totalAtivos ?? 0}</span>
+                </span>
+                <span className="text-text-secondary">
+                  Membros: <span className="font-bold text-text-primary">{resumoMin?.totalMembros ?? 0}</span>
+                </span>
+                <span className="text-text-secondary">
+                  Saldo dos caixas:{' '}
+                  <span className="font-bold text-accent">R$ {(resumoMin?.saldo ?? 0).toFixed(2)}</span>
+                </span>
+              </div>
+            </Link>
+
+            <Link href="/pastoral" className="rounded-lg bg-bg-card p-5 shadow-card transition-all hover:shadow-hover">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-xlight text-primary">
+                  <Heart size={16} />
+                </div>
+                <h3 className="text-sm font-bold text-text-primary">Pastoral</h3>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                <span className="text-text-secondary">
+                  Ovelhas: <span className="font-bold text-text-primary">{resumoPast?.totalAtivas ?? 0}</span>
+                </span>
+                <span className="text-text-secondary">
+                  Atenção/Risco:{' '}
+                  <span
+                    className={`font-bold ${
+                      (resumoPast?.atencao ?? 0) + (resumoPast?.risco ?? 0) > 0 ? 'text-danger' : 'text-text-primary'
+                    }`}
+                  >
+                    {(resumoPast?.atencao ?? 0) + (resumoPast?.risco ?? 0)}
+                  </span>
+                </span>
+                <span className="text-text-secondary">
+                  Reuniões esta semana:{' '}
+                  <span className="font-bold text-text-primary">{resumoPast?.proximasReunioesSemana ?? 0}</span>
+                </span>
+              </div>
+            </Link>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">

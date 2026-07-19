@@ -141,3 +141,211 @@ export interface MensagemTemplate {
   corpo: string;
   criado_em: string;
 }
+
+// =========================================================
+// MINISTÉRIOS
+// =========================================================
+
+export type TipoMinisterio = 'servico' | 'pastoral' | 'formacao';
+export type CargoMinisterio = 'coordenador' | 'vice-coordenador' | 'membro';
+export type CategoriaMinisterioFinanceiro = 'doacao' | 'repasse_comunidade' | 'material' | 'evento' | 'outros';
+
+export interface Ministerio {
+  id: string;
+  comunidade_id: string;
+  nome: string;
+  descricao: string | null;
+  tipo: TipoMinisterio;
+  coordenador_id: string | null;
+  cor: string;
+  ativo: boolean;
+  criado_em: string;
+}
+
+export interface MinisterioMembro {
+  id: string;
+  ministerio_id: string;
+  usuario_id: string;
+  cargo: CargoMinisterio;
+  ativo: boolean;
+  entrou_em: string;
+  saiu_em: string | null;
+  criado_em: string;
+}
+
+export interface MinisterioEncontro {
+  id: string;
+  ministerio_id: string;
+  titulo: string;
+  descricao: string | null;
+  data: string;
+  horario: string | null;
+  local: string | null;
+  criado_em: string;
+}
+
+export interface MinisterioPresenca {
+  id: string;
+  encontro_id: string;
+  usuario_id: string;
+  presente: boolean;
+  justificativa: string | null;
+  criado_em: string;
+}
+
+export interface MinisterioFinanceiro {
+  id: string;
+  ministerio_id: string;
+  comunidade_id: string;
+  tipo: TipoFinanceiro;
+  categoria: CategoriaMinisterioFinanceiro;
+  descricao: string | null;
+  valor: number;
+  doador_id: string | null;
+  doador_nome: string | null;
+  data: string;
+  criado_em: string;
+}
+
+export const TIPOS_MINISTERIO: { valor: TipoMinisterio; label: string }[] = [
+  { valor: 'servico', label: 'Serviço' },
+  { valor: 'pastoral', label: 'Pastoral' },
+  { valor: 'formacao', label: 'Formação' },
+];
+
+export const CARGOS_MINISTERIO: { valor: CargoMinisterio; label: string }[] = [
+  { valor: 'coordenador', label: 'Coordenador' },
+  { valor: 'vice-coordenador', label: 'Vice-coordenador' },
+  { valor: 'membro', label: 'Membro' },
+];
+
+export const CATEGORIAS_MINISTERIO_FINANCEIRO: { valor: CategoriaMinisterioFinanceiro; label: string }[] = [
+  { valor: 'doacao', label: 'Doação' },
+  { valor: 'repasse_comunidade', label: 'Repasse da comunidade' },
+  { valor: 'material', label: 'Material' },
+  { valor: 'evento', label: 'Evento' },
+  { valor: 'outros', label: 'Outros' },
+];
+
+export const CORES_MINISTERIO = [
+  '#3C3489',
+  '#0F6E56',
+  '#854F0B',
+  '#993C1D',
+  '#185FA5',
+  '#7A3E9D',
+  '#B0327A',
+  '#2A6F6F',
+] as const;
+
+// =========================================================
+// ACOMPANHAMENTO PASTORAL
+// =========================================================
+
+export type EtapaFormacao = 'inicio' | 'cv' | 'cal' | 'obra' | 'integrado';
+export type EstadoEspiritual = 'crescendo' | 'estavel' | 'atencao' | 'risco';
+export type FrequenciaAcompanhamento = 'semanal' | 'quinzenal' | 'mensal' | 'sob_demanda';
+export type TipoEncontroPastoral = 'presencial' | 'online' | 'telefone' | 'mensagem';
+export type EstadoOvelhaEncontro = 'muito_bem' | 'bem' | 'estavel' | 'dificuldade' | 'crise';
+export type TemaPastoral =
+  | 'oracao'
+  | 'vida_familiar'
+  | 'trabalho'
+  | 'fe'
+  | 'relacionamentos'
+  | 'missao'
+  | 'saude'
+  | 'financeiro';
+export type TipoEventoPastoral = 'missa' | 'celula' | 'retiro' | 'ministerio' | 'formacao';
+
+export interface PastoralOvelha {
+  id: string;
+  comunidade_id: string;
+  pastor_id: string;
+  usuario_id: string | null;
+  nome: string;
+  telefone: string | null;
+  email: string | null;
+  idade: number | null;
+  etapa_formacao: EtapaFormacao;
+  estado_espiritual: EstadoEspiritual;
+  data_inicio_acompanhamento: string;
+  frequencia_acompanhamento: FrequenciaAcompanhamento;
+  objetivo_atual: string | null;
+  proxima_reuniao: string | null;
+  ativo: boolean;
+  criado_em: string;
+}
+
+export interface PastoralEncontro {
+  id: string;
+  ovelha_id: string;
+  pastor_id: string;
+  data: string;
+  duracao_minutos: number | null;
+  tipo: TipoEncontroPastoral;
+  estado_ovelha: EstadoOvelhaEncontro;
+  temas_abordados: TemaPastoral[] | null;
+  relato: string;
+  encaminhamentos: string | null;
+  proxima_reuniao: string | null;
+  nivel_abertura: number | null;
+  criado_em: string;
+}
+
+export interface PastoralPresenca {
+  id: string;
+  ovelha_id: string;
+  tipo_evento: TipoEventoPastoral;
+  nome_evento: string | null;
+  data: string;
+  presente: boolean;
+  criado_em: string;
+}
+
+export const ETAPAS_FORMACAO: { valor: EtapaFormacao; label: string }[] = [
+  { valor: 'inicio', label: 'Início' },
+  { valor: 'cv', label: 'CV' },
+  { valor: 'cal', label: 'CAL' },
+  { valor: 'obra', label: 'Obra' },
+  { valor: 'integrado', label: 'Integrado' },
+];
+
+export const ESTADOS_ESPIRITUAL: { valor: EstadoEspiritual; label: string }[] = [
+  { valor: 'crescendo', label: 'Crescendo' },
+  { valor: 'estavel', label: 'Estável' },
+  { valor: 'atencao', label: 'Atenção' },
+  { valor: 'risco', label: 'Risco' },
+];
+
+export const FREQUENCIAS_ACOMPANHAMENTO: { valor: FrequenciaAcompanhamento; label: string; dias: number }[] = [
+  { valor: 'semanal', label: 'Semanal', dias: 7 },
+  { valor: 'quinzenal', label: 'Quinzenal', dias: 15 },
+  { valor: 'mensal', label: 'Mensal', dias: 30 },
+  { valor: 'sob_demanda', label: 'Sob demanda', dias: 90 },
+];
+
+// Estado da ovelha em cada encontro + pontuação para o gráfico de evolução
+export const ESTADOS_OVELHA_ENCONTRO: {
+  valor: EstadoOvelhaEncontro;
+  label: string;
+  emoji: string;
+  score: number;
+}[] = [
+  { valor: 'muito_bem', label: 'Muito bem', emoji: '😊', score: 5 },
+  { valor: 'bem', label: 'Bem', emoji: '🙂', score: 4 },
+  { valor: 'estavel', label: 'Estável', emoji: '😐', score: 3 },
+  { valor: 'dificuldade', label: 'Dificuldade', emoji: '😟', score: 2 },
+  { valor: 'crise', label: 'Crise', emoji: '😰', score: 1 },
+];
+
+export const TEMAS_PASTORAL: { valor: TemaPastoral; label: string }[] = [
+  { valor: 'oracao', label: 'Oração' },
+  { valor: 'vida_familiar', label: 'Vida familiar' },
+  { valor: 'trabalho', label: 'Trabalho' },
+  { valor: 'fe', label: 'Fé' },
+  { valor: 'relacionamentos', label: 'Relacionamentos' },
+  { valor: 'missao', label: 'Missão' },
+  { valor: 'saude', label: 'Saúde' },
+  { valor: 'financeiro', label: 'Financeiro' },
+];

@@ -11,8 +11,10 @@ import {
   Wallet,
   Users,
   Settings,
-  LogOut,
+  HandHeart,
+  Heart,
   type LucideIcon,
+  LogOut,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -22,6 +24,8 @@ export const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/funil', label: 'Funil', icon: Filter },
   { href: '/retiros', label: 'Retiros', icon: Tent },
+  { href: '/ministerios', label: 'Ministérios', icon: HandHeart },
+  { href: '/pastoral', label: 'Pastoral', icon: Heart },
   { href: '/mensagens', label: 'Mensagens', icon: MessageCircle },
   { href: '/financeiro', label: 'Financeiro', icon: Wallet },
   { href: '/membros', label: 'Membros', icon: Users },

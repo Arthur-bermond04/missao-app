@@ -7,18 +7,30 @@ import { toastInfo } from '@/lib/toast';
 import type { Plano } from '@/types/database';
 
 const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[] = [
-  { valor: 'semente', nome: 'Semente', preco: 'Grátis', recursos: ['Até 50 contatos', '1 retiro ativo', 'Avisos simplificados'] },
+  {
+    valor: 'semente',
+    nome: 'Semente',
+    preco: 'Grátis',
+    recursos: ['Até 50 contatos', '1 retiro ativo', 'Até 2 ministérios', 'Até 5 ovelhas na pastoral', 'Avisos simplificados'],
+  },
   {
     valor: 'missao',
     nome: 'Missão',
     preco: 'R$ 39/mês',
-    recursos: ['Contatos ilimitados', 'Funil completo', 'Lembretes e WhatsApp', 'Exportação e IA'],
+    recursos: [
+      'Contatos ilimitados',
+      'Funil completo',
+      'Lembretes e WhatsApp',
+      'Ministérios ilimitados + caixa e doadores',
+      'Pastoral ilimitada com indicadores e alertas',
+      'Exportação Excel/PDF e IA',
+    ],
   },
   {
     valor: 'diocese',
     nome: 'Diocese',
     preco: 'Sob consulta',
-    recursos: ['Multi-paróquia', 'Painel consolidado', 'Suporte prioritário'],
+    recursos: ['Multi-paróquia', 'Painel consolidado (todos os pastores)', 'Suporte prioritário'],
   },
 ];
 
