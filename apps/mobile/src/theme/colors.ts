@@ -15,4 +15,15 @@ export const colors = {
   textMuted: '#6E6A85',
   border: '#E4E2F0',
   danger: '#D64545',
+
+  // Tokens alinhados ao design system do painel web (adicionados para as telas novas;
+  // não altere/remova os acima para não mexer nas telas já existentes).
+  accent: '#0F6E56', // verde escuro — destaque positivo / receitas
+  accentLight: '#E1F5EE',
+  amber: '#854F0B', // âmbar escuro — alertas
+  amberLight: '#FAEEDA',
+  dangerText: '#993C1D', // vermelho escuro — despesas / erros (texto)
+  dangerLight: '#FAECE7',
+  info: '#185FA5', // azul — contatos cadastrados
+  infoLight: '#E4EFF8',
 };

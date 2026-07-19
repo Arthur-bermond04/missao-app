@@ -112,6 +112,15 @@ export interface MensagemEnviada {
   total_enviados: number;
 }
 
+export interface MensagemTemplate {
+  id: string;
+  comunidade_id: string;
+  nome: string;
+  titulo: string | null;
+  corpo: string;
+  criado_em: string;
+}
+
 export interface Lembrete {
   id: string;
   usuario_id: string;
@@ -121,6 +130,26 @@ export interface Lembrete {
   concluido: boolean;
   criado_em: string;
 }
+
+// Ordem das etapas da jornada — usada para montar o funil
+export const ETAPAS_FUNIL: { valor: EtapaJornada; label: string }[] = [
+  { valor: 'abordagem', label: 'Abordagens' },
+  { valor: 'celula', label: 'Foram à célula' },
+  { valor: 'retiro', label: 'Foram a retiro' },
+  { valor: 'cv', label: 'CV' },
+  { valor: 'cal', label: 'Integrados (CAL)' },
+];
+
+export const CATEGORIAS_FINANCEIRO = [
+  'dizimo',
+  'oferta',
+  'retiro',
+  'bazar',
+  'manutencao',
+  'material',
+  'salarios',
+  'outros',
+] as const;
 
 // Tags de interesse pré-definidas (Módulo 1 — Tela 2)
 export const TAGS_INTERESSE = [
