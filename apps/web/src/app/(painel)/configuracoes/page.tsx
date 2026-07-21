@@ -6,16 +6,20 @@ import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { AbaComunidade } from '@/components/configuracoes/AbaComunidade';
 import { AbaPlano } from '@/components/configuracoes/AbaPlano';
+import { AbaFinanceiro } from '@/components/configuracoes/AbaFinanceiro';
+import { AbaIntegracoes } from '@/components/configuracoes/AbaIntegracoes';
 import { AbaNotificacoes } from '@/components/configuracoes/AbaNotificacoes';
 import { AbaSeguranca } from '@/components/configuracoes/AbaSeguranca';
 import { buscarComunidade } from '@/lib/comunidades';
 import type { Comunidade, Usuario } from '@/types/database';
 
-type Aba = 'comunidade' | 'plano' | 'notificacoes' | 'seguranca';
+type Aba = 'comunidade' | 'plano' | 'financeiro' | 'integracoes' | 'notificacoes' | 'seguranca';
 
 const ABAS: { valor: Aba; label: string }[] = [
   { valor: 'comunidade', label: 'Comunidade' },
   { valor: 'plano', label: 'Plano' },
+  { valor: 'financeiro', label: 'Financeiro' },
+  { valor: 'integracoes', label: 'Integrações' },
   { valor: 'notificacoes', label: 'Notificações' },
   { valor: 'seguranca', label: 'Segurança' },
 ];
@@ -56,6 +60,10 @@ export default function ConfiguracoesPage() {
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
         {aba === 'comunidade' && (comunidade ? <AbaComunidade comunidade={comunidade} onAtualizada={setComunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
         {aba === 'plano' && (comunidade ? <AbaPlano comunidade={comunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
+        {aba === 'financeiro' &&
+          (comunidade ? <AbaFinanceiro comunidade={comunidade} onAtualizada={setComunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
+        {aba === 'integracoes' &&
+          (comunidade ? <AbaIntegracoes comunidade={comunidade} onAtualizada={setComunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
         {aba === 'notificacoes' && (usuarioLocal ? <AbaNotificacoes usuario={usuarioLocal} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
         {aba === 'seguranca' &&
           (usuarioLocal ? (

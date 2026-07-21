@@ -21,6 +21,12 @@ export interface Usuario {
   criado_em: string;
 }
 
+export interface HorarioMissa {
+  dia_semana: string;
+  horario: string;
+  local: string;
+}
+
 export interface Comunidade {
   id: string;
   nome: string;
@@ -31,6 +37,11 @@ export interface Comunidade {
   logo_url: string | null;
   meta_arrecadacao_mensal: number | null;
   categorias_financeiras: string[];
+  banco: string | null;
+  agencia: string | null;
+  conta: string | null;
+  google_calendar_url: string | null;
+  horarios_missa: HorarioMissa[];
   criado_em: string;
 }
 
