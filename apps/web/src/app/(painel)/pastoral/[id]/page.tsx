@@ -26,6 +26,7 @@ import {
   listarPresencasOvelha,
   scoreEstadoEncontro,
 } from '@/lib/pastoral';
+import { registrarAcessoRecente } from '@/lib/recentes';
 import {
   FREQUENCIAS_ACOMPANHAMENTO,
   TEMAS_PASTORAL,
@@ -74,6 +75,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         setOvelha(o);
         setEncontros(e);
         setPresencas(p);
+        if (o) registrarAcessoRecente({ tipo: 'ovelha', id: o.id, titulo: o.nome, href: `/pastoral/${o.id}` });
       })
       .finally(() => setCarregando(false));
   }, [id]);

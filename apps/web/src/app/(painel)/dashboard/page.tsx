@@ -16,6 +16,7 @@ import { ReceitaDespesaChart } from '@/components/dashboard/ReceitaDespesaChart'
 import { LimiteContatosBanner } from '@/components/dashboard/LimiteContatosBanner';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { OnboardingBanner } from '@/components/dashboard/OnboardingBanner';
+import { AcessadosRecentemente } from '@/components/dashboard/AcessadosRecentemente';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { ETAPAS_FUNIL, type Comunidade, type Contato, type Financeiro, type Retiro, type Usuario } from '@/types/database';
@@ -309,6 +310,10 @@ export default function DashboardPage() {
           {/* Ações rápidas */}
           <div className="mt-6">
             <QuickActions />
+          </div>
+
+          <div className="mt-6">
+            <AcessadosRecentemente />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">

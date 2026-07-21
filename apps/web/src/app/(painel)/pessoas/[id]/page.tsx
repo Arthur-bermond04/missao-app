@@ -17,6 +17,7 @@ import { AbaHistorico } from '@/components/pessoas/AbaHistorico';
 import { arquivarPessoa, buscarPessoa, listarInteracoes, listarRetirosDaPessoa } from '@/lib/pessoas';
 import { buscarOvelhaPorPessoa } from '@/lib/pastoral';
 import { listarMinisteriosDaPessoa } from '@/lib/ministerios';
+import { registrarAcessoRecente } from '@/lib/recentes';
 import { toastSuccess } from '@/lib/toast';
 import type { Ministerio, PastoralOvelha, Pessoa, PessoaInteracao, PessoaRetiro, Usuario } from '@/types/database';
 
@@ -51,6 +52,7 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
         setRetiros(r);
         setOvelha(o);
         setMinisteriosDaPessoa(m);
+        if (p) registrarAcessoRecente({ tipo: 'pessoa', id: p.id, titulo: p.nome, href: `/pessoas/${p.id}` });
       })
       .finally(() => setCarregando(false));
   }, [id]);
