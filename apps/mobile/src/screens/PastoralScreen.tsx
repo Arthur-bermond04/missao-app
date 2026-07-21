@@ -7,6 +7,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Button } from '../components/ui/Button';
 import { criarOvelha, listarOvelhas, reuniaoAtrasada } from '../lib/pastoral';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import { ESTADOS_ESPIRITUAL, type PastoralOvelha } from '../types/database';
 
 function EstadoBadge({ estado }: { estado: PastoralOvelha['estado_espiritual'] }) {
@@ -126,8 +127,10 @@ function NovaOvelhaModal({
       setTelefone('');
       onSalvo();
       onFechar();
+      hapticoSucesso();
       toastSucesso('Ovelha adicionada!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao adicionar.');
     } finally {
       setSalvando(false);

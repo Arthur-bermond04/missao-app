@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { TrendingUp, TrendingDown, Scale, X } from 'lucide-react-native';
@@ -17,6 +17,7 @@ import {
   type MembroDetalhe,
 } from '../lib/ministerios';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import {
   CATEGORIAS_FINANCEIRO,
   type MinisterioEncontro,
@@ -49,14 +50,22 @@ export function MinisterioDetalheScreen() {
   const [financeiro, setFinanceiro] = useState<MinisterioFinanceiro[]>([]);
   const [modalEncontro, setModalEncontro] = useState(false);
   const [modalLancamento, setModalLancamento] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(() => {
-    listarMembros(ministerioId).then(setMembros);
-    listarEncontros(ministerioId).then(setEncontros);
-    listarFinanceiro(ministerioId).then(setFinanceiro).catch(() => setFinanceiro([]));
+    return Promise.all([
+      listarMembros(ministerioId).then(setMembros),
+      listarEncontros(ministerioId).then(setEncontros),
+      listarFinanceiro(ministerioId).then(setFinanceiro).catch(() => setFinanceiro([])),
+    ]);
   }, [ministerioId]);
 
-  useFocusEffect(useCallback(() => carregar(), [carregar]));
+  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+
+  function atualizar() {
+    setAtualizando(true);
+    carregar().finally(() => setAtualizando(false));
+  }
 
   const { receitaMes, despesaMes, saldo } = useMemo(() => {
     const inicio = inicioMesAtual();
@@ -95,7 +104,10 @@ export function MinisterioDetalheScreen() {
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={styles.conteudo}>
+      <ScrollView
+        contentContainerStyle={styles.conteudo}
+        refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={colors.primary} />}
+      >
         {aba === 'membros' && (
           <View style={styles.lista}>
             {membros.map((m) => (
@@ -194,8 +206,10 @@ function EncontroModal({
       );
       onSalvo();
       onFechar();
+      hapticoSucesso();
       toastSucesso('Encontro registrado!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao registrar.');
     } finally {
       setSalvando(false);
@@ -274,8 +288,10 @@ function LancamentoModal({
       setValor('');
       onSalvo();
       onFechar();
+      hapticoSucesso();
       toastSucesso('Lançamento salvo!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao salvar.');
     } finally {
       setSalvando(false);

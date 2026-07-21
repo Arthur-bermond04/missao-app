@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MessageCircle, ChevronDown, ChevronUp, Send } from 'lucide-react-native';
 import { colors } from '../theme/colors';
@@ -8,6 +8,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { enviarMensagem, listarMensagens } from '../lib/mensagens';
 import { listarTemplates } from '../lib/mensagensTemplates';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import type { Canal, MensagemEnviada, MensagemTemplate } from '../types/database';
 
 const CANAIS: { valor: Canal; label: string }[] = [
@@ -82,15 +83,23 @@ export function MensagensScreen({
   const [titulo, setTitulo] = useState('');
   const [corpo, setCorpo] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      listarMensagens(comunidadeId).then(setHistorico);
+  const carregar = useCallback(() => {
+    return Promise.all([
+      listarMensagens(comunidadeId).then(setHistorico),
       listarTemplates(comunidadeId)
         .then(setTemplates)
-        .catch(() => setTemplates([]));
-    }, [comunidadeId])
-  );
+        .catch(() => setTemplates([])),
+    ]);
+  }, [comunidadeId]);
+
+  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+
+  function atualizar() {
+    setAtualizando(true);
+    carregar().finally(() => setAtualizando(false));
+  }
 
   async function handleEnviar() {
     if (!corpo.trim()) {
@@ -110,8 +119,10 @@ export function MensagensScreen({
       setHistorico((atual) => [nova, ...atual]);
       setTitulo('');
       setCorpo('');
+      hapticoSucesso();
       toastSucesso('Mensagem registrada! (envio real depende das integrações)');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao enviar. Tente novamente.');
     } finally {
       setEnviando(false);
@@ -119,7 +130,12 @@ export function MensagensScreen({
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.conteudo} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+      keyboardShouldPersistTaps="handled"
+      refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={colors.primary} />}
+    >
       <Text style={styles.titulo}>Mensagens</Text>
 
       <View style={styles.card}>

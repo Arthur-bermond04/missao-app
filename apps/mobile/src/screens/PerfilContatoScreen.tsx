@@ -6,6 +6,7 @@ import { BadgeInteresse } from '../components/BadgeInteresse';
 import { Avatar } from '../components/Avatar';
 import { listarContatosLocais, atualizarEtapaJornadaLocal } from '../lib/localDb';
 import { sincronizarContatos } from '../lib/sync';
+import { hapticoSucesso } from '../lib/haptics';
 import type { Contato, EtapaJornada } from '../types/database';
 
 const ETAPAS: { valor: EtapaJornada; label: string }[] = [
@@ -40,6 +41,7 @@ export function PerfilContatoScreen() {
     }
     await atualizarEtapaJornadaLocal(contato.id, proxima.valor);
     await carregar();
+    hapticoSucesso();
     sincronizarContatos();
   }
 

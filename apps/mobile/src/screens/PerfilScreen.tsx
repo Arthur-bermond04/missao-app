@@ -8,6 +8,7 @@ import { colors } from '../theme/colors';
 import { buscarComunidade } from '../lib/comunidades';
 import { redefinirDispositivo } from '../lib/usuarios';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import type { Perfil, Usuario } from '../types/database';
 
 const PERFIL_LABEL: Record<Perfil, string> = {
@@ -37,8 +38,10 @@ export function PerfilScreen({ usuario, onSair }: { usuario: Usuario; onSair: ()
     try {
       await redefinirDispositivo(usuario.id);
       setDispositivoId(null);
+      hapticoSucesso();
       toastSucesso('Dispositivo redefinido.');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao redefinir dispositivo.');
     } finally {
       setRedefinindo(false);

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { PartyPopper, ChevronRight } from 'lucide-react-native';
@@ -110,7 +110,20 @@ export function FunilScreen({ comunidadeId }: { comunidadeId: string }) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.conteudo}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+      refreshControl={
+        <RefreshControl
+          refreshing={carregando}
+          onRefresh={() => {
+            setCarregando(true);
+            listarContatosComunidade(comunidadeId).then(setContatos).finally(() => setCarregando(false));
+          }}
+          tintColor={colors.primary}
+        />
+      }
+    >
       <Text style={styles.titulo}>Funil de Evangelização</Text>
       <Text style={styles.subtitulo}>Acompanhe a jornada de cada pessoa</Text>
 

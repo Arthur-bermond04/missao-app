@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button';
 import { BadgeInteresse } from '../components/BadgeInteresse';
 import { criarPessoa, listarPessoas, proximoContatoVencido } from '../lib/pessoas';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import { ETAPAS_JORNADA_PESSOA, type Pessoa } from '../types/database';
 
 export function PessoasScreen({ comunidadeId, usuarioId }: { comunidadeId: string; usuarioId: string }) {
@@ -115,8 +116,10 @@ function NovaPessoaModal({
       setTelefone('');
       onSalvo();
       onFechar();
+      hapticoSucesso();
       toastSucesso('Pessoa cadastrada!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao cadastrar.');
     } finally {
       setSalvando(false);

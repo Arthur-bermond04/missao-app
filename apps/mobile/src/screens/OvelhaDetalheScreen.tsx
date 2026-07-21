@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { Lock, X } from 'lucide-react-native';
@@ -7,6 +7,7 @@ import { colors } from '../theme/colors';
 import { Button } from '../components/ui/Button';
 import { buscarOvelha, criarEncontroPastoral, listarEncontrosPastorais } from '../lib/pastoral';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import {
   ESTADOS_ESPIRITUAL,
   ESTADOS_OVELHA_ENCONTRO,
@@ -30,13 +31,18 @@ export function OvelhaDetalheScreen() {
   const [ovelha, setOvelha] = useState<PastoralOvelha | null>(null);
   const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
   const [modal, setModal] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(() => {
-    buscarOvelha(ovelhaId).then(setOvelha);
-    listarEncontrosPastorais(ovelhaId).then(setEncontros);
+    return Promise.all([buscarOvelha(ovelhaId).then(setOvelha), listarEncontrosPastorais(ovelhaId).then(setEncontros)]);
   }, [ovelhaId]);
 
-  useFocusEffect(useCallback(() => carregar(), [carregar]));
+  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+
+  function atualizar() {
+    setAtualizando(true);
+    carregar().finally(() => setAtualizando(false));
+  }
 
   const estadoCfg = ovelha ? ESTADOS_ESPIRITUAL.find((e) => e.valor === ovelha.estado_espiritual) : null;
 
@@ -50,7 +56,10 @@ export function OvelhaDetalheScreen() {
         onSalvo={carregar}
       />
 
-      <ScrollView contentContainerStyle={styles.conteudo}>
+      <ScrollView
+        contentContainerStyle={styles.conteudo}
+        refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={colors.primary} />}
+      >
         {ovelha && (
           <View style={styles.header}>
             <View style={styles.avatar}>
@@ -146,8 +155,10 @@ function EncontroPastoralModal({
       setEstado('estavel');
       onSalvo();
       onFechar();
+      hapticoSucesso();
       toastSucesso('Encontro registrado!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao registrar.');
     } finally {
       setSalvando(false);

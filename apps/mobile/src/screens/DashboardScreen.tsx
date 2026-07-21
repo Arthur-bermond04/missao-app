@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Users, UserPlus, Tent, Wallet, ArrowRight, HandHeart, Heart, ChevronRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
@@ -47,7 +47,20 @@ export function DashboardScreen({
   const maiorFunil = d.funil[0]?.total || 1;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.conteudo}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+      refreshControl={
+        <RefreshControl
+          refreshing={carregando}
+          onRefresh={() => {
+            setCarregando(true);
+            carregarDashboard(comunidadeId).then(setDados).finally(() => setCarregando(false));
+          }}
+          tintColor={colors.primary}
+        />
+      }
+    >
       <Text style={styles.titulo}>Dashboard</Text>
       <Text style={styles.subtitulo}>Visão geral da comunidade</Text>
 

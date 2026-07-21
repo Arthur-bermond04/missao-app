@@ -5,6 +5,7 @@ import { colors } from '../theme/colors';
 import { Button } from '../components/ui/Button';
 import { alterarSenha } from '../lib/usuarios';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 
 export function AlterarSenhaScreen() {
   const navigation = useNavigation<any>();
@@ -24,9 +25,11 @@ export function AlterarSenhaScreen() {
     setSalvando(true);
     try {
       await alterarSenha(novaSenha);
+      hapticoSucesso();
       toastSucesso('Senha alterada com sucesso!');
       navigation.goBack();
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao alterar senha.');
     } finally {
       setSalvando(false);

@@ -3,6 +3,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -126,9 +127,10 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
   const [modalTipo, setModalTipo] = useState<TipoFinanceiro | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(() => {
-    listarFinanceiro(comunidadeId).then(setLancamentos);
+    return listarFinanceiro(comunidadeId).then(setLancamentos);
   }, [comunidadeId]);
 
   useFocusEffect(
@@ -136,6 +138,11 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
       carregar();
     }, [carregar])
   );
+
+  function atualizar() {
+    setAtualizando(true);
+    carregar().finally(() => setAtualizando(false));
+  }
 
   const { receitaMes, despesaMes } = useMemo(() => {
     const inicio = inicioMesAtual();
@@ -177,7 +184,10 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.conteudo}>
+      <ScrollView
+        contentContainerStyle={styles.conteudo}
+        refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={colors.primary} />}
+      >
         <Text style={styles.titulo}>Financeiro</Text>
 
         <ScrollView

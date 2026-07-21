@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { X } from 'lucide-react-native';
@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button';
 import { BadgeInteresse } from '../components/BadgeInteresse';
 import { buscarPessoa, criarInteracao, listarInteracoes } from '../lib/pessoas';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import { ETAPAS_JORNADA_PESSOA, TIPOS_INTERACAO, type Pessoa, type PessoaInteracao, type TipoInteracao } from '../types/database';
 
 export function PessoaPerfilScreen() {
@@ -17,13 +18,18 @@ export function PessoaPerfilScreen() {
   const [pessoa, setPessoa] = useState<Pessoa | null>(null);
   const [interacoes, setInteracoes] = useState<PessoaInteracao[]>([]);
   const [modal, setModal] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(() => {
-    buscarPessoa(pessoaId).then(setPessoa);
-    listarInteracoes(pessoaId).then(setInteracoes);
+    return Promise.all([buscarPessoa(pessoaId).then(setPessoa), listarInteracoes(pessoaId).then(setInteracoes)]);
   }, [pessoaId]);
 
-  useFocusEffect(useCallback(() => carregar(), [carregar]));
+  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+
+  function atualizar() {
+    setAtualizando(true);
+    carregar().finally(() => setAtualizando(false));
+  }
 
   const etapaLabel = pessoa
     ? ETAPAS_JORNADA_PESSOA.find((e) => e.valor === pessoa.etapa_jornada)?.label ?? pessoa.etapa_jornada
@@ -41,7 +47,10 @@ export function PessoaPerfilScreen() {
         />
       )}
 
-      <ScrollView contentContainerStyle={styles.conteudo}>
+      <ScrollView
+        contentContainerStyle={styles.conteudo}
+        refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={colors.primary} />}
+      >
         {pessoa && (
           <View style={styles.header}>
             <View style={styles.avatar}>
@@ -133,8 +142,10 @@ function NovaInteracaoModal({
       setTipo('contato');
       onSalvo();
       onFechar();
+      hapticoSucesso();
       toastSucesso('Interação registrada!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao registrar.');
     } finally {
       setSalvando(false);

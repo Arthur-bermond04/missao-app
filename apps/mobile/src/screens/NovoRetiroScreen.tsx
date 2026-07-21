@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { criarRetiro } from '../lib/retiros';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 
 export function NovoRetiroScreen({ comunidadeId }: { comunidadeId: string }) {
   const navigation = useNavigation<any>();
@@ -30,8 +31,10 @@ export function NovoRetiroScreen({ comunidadeId }: { comunidadeId: string }) {
         vagas: vagas ? Number(vagas) : undefined,
         valor: valor ? Number(valor) : undefined,
       });
+      hapticoSucesso();
       navigation.goBack();
     } catch (e: any) {
+      hapticoErro();
       Alert.alert('Erro ao salvar', e.message ?? 'Tente novamente.');
     } finally {
       setSalvando(false);
