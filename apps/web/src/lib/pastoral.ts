@@ -4,6 +4,7 @@ import {
   FREQUENCIAS_ACOMPANHAMENTO,
   type EstadoEspiritual,
   type PastoralEncontro,
+  type PastoralObjetivo,
   type PastoralOvelha,
   type PastoralPresenca,
   type TemaPastoral,
@@ -95,6 +96,49 @@ export async function criarOvelha(dados: {
 export async function atualizarOvelha(id: string, campos: Partial<PastoralOvelha>) {
   const { error } = await supabase.from('pastoral_ovelhas').update(campos).eq('id', id);
   if (error) throw error;
+}
+
+// Transfere o acompanhamento para outro pastor — o histórico de encontros
+// e presenças é mantido, só o pastor_id muda.
+export async function transferirOvelha(id: string, novoPastorId: string) {
+  await atualizarOvelha(id, { pastor_id: novoPastorId });
+}
+
+// ---------------------------------------------------------------------------
+// Objetivos e metas (histórico)
+// ---------------------------------------------------------------------------
+
+// Retorna [] em erro (em vez de lançar) porque isso é usado junto com
+// buscarOvelha/listarEncontrosPastorais num único Promise.all na tela de
+// perfil — se a migration_pastoral_objetivos.sql ainda não rodou, a tabela
+// não existe, e não podemos deixar isso derrubar o carregamento do resto
+// da página (faria a ovelha parecer "não encontrada").
+export async function listarObjetivos(ovelhaId: string): Promise<PastoralObjetivo[]> {
+  const { data, error } = await supabase
+    .from('pastoral_objetivos')
+    .select('*')
+    .eq('ovelha_id', ovelhaId)
+    .order('data_inicio', { ascending: false });
+  if (error) return [];
+  return (data as PastoralObjetivo[]) ?? [];
+}
+
+// Define um novo objetivo atual: fecha o anterior (se houver, com resultado)
+// e grava tanto o histórico quanto o campo pastoral_ovelhas.objetivo_atual
+// (mantido por compatibilidade com o resto da tela).
+export async function definirNovoObjetivo(ovelhaId: string, objetivo: string) {
+  const { error } = await supabase.from('pastoral_objetivos').insert({ ovelha_id: ovelhaId, objetivo });
+  if (error) throw error;
+  await atualizarOvelha(ovelhaId, { objetivo_atual: objetivo });
+}
+
+export async function concluirObjetivo(objetivoId: string, ovelhaId: string, resultado: string) {
+  const { error } = await supabase
+    .from('pastoral_objetivos')
+    .update({ data_fim: new Date().toISOString().slice(0, 10), resultado })
+    .eq('id', objetivoId);
+  if (error) throw error;
+  await atualizarOvelha(ovelhaId, { objetivo_atual: null });
 }
 
 // ---------------------------------------------------------------------------

@@ -306,6 +306,16 @@ export interface PastoralEncontro {
   criado_em: string;
 }
 
+export interface PastoralObjetivo {
+  id: string;
+  ovelha_id: string;
+  objetivo: string;
+  data_inicio: string;
+  data_fim: string | null;
+  resultado: string | null;
+  criado_em: string;
+}
+
 export interface PastoralPresenca {
   id: string;
   ovelha_id: string;

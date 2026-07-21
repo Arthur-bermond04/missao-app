@@ -4,8 +4,10 @@ import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
+  ArrowRightLeft,
   CalendarPlus,
   CheckCircle2,
+  FileDown,
   Lock,
   Pencil,
   ShieldAlert,
@@ -13,26 +15,35 @@ import {
   Info,
 } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
+import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { EstadoEspiritualBadge, EtapaBadge, EstadoEncontroBadge } from '@/components/pastoral/badges';
 import { EstadoTimeline } from '@/components/pastoral/EstadoTimeline';
+import { JornadaTimeline } from '@/components/pastoral/JornadaTimeline';
+import { ObjetivosSecao } from '@/components/pastoral/ObjetivosSecao';
+import { TransferirOvelhaModal } from '@/components/pastoral/TransferirOvelhaModal';
 import { RegistrarEncontroPastoralModal } from '@/components/pastoral/RegistrarEncontroPastoralModal';
 import { RegistrarPresencaModal } from '@/components/pastoral/RegistrarPresencaModal';
 import {
   avaliarOvelha,
   buscarOvelha,
   listarEncontrosPastorais,
+  listarObjetivos,
   listarPresencasOvelha,
   scoreEstadoEncontro,
 } from '@/lib/pastoral';
+import { listarRetirosDaPessoa } from '@/lib/pessoas';
 import { registrarAcessoRecente } from '@/lib/recentes';
 import {
   FREQUENCIAS_ACOMPANHAMENTO,
   TEMAS_PASTORAL,
   type PastoralEncontro,
+  type PastoralObjetivo,
   type PastoralOvelha,
   type PastoralPresenca,
+  type PessoaRetiro,
+  type Usuario,
 } from '@/types/database';
 
 const TEMA_LABEL = Object.fromEntries(TEMAS_PASTORAL.map((t) => [t.valor, t.label]));
@@ -62,25 +73,43 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
   const [ovelha, setOvelha] = useState<PastoralOvelha | null>(null);
   const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
   const [presencas, setPresencas] = useState<PastoralPresenca[]>([]);
+  const [objetivos, setObjetivos] = useState<PastoralObjetivo[]>([]);
+  const [retirosDaPessoa, setRetirosDaPessoa] = useState<PessoaRetiro[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalEncontro, setModalEncontro] = useState(false);
   const [modalPresenca, setModalPresenca] = useState(false);
+  const [modalTransferir, setModalTransferir] = useState(false);
   const [editando, setEditando] = useState<PastoralEncontro | null>(null);
   const [expandido, setExpandido] = useState<Record<string, boolean>>({});
 
   const carregar = useCallback(() => {
     setCarregando(true);
-    Promise.all([buscarOvelha(id), listarEncontrosPastorais(id), listarPresencasOvelha(id)])
-      .then(([o, e, p]) => {
+    Promise.all([buscarOvelha(id), listarEncontrosPastorais(id), listarPresencasOvelha(id), listarObjetivos(id)])
+      .then(([o, e, p, obj]) => {
         setOvelha(o);
         setEncontros(e);
         setPresencas(p);
-        if (o) registrarAcessoRecente({ tipo: 'ovelha', id: o.id, titulo: o.nome, href: `/pastoral/${o.id}` });
+        setObjetivos(obj);
+        if (o) {
+          registrarAcessoRecente({ tipo: 'ovelha', id: o.id, titulo: o.nome, href: `/pastoral/${o.id}` });
+          if (o.pessoa_id) listarRetirosDaPessoa(o.pessoa_id).then(setRetirosDaPessoa);
+        }
       })
       .finally(() => setCarregando(false));
   }, [id]);
 
   useEffect(carregar, [carregar]);
+
+  useEffect(() => {
+    if (!usuario?.comunidade_id) return;
+    supabase
+      .from('usuarios')
+      .select('*')
+      .eq('comunidade_id', usuario.comunidade_id)
+      .order('nome', { ascending: true })
+      .then(({ data }) => setUsuarios((data as Usuario[]) ?? []));
+  }, [usuario?.comunidade_id]);
 
   const indicadores = useMemo(
     () => (ovelha ? avaliarOvelha(ovelha, encontros, presencas) : null),
@@ -118,6 +147,52 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       ? Math.round((indicadores.encontrosRealizados / indicadores.encontrosPrevistos) * 100)
       : 0;
 
+  async function exportarRelatorioPdf() {
+    if (!ovelha) return;
+    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
+    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
+    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+
+    const encontrosOrdenados = [...encontros].sort((a, b) => a.data.localeCompare(b.data));
+
+    pdfMake
+      .createPdf({
+        content: [
+          { text: `Relatório de acompanhamento — ${ovelha.nome}`, style: 'titulo' },
+          { text: 'Documento confidencial — uso pastoral interno', style: 'aviso' },
+          { text: 'Dados pessoais', style: 'secao' },
+          {
+            text: `Telefone: ${ovelha.telefone ?? '—'}   Idade: ${ovelha.idade ?? '—'}   Início: ${new Date(
+              ovelha.data_inicio_acompanhamento
+            ).toLocaleDateString('pt-BR')}`,
+          },
+          { text: 'Linha do tempo de encontros', style: 'secao' },
+          encontrosOrdenados.length === 0
+            ? { text: 'Nenhum encontro registrado.' }
+            : {
+                ul: encontrosOrdenados.map(
+                  (e) => `${new Date(e.data).toLocaleDateString('pt-BR')} — ${e.tipo} — ${e.estado_ovelha}`
+                ),
+              },
+          { text: 'Objetivos', style: 'secao' },
+          objetivos.length === 0
+            ? { text: 'Nenhum objetivo registrado.' }
+            : {
+                ul: objetivos.map(
+                  (o) =>
+                    `${o.objetivo}${o.data_fim ? ` (concluído em ${new Date(o.data_fim).toLocaleDateString('pt-BR')})` : ' (em andamento)'}`
+                ),
+              },
+        ],
+        styles: {
+          titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 6] },
+          aviso: { fontSize: 10, italics: true, color: '#993C1D', margin: [0, 0, 0, 12] },
+          secao: { fontSize: 13, bold: true, margin: [0, 14, 0, 6] },
+        },
+      })
+      .download(`${ovelha.nome}-relatorio-pastoral.pdf`);
+  }
+
   return (
     <div className="mx-auto max-w-4xl">
       <Link href="/pastoral" className="mb-3 inline-flex items-center gap-1 text-sm text-text-secondary hover:text-primary">
@@ -129,7 +204,13 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         title={ovelha.nome}
         subtitle="Acompanhamento pastoral"
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" icon={ArrowRightLeft} onClick={() => setModalTransferir(true)}>
+              Transferir
+            </Button>
+            <Button variant="secondary" icon={FileDown} onClick={exportarRelatorioPdf}>
+              Gerar relatório
+            </Button>
             <Button variant="secondary" icon={CheckCircle2} onClick={() => setModalPresenca(true)}>
               + Presença
             </Button>
@@ -154,6 +235,15 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         ovelhaId={ovelha.id}
         onRegistrado={carregar}
       />
+      <TransferirOvelhaModal
+        open={modalTransferir}
+        onClose={() => setModalTransferir(false)}
+        ovelhaId={ovelha.id}
+        ovelhaNome={ovelha.nome}
+        pastorAtualId={ovelha.pastor_id}
+        usuarios={usuarios}
+        onTransferido={carregar}
+      />
 
       {/* Header info */}
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
@@ -175,11 +265,22 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
             </p>
           </div>
         </div>
-        {!!ovelha.objetivo_atual && (
-          <p className="mt-3 rounded-md bg-bg-page p-3 text-sm text-text-primary">
-            <span className="font-semibold">Objetivo:</span> {ovelha.objetivo_atual}
-          </p>
-        )}
+      </div>
+
+      {/* Jornada — marcos (início, encontros, retiros) */}
+      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <h3 className="text-sm font-bold text-text-primary">Jornada</h3>
+        <JornadaTimeline dataInicio={ovelha.data_inicio_acompanhamento} encontros={encontros} retiros={retirosDaPessoa} />
+      </div>
+
+      {/* Objetivos */}
+      <div className="mt-6">
+        <ObjetivosSecao
+          ovelhaId={ovelha.id}
+          objetivoAtual={ovelha.objetivo_atual}
+          historico={objetivos}
+          onAtualizado={carregar}
+        />
       </div>
 
       {/* Alertas */}
