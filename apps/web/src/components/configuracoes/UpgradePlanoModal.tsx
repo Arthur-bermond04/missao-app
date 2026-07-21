@@ -3,6 +3,7 @@
 import { Check } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { CardOrnamental } from '@/components/ui/Ornamento';
 import { toastInfo } from '@/lib/toast';
 import type { Plano } from '@/types/database';
 
@@ -38,33 +39,39 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
   return (
     <Modal open={open} onClose={onClose} title="Desbloquear mais recursos" size="lg">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {PLANOS.map((p) => (
-          <div
-            key={p.valor}
-            className={`rounded-lg border p-4 ${p.valor === planoAtual ? 'border-primary bg-primary-xlight' : 'border-border'}`}
-          >
-            <p className="text-sm font-bold text-text-primary">{p.nome}</p>
-            <p className="mt-1 text-lg font-extrabold text-primary">{p.preco}</p>
-            <ul className="mt-3 space-y-1.5">
-              {p.recursos.map((r) => (
-                <li key={r} className="flex items-start gap-1.5 text-xs text-text-secondary">
-                  <Check size={14} className="mt-0.5 shrink-0 text-accent" />
-                  {r}
-                </li>
-              ))}
-            </ul>
-            <Button
-              size="sm"
-              fullWidth
-              className="mt-4"
-              variant={p.valor === planoAtual ? 'secondary' : 'primary'}
-              disabled={p.valor === planoAtual}
-              onClick={() => toastInfo('Contrate seu novo plano em breve — pagamento ainda não está disponível.')}
-            >
-              {p.valor === planoAtual ? 'Plano atual' : 'Escolher'}
-            </Button>
-          </div>
-        ))}
+        {PLANOS.map((p) => {
+          const conteudo = (
+            <>
+              <p className="text-sm font-bold text-text-primary">{p.nome}</p>
+              <p className="mt-1 text-lg font-extrabold text-gold-dark">{p.preco}</p>
+              <ul className="mt-3 space-y-1.5">
+                {p.recursos.map((r) => (
+                  <li key={r} className="flex items-start gap-1.5 text-xs text-text-secondary">
+                    <Check size={14} className="mt-0.5 shrink-0 text-accent" />
+                    {r}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                size="sm"
+                fullWidth
+                className="mt-4"
+                variant={p.valor === planoAtual ? 'secondary' : 'primary'}
+                disabled={p.valor === planoAtual}
+                onClick={() => toastInfo('Contrate seu novo plano em breve — pagamento ainda não está disponível.')}
+              >
+                {p.valor === planoAtual ? 'Plano atual' : 'Escolher'}
+              </Button>
+            </>
+          );
+          return p.valor === planoAtual ? (
+            <CardOrnamental key={p.valor}>{conteudo}</CardOrnamental>
+          ) : (
+            <div key={p.valor} className="rounded-lg border border-border p-4">
+              {conteudo}
+            </div>
+          );
+        })}
       </div>
     </Modal>
   );

@@ -18,6 +18,7 @@ import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
+import { Ornamento } from '@/components/ui/Ornamento';
 import { EstadoEspiritualBadge, EtapaBadge, EstadoEncontroBadge } from '@/components/pastoral/badges';
 import { EstadoTimeline } from '@/components/pastoral/EstadoTimeline';
 import { JornadaTimeline } from '@/components/pastoral/JornadaTimeline';
@@ -304,8 +305,10 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
+      <Ornamento />
+
       {/* Timeline */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="rounded-lg bg-bg-card p-6 shadow-card">
         <h3 className="text-sm font-bold text-text-primary">Evolução do estado espiritual</h3>
         <div className="mt-3">
           <EstadoTimeline data={timeline} />
@@ -338,13 +341,15 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       )}
 
       {/* Privacidade */}
-      <div className="mt-6 flex items-center gap-2 rounded-md bg-primary-xlight px-3 py-2 text-xs text-primary">
+      <div className="mt-6 flex items-center gap-2 rounded-md bg-primary-xlight px-3 py-2 text-xs text-gold-dark">
         <Lock size={14} />
         Estes registros são confidenciais e visíveis apenas por você e pelo admin.
       </div>
 
+      <Ornamento />
+
       {/* Histórico de encontros */}
-      <div className="mt-4 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="rounded-lg bg-bg-card p-6 shadow-card">
         <h3 className="text-sm font-bold text-text-primary">Histórico de encontros</h3>
         {encontros.length === 0 ? (
           <p className="mt-2 text-sm text-text-secondary">Nenhum encontro registrado ainda.</p>

@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 
 interface MetricCardProps {
   icon: LucideIcon;
-  iconColor: 'primary' | 'accent' | 'warning' | 'danger';
+  iconColor: 'primary' | 'accent' | 'warning' | 'danger' | 'gold' | 'info';
   label: string;
   value: string | number;
   delta?: { value: number };
@@ -14,6 +14,8 @@ const ICON_STYLES: Record<MetricCardProps['iconColor'], string> = {
   accent: 'bg-accent-light text-accent',
   warning: 'bg-warning-light text-warning',
   danger: 'bg-danger-light text-danger',
+  gold: 'bg-gold-bg text-gold-dark',
+  info: 'bg-[#E6F1FB] text-[#1C3A5C]',
 };
 
 export function MetricCard({ icon: Icon, iconColor, label, value, delta, subtitle }: MetricCardProps) {

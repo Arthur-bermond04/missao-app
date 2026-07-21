@@ -10,26 +10,41 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
 
-  /* Paleta MissãoApp */
-  --color-primary: #3c3489;
-  --color-primary-light: #534ab7;
-  --color-primary-xlight: #eeedfe;
-  --color-primary-dark: #2a2563;
+  /* Paleta MissãoApp — tema Vaticano (preto nobre + dourado papal) */
+  --color-primary: #1a1208; /* preto nobre */
+  --color-primary-light: #2c2008; /* escuro quente (hover) */
+  --color-primary-xlight: #f5e6c8; /* marfim claro */
+  /* alias mantido por compatibilidade — mesmas telas que já usavam bg-primary-dark
+     para hover continuam funcionando sem precisar tocar em cada uma */
+  --color-primary-dark: #2c2008;
+
+  /* Dourado papal — cor de destaque principal */
+  --color-gold: #c9a84c;
+  --color-gold-light: #e8c96a;
+  --color-gold-dark: #8b6a2a;
+  --color-gold-bg: #fbf3e0;
 
   --color-accent: #0f6e56;
   --color-accent-light: #e1f5ee;
 
-  --color-warning: #854f0b;
-  --color-warning-light: #faeeda;
+  --color-warning: #8b2b1a; /* vermelho cardeal */
+  --color-warning-light: #faece7;
 
-  --color-danger: #993c1d;
+  --color-danger: #8b2b1a; /* vermelho cardeal */
   --color-danger-light: #faece7;
 
-  --color-text-primary: #1a1a2e;
-  --color-text-secondary: #6b6b8a;
-  --color-border: #e8e8f0;
-  --color-bg-page: #f5f5fa;
-  --color-bg-card: #ffffff;
+  /* Cores de apoio arquitetônicas */
+  --color-stone: #8b7355; /* travertino — bordas e divisores */
+  --color-stone-light: #f7f4ee; /* pedra clara — fundo de páginas */
+  --color-dome-green: #5a7a52;
+  --color-cardinal: #8b2b1a;
+  --color-guard-blue: #1c3a5c;
+
+  --color-text-primary: #1a1208;
+  --color-text-secondary: #6b6357; /* marrom médio quente */
+  --color-border: #e2d9c8; /* travertino suave */
+  --color-bg-page: #f7f4ee; /* pedra clara */
+  --color-bg-card: #fafaf8; /* branco papal */
 
   /* mantido para compatibilidade com telas ainda não migradas para os novos tokens (accent) */
   --color-success: #1e9e5a;
@@ -40,8 +55,8 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(60, 52, 137, 0.06);
-  --shadow-hover: 0 4px 12px rgba(60, 52, 137, 0.12);
+  --shadow-card: 0 1px 3px rgba(26, 18, 8, 0.06), 0 4px 16px rgba(201, 168, 76, 0.08);
+  --shadow-hover: 0 4px 12px rgba(201, 168, 76, 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,4 +69,23 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+h1,
+.logo-text {
+  font-family: var(--font-cinzel), Georgia, serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f7f4ee;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2d9c8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c9a84c;
 }

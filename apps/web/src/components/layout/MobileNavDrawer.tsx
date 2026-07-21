@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, X } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
+import { Logo } from '@/components/ui/Logo';
 import { NAV, PERFIL_LABEL_SIDEBAR, iniciais } from './Sidebar';
 
 export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -24,11 +25,8 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative flex w-72 flex-col bg-primary text-white">
         <div className="flex items-center justify-between px-5 pb-5 pt-6">
-          <div className="flex items-center gap-2">
-            <span className="text-xl leading-none">✝</span>
-            <span className="text-lg font-bold">MissãoApp</span>
-          </div>
-          <button onClick={onClose} className="rounded-md p-1 hover:bg-white/10">
+          <Logo size={32} variant="dark" showText />
+          <button onClick={onClose} className="rounded-md p-1 text-stone hover:bg-white/10">
             <X size={20} />
           </button>
         </div>
@@ -43,7 +41,7 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
                 href={item.href}
                 onClick={onClose}
                 className={`flex items-center gap-3 rounded-md border-l-[3px] px-3 py-2.5 text-sm font-medium transition-colors ${
-                  ativo ? 'border-white bg-white/10 text-white' : 'border-transparent text-white/75 hover:bg-white/5 hover:text-white'
+                  ativo ? 'border-gold bg-gold/12 text-gold' : 'border-transparent text-stone hover:bg-white/5 hover:text-gold-light'
                 }`}
               >
                 <Icon size={18} />
@@ -53,19 +51,19 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
           })}
         </nav>
 
-        <div className="border-t border-white/10 px-4 py-4">
+        <div className="border-t border-gold/20 px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-xs font-bold">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold text-xs font-bold text-primary">
               {usuario ? iniciais(usuario.nome) : ''}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{usuario?.nome}</p>
-              <p className="text-xs text-primary-xlight">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
+              <p className="truncate text-sm font-semibold text-[#F5E6C8]">{usuario?.nome}</p>
+              <p className="text-xs text-stone">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
             </div>
           </div>
           <button
             onClick={handleSair}
-            className="mt-3 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-white/70 hover:bg-white/5 hover:text-white"
+            className="mt-3 flex w-full items-center gap-2 rounded-md border border-stone px-2 py-1.5 text-xs text-stone transition-colors hover:border-gold hover:text-gold"
           >
             <LogOut size={14} />
             Sair

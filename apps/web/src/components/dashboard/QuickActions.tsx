@@ -27,9 +27,9 @@ export function QuickActions() {
             <Link
               key={a.href}
               href={a.href}
-              className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary-xlight p-4 transition-colors hover:bg-primary-xlight/70"
+              className="flex items-center gap-3 rounded-lg border border-gold-light/60 bg-primary-xlight p-4 transition-all hover:bg-gold-bg hover:shadow-hover"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-bg text-gold-dark">
                 <Icon size={20} />
               </div>
               <div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/useSession';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 
 export default function LoginPage() {
   const { entrar } = useSession();
@@ -31,25 +32,28 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Coluna esquerda — identidade */}
-      <div className="hidden w-2/5 flex-col justify-between bg-gradient-to-br from-primary to-primary-light p-10 text-white lg:flex">
+      <div className="hidden w-2/5 flex-col justify-between bg-primary p-10 lg:flex">
         <div />
         <div>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="mb-6">
-            <path d="M12 2v20M6 8h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <h2 className="text-3xl font-bold leading-tight">Cada pessoa importa na missão.</h2>
-          <p className="mt-3 text-sm text-primary-xlight">
-            Acompanhe sua equipe, seus contatos e seus retiros em um só lugar.
-          </p>
+          <Logo size={64} variant="dark" />
+          <h2 className="logo-text mt-6 text-[28px] leading-tight text-gold">Cada pessoa importa na missão.</h2>
+          <p className="mt-3 text-sm text-stone">Acompanhe sua equipe, seus contatos e seus retiros.</p>
+
+          {/* Ornamento decorativo */}
+          <div className="mt-5 flex items-center gap-3" aria-hidden="true">
+            <div className="h-px flex-1 bg-gold/40" />
+            <span className="text-xs text-gold/70">✝</span>
+            <div className="h-px flex-1 bg-gold/40" />
+          </div>
         </div>
-        <p className="text-sm font-semibold text-primary-xlight">MissãoApp</p>
+        <p className="logo-text text-sm text-gold/60">MissãoApp</p>
       </div>
 
       {/* Coluna direita — formulário */}
-      <div className="flex flex-1 items-center justify-center bg-white px-6">
+      <div className="flex flex-1 items-center justify-center bg-bg-card px-6">
         <form onSubmit={handleEntrar} className="w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-text-primary">Bem-vindo de volta</h1>
-          <p className="mt-1 text-sm text-text-secondary">Painel da liderança</p>
+          <h1 className="logo-text text-[26px] font-normal text-text-primary">Bem-vindo de volta</h1>
+          <p className="mt-1 text-sm text-stone">Painel da liderança</p>
 
           <div className="mt-6">
             <Input
@@ -78,7 +82,7 @@ export default function LoginPage() {
             {entrando ? 'Entrando...' : 'Entrar'}
           </Button>
 
-          <p className="mt-4 text-center text-xs text-text-secondary hover:text-primary">
+          <p className="mt-4 text-center text-xs text-stone hover:text-gold">
             <a href="#">Esqueci minha senha</a>
           </p>
         </form>

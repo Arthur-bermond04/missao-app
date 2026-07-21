@@ -10,8 +10,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_STYLES: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary: 'bg-primary text-white hover:bg-primary-dark',
-  secondary: 'bg-transparent border border-border text-primary hover:bg-primary-xlight',
+  primary: 'bg-primary text-gold hover:bg-primary-light',
+  secondary: 'bg-transparent border border-gold text-gold hover:bg-gold-bg',
   danger: 'bg-transparent border border-danger text-danger hover:bg-danger-light',
   success: 'bg-accent text-white hover:opacity-90',
 };

@@ -38,12 +38,12 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         className={`w-full ${SIZE_STYLES[size]} rounded-lg bg-bg-card p-6 shadow-hover`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between border-b border-border pb-3">
           <div>
-            <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+            <h2 className="logo-text text-lg font-medium text-text-primary">{title}</h2>
             {!!description && <p className="mt-1 text-sm text-text-secondary">{description}</p>}
           </div>
-          <button onClick={onClose} className="rounded-md p-1 text-text-secondary hover:bg-bg-page">
+          <button onClick={onClose} className="rounded-md p-1 text-text-secondary hover:bg-primary-xlight">
             <X size={18} />
           </button>
         </div>

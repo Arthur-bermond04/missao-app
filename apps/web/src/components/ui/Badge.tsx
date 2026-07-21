@@ -33,26 +33,29 @@ interface BadgeProps {
   showIcon?: boolean;
 }
 
-const VARIANT_CONFIG: Record<BadgeVariant, { bg: string; text: string; icon: LucideIcon; label: string }> = {
-  quente: { bg: 'bg-warning-light', text: 'text-warning', icon: Flame, label: 'Quente' },
-  morno: { bg: 'bg-accent-light', text: 'text-accent', icon: Droplet, label: 'Morno' },
-  frio: { bg: 'bg-bg-page', text: 'text-text-secondary', icon: Snowflake, label: 'Frio' },
-  pago: { bg: 'bg-accent-light', text: 'text-accent', icon: CheckCircle2, label: 'Pago' },
-  pendente: { bg: 'bg-warning-light', text: 'text-warning', icon: Clock, label: 'Pendente' },
-  integrado: { bg: 'bg-primary-xlight', text: 'text-primary', icon: BadgeCheck, label: 'Integrado' },
-  aberto: { bg: 'bg-accent-light', text: 'text-accent', icon: CircleDot, label: 'Aberto' },
-  encerrado: { bg: 'bg-bg-page', text: 'text-text-secondary', icon: XCircle, label: 'Encerrado' },
-  realizado: { bg: 'bg-primary-xlight', text: 'text-primary', icon: CheckCircle2, label: 'Realizado' },
-  ativo: { bg: 'bg-accent-light', text: 'text-accent', icon: CheckCircle2, label: 'Ativo' },
-  inativo: { bg: 'bg-bg-page', text: 'text-text-secondary', icon: XCircle, label: 'Inativo' },
-  receita: { bg: 'bg-accent-light', text: 'text-accent', icon: ArrowUpRight, label: 'Receita' },
-  despesa: { bg: 'bg-danger-light', text: 'text-danger', icon: ArrowDownRight, label: 'Despesa' },
+const VARIANT_CONFIG: Record<BadgeVariant, { bg: string; text: string; border?: string; icon: LucideIcon; label: string }> = {
+  quente: { bg: '#FBF3E0', text: '#8B6A2A', border: '#E8C96A', icon: Flame, label: 'Quente' },
+  morno: { bg: '#E1F5EE', text: '#085041', border: '#9FE1CB', icon: Droplet, label: 'Morno' },
+  frio: { bg: '#F7F4EE', text: '#6B6357', border: '#E2D9C8', icon: Snowflake, label: 'Frio' },
+  pago: { bg: '#E1F5EE', text: '#085041', icon: CheckCircle2, label: 'Pago' },
+  pendente: { bg: '#FBF3E0', text: '#8B6A2A', icon: Clock, label: 'Pendente' },
+  integrado: { bg: '#F5E6C8', text: '#8B6A2A', icon: BadgeCheck, label: 'Integrado' },
+  aberto: { bg: '#E1F5EE', text: '#085041', icon: CircleDot, label: 'Aberto' },
+  encerrado: { bg: '#F7F4EE', text: '#6B6357', icon: XCircle, label: 'Encerrado' },
+  realizado: { bg: '#F5E6C8', text: '#8B6A2A', icon: CheckCircle2, label: 'Realizado' },
+  ativo: { bg: '#F5E6C8', text: '#8B6A2A', icon: CheckCircle2, label: 'Ativo' },
+  inativo: { bg: '#F7F4EE', text: '#6B6357', icon: XCircle, label: 'Inativo' },
+  receita: { bg: '#E1F5EE', text: '#085041', icon: ArrowUpRight, label: 'Receita' },
+  despesa: { bg: '#FAECE7', text: '#8B2B1A', icon: ArrowDownRight, label: 'Despesa' },
 };
 
 export function Badge({ variant, children, showIcon = true }: BadgeProps) {
-  const { bg, text, icon: Icon, label } = VARIANT_CONFIG[variant];
+  const { bg, text, border, icon: Icon, label } = VARIANT_CONFIG[variant];
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${bg} ${text}`}>
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
+      style={{ backgroundColor: bg, color: text, border: border ? `1px solid ${border}` : undefined }}
+    >
       {showIcon && <Icon size={12} />}
       {children ?? label}
     </span>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Cross, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { CardOrnamental } from '@/components/ui/Ornamento';
 import type { Usuario } from '@/types/database';
 
 const PASSOS = [
@@ -29,12 +30,12 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
   if (oculto) return null;
 
   return (
-    <div className="mt-6 rounded-lg border border-primary/30 bg-primary-xlight p-6">
+    <CardOrnamental className="mt-6 p-6">
       <div className="flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold text-primary">
           <Cross size={18} />
         </div>
-        <h2 className="text-lg font-bold text-text-primary">Bem-vindo ao MissãoApp!</h2>
+        <h2 className="logo-text text-lg font-medium text-text-primary">Bem-vindo ao MissãoApp!</h2>
       </div>
       <p className="mt-2 text-sm text-text-secondary">Vamos configurar sua comunidade em 3 passos:</p>
 
@@ -55,7 +56,7 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
       <div className="mt-4 flex items-center gap-4">
         <Link
           href="/membros"
-          className="inline-flex items-center gap-1 rounded-[10px] bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark"
+          className="inline-flex items-center gap-1 rounded-[10px] bg-primary px-5 py-2.5 text-sm font-medium text-gold hover:bg-primary-light"
         >
           Começar pelo passo 1 <ArrowRight size={16} />
         </Link>
@@ -63,6 +64,6 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
           Pular introdução
         </button>
       </div>
-    </div>
+    </CardOrnamental>
   );
 }
