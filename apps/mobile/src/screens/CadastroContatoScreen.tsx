@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
@@ -12,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import { colors } from '../theme/colors';
 import { useContatos } from '../lib/useContatos';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import { TAGS_INTERESSE } from '../types/database';
 import type { NivelInteresse } from '../types/database';
 
@@ -86,6 +88,7 @@ export function CadastroContatoScreen({
         tags: tagsSelecionadas,
         observacoes: observacoes.trim() || undefined,
       });
+      hapticoSucesso();
       navigation.replace('ConfirmacaoContato', {
         contatoId: id,
         nome: nome.trim(),
@@ -93,6 +96,9 @@ export function CadastroContatoScreen({
         localAbordagem: localAbordagem.trim(),
         nivelInteresse,
       });
+    } catch (e: any) {
+      hapticoErro();
+      Alert.alert('Erro ao salvar', e?.message ?? 'Tente novamente.');
     } finally {
       setSalvando(false);
     }
@@ -191,7 +197,11 @@ export function CadastroContatoScreen({
         onPress={salvar}
         disabled={salvando}
       >
-        <Text style={styles.salvarTexto}>{salvando ? 'Salvando...' : 'Salvar contato'}</Text>
+        {salvando ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.salvarTexto}>Salvar contato</Text>
+        )}
       </Pressable>
     </ScrollView>
   );

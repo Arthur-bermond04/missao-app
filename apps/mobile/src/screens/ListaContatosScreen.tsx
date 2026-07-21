@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   FlatList,
   Pressable,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { UserPlus, CheckSquare, Plus } from 'lucide-react-native';
 import { Avatar } from '../components/Avatar';
 import { BadgeInteresse } from '../components/BadgeInteresse';
 import { colors } from '../theme/colors';
@@ -42,6 +44,18 @@ export function ListaContatosScreen({
   const { contatos, carregando } = useContatos(comunidadeId, missionarioId);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<NivelInteresse | 'todos'>('todos');
+  const [fabAberto, setFabAberto] = useState(false);
+  const anim = useRef(new Animated.Value(0)).current;
+
+  function alternarFab(abrir: boolean) {
+    setFabAberto(abrir);
+    Animated.spring(anim, { toValue: abrir ? 1 : 0, useNativeDriver: true, friction: 6 }).start();
+  }
+
+  function acaoFab(destino: string) {
+    alternarFab(false);
+    navigation.navigate(destino);
+  }
 
   const contatosFiltrados = useMemo(() => {
     return contatos.filter((c) => {
@@ -118,12 +132,48 @@ export function ListaContatosScreen({
         )}
       />
 
+      {/* Backdrop para fechar o FAB expandido */}
+      {fabAberto && <Pressable style={styles.backdrop} onPress={() => alternarFab(false)} />}
+
+      {/* Opções expandidas */}
+      {fabAberto && (
+        <View style={styles.fabOpcoes} pointerEvents="box-none">
+          <Animated.View
+            style={[
+              styles.fabOpcaoLinha,
+              { opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] },
+            ]}
+          >
+            <Text style={styles.fabOpcaoLabel}>Registrar presença</Text>
+            <Pressable style={styles.fabOpcaoBotao} onPress={() => acaoFab('RetirosLista')}>
+              <CheckSquare size={20} color="#fff" />
+            </Pressable>
+          </Animated.View>
+          <Animated.View
+            style={[
+              styles.fabOpcaoLinha,
+              { opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] },
+            ]}
+          >
+            <Text style={styles.fabOpcaoLabel}>Novo contato</Text>
+            <Pressable style={styles.fabOpcaoBotao} onPress={() => acaoFab('CadastroContato')}>
+              <UserPlus size={20} color="#fff" />
+            </Pressable>
+          </Animated.View>
+        </View>
+      )}
+
       <Pressable
         style={styles.fab}
-        onPress={() => navigation.navigate('CadastroContato')}
-        accessibilityLabel="Cadastrar novo contato"
+        onPress={() => (fabAberto ? alternarFab(false) : navigation.navigate('CadastroContato'))}
+        onLongPress={() => alternarFab(!fabAberto)}
+        accessibilityLabel="Cadastrar novo contato (toque longo para mais opções)"
       >
-        <Text style={styles.fabTexto}>+</Text>
+        <Animated.View
+          style={{ transform: [{ rotate: anim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] }) }] }}
+        >
+          <Plus size={28} color="#fff" />
+        </Animated.View>
       </Pressable>
     </View>
   );
@@ -199,4 +249,35 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   fabTexto: { color: '#fff', fontSize: 28, lineHeight: 30, fontWeight: '400' },
+  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)' },
+  fabOpcoes: { position: 'absolute', right: 20, bottom: 92, alignItems: 'flex-end', gap: 12 },
+  fabOpcaoLinha: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fabOpcaoLabel: {
+    backgroundColor: colors.card,
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '600',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  fabOpcaoBotao: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
 });

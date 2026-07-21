@@ -18,6 +18,7 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { lancarFinanceiro, listarFinanceiro } from '../lib/financeiro';
 import { toastSucesso, toastErro } from '../lib/toast';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import { CATEGORIAS_FINANCEIRO, type Financeiro, type TipoFinanceiro } from '../types/database';
 
 function inicioMesAtual() {
@@ -164,8 +165,10 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
       });
       setLancamentos((atual) => [novo, ...atual]);
       setModalTipo(null);
+      hapticoSucesso();
       toastSucesso(modalTipo === 'receita' ? 'Receita lançada!' : 'Despesa lançada!');
     } catch (e: any) {
+      hapticoErro();
       toastErro(e?.message ?? 'Erro ao salvar. Tente novamente.');
     } finally {
       setSalvando(false);

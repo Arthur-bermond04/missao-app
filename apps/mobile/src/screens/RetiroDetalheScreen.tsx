@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { listarInscritos, marcarPresenca } from '../lib/retiros';
+import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import type { InscricaoRetiro } from '../types/database';
 
 export function RetiroDetalheScreen() {
@@ -37,7 +38,9 @@ export function RetiroDetalheScreen() {
     );
     try {
       await marcarPresenca(inscricao.id, novoValor);
+      hapticoSucesso();
     } catch {
+      hapticoErro();
       carregar();
     }
   }
