@@ -122,6 +122,8 @@ export const CATEGORIAS_FINANCEIRO = [
   'outros',
 ] as const;
 
+export type RecorrenciaMensagem = 'semanal' | 'mensal';
+
 export interface MensagemEnviada {
   id: string;
   comunidade_id: string;
@@ -132,6 +134,7 @@ export interface MensagemEnviada {
   corpo: string;
   enviado_em: string | null;
   total_enviados: number;
+  recorrencia: RecorrenciaMensagem | null;
   criado_em: string;
 }
 
