@@ -18,8 +18,14 @@ export async function lancarFinanceiro(dados: {
   descricao?: string;
   valor: number;
   data: string;
+  retiro_id?: string;
+  ministerio_id?: string;
 }): Promise<Financeiro> {
-  const { data, error } = await supabase.from('financeiro').insert(dados).select('*').single();
+  const { data, error } = await supabase
+    .from('financeiro')
+    .insert({ ...dados, retiro_id: dados.retiro_id || null, ministerio_id: dados.ministerio_id || null })
+    .select('*')
+    .single();
   if (error) throw error;
   return data as Financeiro;
 }

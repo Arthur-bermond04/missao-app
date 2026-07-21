@@ -7,7 +7,10 @@ export async function buscarComunidade(id: string): Promise<Comunidade> {
   return data as Comunidade;
 }
 
-export async function atualizarComunidade(id: string, campos: Partial<Pick<Comunidade, 'nome' | 'tipo' | 'telefone'>>) {
+export async function atualizarComunidade(
+  id: string,
+  campos: Partial<Pick<Comunidade, 'nome' | 'tipo' | 'telefone' | 'meta_arrecadacao_mensal' | 'categorias_financeiras'>>
+) {
   const { error } = await supabase.from('comunidades').update(campos).eq('id', id);
   if (error) throw error;
 }

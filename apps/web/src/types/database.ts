@@ -29,6 +29,8 @@ export interface Comunidade {
   max_contatos: number | null;
   telefone: string | null;
   logo_url: string | null;
+  meta_arrecadacao_mensal: number | null;
+  categorias_financeiras: string[];
   criado_em: string;
 }
 
@@ -108,6 +110,7 @@ export interface Financeiro {
   valor: number;
   data: string;
   retiro_id: string | null;
+  ministerio_id: string | null;
   criado_em: string;
 }
 

@@ -13,17 +13,14 @@ import { Badge } from '@/components/ui/Badge';
 import { Table } from '@/components/ui/Table';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { DespesasPieChart } from '@/components/financeiro/DespesasPieChart';
+import { EvolucaoFinanceiraChart } from '@/components/financeiro/EvolucaoFinanceiraChart';
 import { LancamentoModal } from '@/components/financeiro/LancamentoModal';
 import { lancarFinanceiro, listarFinanceiro } from '@/lib/financeiro';
+import { buscarComunidade } from '@/lib/comunidades';
+import { listarRetiros } from '@/lib/retiros';
+import { listarMinisterios, type MinisterioComContagem } from '@/lib/ministerios';
 import { toastSuccess, toastError } from '@/lib/toast';
-import { CATEGORIAS_FINANCEIRO, type Financeiro, type TipoFinanceiro } from '@/types/database';
-
-const OPCOES_CATEGORIA = CATEGORIAS_FINANCEIRO.map((c) => ({ value: c, label: c }));
-
-function mesLabel(dataIso: string) {
-  const [ano, mes] = dataIso.split('-');
-  return `${mes}/${ano}`;
-}
+import { CATEGORIAS_FINANCEIRO, type Comunidade, type Financeiro, type Retiro, type TipoFinanceiro } from '@/types/database';
 
 function inicioMesAtual() {
   const d = new Date();
@@ -35,11 +32,15 @@ export default function FinanceiroPage() {
   const { usuario } = usePainelSession();
 
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
+  const [comunidade, setComunidade] = useState<Comunidade | null>(null);
+  const [retiros, setRetiros] = useState<Retiro[]>([]);
+  const [ministerios, setMinisterios] = useState<MinisterioComContagem[]>([]);
   const [tipo, setTipo] = useState<TipoFinanceiro>('receita');
   const [categoria, setCategoria] = useState<string>(CATEGORIAS_FINANCEIRO[0]);
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
+  const [vinculo, setVinculo] = useState('');
   const [salvando, setSalvando] = useState(false);
 
   const [filtroInicio, setFiltroInicio] = useState('');
@@ -54,7 +55,11 @@ export default function FinanceiroPage() {
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
-    listarFinanceiro(usuario.comunidade_id).then(setLancamentos);
+    const comunidadeId = usuario.comunidade_id;
+    listarFinanceiro(comunidadeId).then(setLancamentos);
+    buscarComunidade(comunidadeId).then(setComunidade);
+    listarRetiros(comunidadeId).then(setRetiros);
+    listarMinisterios(comunidadeId).then(setMinisterios);
   }, [usuario?.comunidade_id]);
 
   async function handleLancar(e: React.FormEvent) {
@@ -62,6 +67,7 @@ export default function FinanceiroPage() {
     if (!usuario?.comunidade_id || !valor) return;
     setSalvando(true);
     try {
+      const [tipoVinculo, idVinculo] = vinculo ? vinculo.split(':') : [undefined, undefined];
       const novo = await lancarFinanceiro({
         comunidade_id: usuario.comunidade_id,
         tipo,
@@ -69,10 +75,13 @@ export default function FinanceiroPage() {
         descricao: descricao.trim() || undefined,
         valor: Number(valor),
         data,
+        retiro_id: tipoVinculo === 'retiro' ? idVinculo : undefined,
+        ministerio_id: tipoVinculo === 'ministerio' ? idVinculo : undefined,
       });
       setLancamentos((atual) => [novo, ...atual]);
       setDescricao('');
       setValor('');
+      setVinculo('');
       setModalAberto(false);
       toastSuccess(tipo === 'receita' ? 'Receita lançada com sucesso!' : 'Despesa lançada com sucesso!');
     } catch (err) {
@@ -93,22 +102,6 @@ export default function FinanceiroPage() {
 
   const totalReceitas = filtrados.filter((l) => l.tipo === 'receita').reduce((s, l) => s + l.valor, 0);
   const totalDespesas = filtrados.filter((l) => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0);
-
-  const graficoMensal = useMemo(() => {
-    const mapa = new Map<string, { receitas: number; despesas: number }>();
-    for (const l of filtrados) {
-      const chave = l.data.slice(0, 7);
-      const atual = mapa.get(chave) ?? { receitas: 0, despesas: 0 };
-      if (l.tipo === 'receita') atual.receitas += l.valor;
-      else atual.despesas += l.valor;
-      mapa.set(chave, atual);
-    }
-    return Array.from(mapa.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([chave, valores]) => ({ mes: mesLabel(`${chave}-01`), ...valores }));
-  }, [filtrados]);
-
-  const maiorValorGrafico = Math.max(1, ...graficoMensal.flatMap((m) => [m.receitas, m.despesas]));
 
   const { receitaMes, despesaMes } = useMemo(() => {
     const inicio = inicioMesAtual();
@@ -202,12 +195,17 @@ export default function FinanceiroPage() {
         onTipoChange={setTipo}
         categoria={categoria}
         onCategoriaChange={setCategoria}
+        categoriasExtras={comunidade?.categorias_financeiras}
         descricao={descricao}
         onDescricaoChange={setDescricao}
         valor={valor}
         onValorChange={setValor}
         data={data}
         onDataChange={setData}
+        vinculo={vinculo}
+        onVinculoChange={setVinculo}
+        retiros={retiros}
+        ministerios={ministerios}
         onSubmit={handleLancar}
         salvando={salvando}
       />
@@ -223,6 +221,30 @@ export default function FinanceiroPage() {
         />
       </div>
 
+      {!!comunidade?.meta_arrecadacao_mensal && (
+        <div className="mt-6 rounded-lg bg-bg-card p-4 shadow-card">
+          <div className="flex justify-between text-sm">
+            <span className="font-semibold text-text-primary">Meta de arrecadação do mês</span>
+            <span className="text-text-secondary">
+              R$ {receitaMes.toFixed(2)} de R$ {comunidade.meta_arrecadacao_mensal.toFixed(2)} (
+              {Math.round((receitaMes / comunidade.meta_arrecadacao_mensal) * 100)}%)
+            </span>
+          </div>
+          <div className="mt-2 h-3 w-full rounded-full bg-bg-page">
+            <div
+              className={`h-3 rounded-full ${
+                receitaMes / comunidade.meta_arrecadacao_mensal >= 0.8
+                  ? 'bg-accent'
+                  : receitaMes / comunidade.meta_arrecadacao_mensal >= 0.5
+                  ? 'bg-warning'
+                  : 'bg-danger'
+              }`}
+              style={{ width: `${Math.min(100, (receitaMes / comunidade.meta_arrecadacao_mensal) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="rounded-lg bg-bg-card p-6 shadow-card">
           <h2 className="text-sm font-bold text-text-primary">Despesas por categoria</h2>
@@ -232,28 +254,17 @@ export default function FinanceiroPage() {
         </div>
 
         <div className="rounded-lg bg-bg-card p-6 shadow-card">
-          <h2 className="text-sm font-bold text-text-primary">Resumo do período filtrado</h2>
-          <div className="mt-3 flex justify-between text-sm">
-            <span className="text-accent font-semibold">Receitas: R$ {totalReceitas.toFixed(2)}</span>
-            <span className="text-danger font-semibold">Despesas: R$ {totalDespesas.toFixed(2)}</span>
-          </div>
-          <p className="mt-1 text-xs text-text-secondary">Saldo: R$ {(totalReceitas - totalDespesas).toFixed(2)}</p>
-
-          <div className="mt-4 space-y-2">
-            {graficoMensal.map((m) => (
-              <div key={m.mes}>
-                <p className="text-xs font-semibold text-text-secondary">{m.mes}</p>
-                <div className="mt-1 flex gap-1">
-                  <div className="h-3 rounded-full bg-accent" style={{ width: `${(m.receitas / maiorValorGrafico) * 100}%` }} />
-                </div>
-                <div className="mt-1 flex gap-1">
-                  <div className="h-3 rounded-full bg-danger" style={{ width: `${(m.despesas / maiorValorGrafico) * 100}%` }} />
-                </div>
-              </div>
-            ))}
-            {graficoMensal.length === 0 && <p className="text-xs text-text-secondary">Sem lançamentos no período.</p>}
-          </div>
+          <EvolucaoFinanceiraChart lancamentos={lancamentos} />
         </div>
+      </div>
+
+      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <h2 className="text-sm font-bold text-text-primary">Resumo do período filtrado</h2>
+        <div className="mt-3 flex justify-between text-sm">
+          <span className="text-accent font-semibold">Receitas: R$ {totalReceitas.toFixed(2)}</span>
+          <span className="text-danger font-semibold">Despesas: R$ {totalDespesas.toFixed(2)}</span>
+        </div>
+        <p className="mt-1 text-xs text-text-secondary">Saldo: R$ {(totalReceitas - totalDespesas).toFixed(2)}</p>
       </div>
 
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
@@ -265,7 +276,10 @@ export default function FinanceiroPage() {
               label="Categoria"
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
-              options={[{ value: '', label: 'Todas' }, ...OPCOES_CATEGORIA]}
+              options={[
+                { value: '', label: 'Todas' },
+                ...[...CATEGORIAS_FINANCEIRO, ...(comunidade?.categorias_financeiras ?? [])].map((c) => ({ value: c, label: c })),
+              ]}
             />
           </div>
           <div className="flex gap-2">
