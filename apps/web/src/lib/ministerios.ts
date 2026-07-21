@@ -155,6 +155,17 @@ export async function listarMinisteriosDaPessoa(pessoaId: string): Promise<Minis
   return (((data as unknown as { ministerio: Ministerio | null }[]) ?? []).map((r) => r.ministerio).filter(Boolean)) as Ministerio[];
 }
 
+// Usado no painel lateral de Membros, para mostrar em quais ministérios um usuário participa.
+export async function listarMinisteriosDoUsuario(usuarioId: string): Promise<Ministerio[]> {
+  const { data, error } = await supabase
+    .from('ministerio_membros')
+    .select('ministerio:ministerios(*)')
+    .eq('usuario_id', usuarioId)
+    .eq('ativo', true);
+  if (error) throw error;
+  return (((data as unknown as { ministerio: Ministerio | null }[]) ?? []).map((r) => r.ministerio).filter(Boolean)) as Ministerio[];
+}
+
 export async function atualizarMembroMinisterio(id: string, campos: Partial<MinisterioMembro>) {
   const { error } = await supabase.from('ministerio_membros').update(campos).eq('id', id);
   if (error) throw error;

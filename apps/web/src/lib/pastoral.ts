@@ -32,6 +32,19 @@ export async function buscarOvelha(id: string): Promise<PastoralOvelha | null> {
   return data as PastoralOvelha;
 }
 
+// Usado no painel lateral de Membros — RLS já restringe a quem o usuário
+// logado pode ver (o próprio pastor ou admin), então um lider vendo o perfil
+// de outro lider simplesmente recebe uma lista vazia (privacidade preservada).
+export async function listarOvelhasDoPastor(pastorId: string): Promise<PastoralOvelha[]> {
+  const { data, error } = await supabase
+    .from('pastoral_ovelhas')
+    .select('*')
+    .eq('pastor_id', pastorId)
+    .eq('ativo', true);
+  if (error) return [];
+  return (data as PastoralOvelha[]) ?? [];
+}
+
 // Usado no perfil de Pessoa para mostrar se já existe acompanhamento pastoral vinculado.
 // Retorna null tanto se não houver vínculo quanto se o usuário logado não tiver acesso
 // (RLS restringe pastoral a pastor/admin) — não dá pra distinguir os dois casos e não precisa.
