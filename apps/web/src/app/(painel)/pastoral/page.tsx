@@ -14,8 +14,9 @@ import { EstadoEspiritualBadge } from '@/components/pastoral/badges';
 import { NovaOvelhaModal } from '@/components/pastoral/NovaOvelhaModal';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
+import { buscarPessoasParaCombobox } from '@/lib/pessoas';
 import { avaliarOvelha, listarOvelhas } from '@/lib/pastoral';
-import type { Comunidade, PastoralEncontro, PastoralOvelha, PastoralPresenca, Usuario } from '@/types/database';
+import type { Comunidade, Pessoa, PastoralEncontro, PastoralOvelha, PastoralPresenca, Usuario } from '@/types/database';
 
 const LIMITE_OVELHAS_SEMENTE = 5;
 
@@ -26,12 +27,13 @@ export default function PastoralPage() {
 
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
   const [presencas, setPresencas] = useState<PastoralPresenca[]>([]);
   const [modalNova, setModalNova] = useState(false);
   const [modalUpgrade, setModalUpgrade] = useState(false);
-  const [prefill, setPrefill] = useState<{ nome?: string; telefone?: string } | null>(null);
+  const [prefill, setPrefill] = useState<{ nome?: string; telefone?: string; pessoaId?: string } | null>(null);
 
   const plano = comunidade?.plano ?? 'semente';
   const temIndicadores = plano !== 'semente';
@@ -64,14 +66,20 @@ export default function PastoralPage() {
       .eq('comunidade_id', comunidadeId)
       .order('nome', { ascending: true })
       .then(({ data }) => setUsuarios((data as Usuario[]) ?? []));
+    buscarPessoasParaCombobox(comunidadeId).then(setPessoas);
     carregar();
   }, [comunidadeId, carregar]);
 
-  // Integração (P4a/P4b): abre o modal pré-preenchido quando chega de um contato/inscrito
+  // Integração (P4a/P4b + Pessoas): abre o modal pré-preenchido quando chega de um contato/inscrito/pessoa
   useEffect(() => {
     const nome = searchParams.get('nome');
-    if (nome) {
-      setPrefill({ nome, telefone: searchParams.get('telefone') ?? undefined });
+    const pessoaId = searchParams.get('pessoaId');
+    if (nome || pessoaId) {
+      setPrefill({
+        nome: nome ?? undefined,
+        telefone: searchParams.get('telefone') ?? undefined,
+        pessoaId: pessoaId ?? undefined,
+      });
       setModalNova(true);
     }
   }, [searchParams]);
@@ -154,6 +162,7 @@ export default function PastoralPage() {
           comunidadeId={comunidadeId}
           pastorId={usuario.id}
           usuarios={usuarios}
+          pessoas={pessoas}
           prefill={prefill}
           onCriada={carregar}
         />

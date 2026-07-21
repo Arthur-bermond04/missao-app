@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, CalendarPlus, ArrowRight } from 'lucide-react';
+import { Plus, CalendarPlus, ArrowRight, IdCard } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Combobox } from '@/components/ui/Combobox';
@@ -11,8 +11,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { RegistrarEncontroModal } from './RegistrarEncontroModal';
 import {
   adicionarMembro,
+  adicionarMembroPessoa,
   calcularFrequencia,
   type MembroDetalhe,
+  type MembroPessoaDetalhe,
 } from '@/lib/ministerios';
 import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
@@ -22,6 +24,7 @@ import {
   type Ministerio,
   type MinisterioEncontro,
   type MinisterioPresenca,
+  type Pessoa,
   type Usuario,
 } from '@/types/database';
 
@@ -38,14 +41,27 @@ const CARGO_LABEL: Record<CargoMinisterio, string> = {
 interface AbaMembrosProps {
   ministerio: Ministerio;
   membros: MembroDetalhe[];
+  membrosPessoa: MembroPessoaDetalhe[];
   encontros: MinisterioEncontro[];
   presencas: MinisterioPresenca[];
   usuarios: Usuario[];
+  pessoas: Pessoa[];
   onRefresh: () => void;
 }
 
-export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios, onRefresh }: AbaMembrosProps) {
+export function AbaMembros({
+  ministerio,
+  membros,
+  membrosPessoa,
+  encontros,
+  presencas,
+  usuarios,
+  pessoas,
+  onRefresh,
+}: AbaMembrosProps) {
+  const [modoAdicionar, setModoAdicionar] = useState<'usuario' | 'pessoa'>('usuario');
   const [novoUsuarioId, setNovoUsuarioId] = useState('');
+  const [novaPessoaId, setNovaPessoaId] = useState('');
   const [novoCargo, setNovoCargo] = useState<CargoMinisterio>('membro');
   const [adicionando, setAdicionando] = useState(false);
   const [modalEncontro, setModalEncontro] = useState(false);
@@ -54,6 +70,9 @@ export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios
 
   const idsMembros = new Set(membros.map((m) => m.usuario_id));
   const usuariosDisponiveis = usuarios.filter((u) => !idsMembros.has(u.id));
+
+  const idsMembrosPessoa = new Set(membrosPessoa.map((m) => m.pessoa_id));
+  const pessoasDisponiveis = pessoas.filter((p) => !idsMembrosPessoa.has(p.id));
 
   const presencaPorEncontro = useMemo(() => {
     const mapa = new Map<string, { presentes: number; total: number }>();
@@ -67,18 +86,34 @@ export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios
   }, [presencas]);
 
   async function handleAdicionar() {
-    if (!novoUsuarioId) return;
-    setAdicionando(true);
-    try {
-      await adicionarMembro(ministerio.id, novoUsuarioId, novoCargo);
-      setNovoUsuarioId('');
-      setNovoCargo('membro');
-      onRefresh();
-      toastSuccess('Membro adicionado!');
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Erro ao adicionar membro.');
-    } finally {
-      setAdicionando(false);
+    if (modoAdicionar === 'usuario') {
+      if (!novoUsuarioId) return;
+      setAdicionando(true);
+      try {
+        await adicionarMembro(ministerio.id, novoUsuarioId, novoCargo);
+        setNovoUsuarioId('');
+        setNovoCargo('membro');
+        onRefresh();
+        toastSuccess('Membro adicionado!');
+      } catch (err) {
+        toastError(err instanceof Error ? err.message : 'Erro ao adicionar membro.');
+      } finally {
+        setAdicionando(false);
+      }
+    } else {
+      if (!novaPessoaId) return;
+      setAdicionando(true);
+      try {
+        await adicionarMembroPessoa(ministerio.id, novaPessoaId, novoCargo);
+        setNovaPessoaId('');
+        setNovoCargo('membro');
+        onRefresh();
+        toastSuccess('Membro adicionado!');
+      } catch (err) {
+        toastError(err instanceof Error ? err.message : 'Erro ao adicionar membro.');
+      } finally {
+        setAdicionando(false);
+      }
     }
   }
 
@@ -94,21 +129,54 @@ export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios
 
       {/* Adicionar membro */}
       <div className="rounded-lg bg-bg-page p-3">
-        <div className="flex flex-wrap items-end gap-2">
-          <div className="min-w-[200px] flex-1">
-            <Combobox
-              label="Adicionar membro"
-              value={novoUsuarioId}
-              onChange={setNovoUsuarioId}
-              placeholder="Buscar por nome..."
-              emptyMessage="Nenhum usuário encontrado"
-              options={usuariosDisponiveis.map((u) => ({
-                value: u.id,
-                label: u.nome,
-                sublabel: PERFIL_LABEL[u.perfil],
-              }))}
-            />
-          </div>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setModoAdicionar('usuario')}
+            className={`rounded-md px-3 py-1 text-xs font-semibold ${
+              modoAdicionar === 'usuario' ? 'bg-bg-card text-primary shadow-card' : 'text-text-secondary'
+            }`}
+          >
+            Usuário do app
+          </button>
+          <button
+            type="button"
+            onClick={() => setModoAdicionar('pessoa')}
+            className={`rounded-md px-3 py-1 text-xs font-semibold ${
+              modoAdicionar === 'pessoa' ? 'bg-bg-card text-primary shadow-card' : 'text-text-secondary'
+            }`}
+          >
+            Pessoa cadastrada (sem login)
+          </button>
+        </div>
+        <div className="mt-2 flex flex-wrap items-end gap-2">
+          {modoAdicionar === 'usuario' ? (
+            <div className="min-w-[200px] flex-1">
+              <Combobox
+                label="Adicionar membro"
+                value={novoUsuarioId}
+                onChange={setNovoUsuarioId}
+                placeholder="Buscar por nome..."
+                emptyMessage="Nenhum usuário encontrado"
+                options={usuariosDisponiveis.map((u) => ({
+                  value: u.id,
+                  label: u.nome,
+                  sublabel: PERFIL_LABEL[u.perfil],
+                }))}
+              />
+            </div>
+          ) : (
+            <div className="min-w-[200px] flex-1">
+              <Combobox
+                label="Adicionar pessoa"
+                value={novaPessoaId}
+                onChange={setNovaPessoaId}
+                placeholder="Buscar em Pessoas..."
+                emptyMessage="Nenhuma pessoa encontrada"
+                options={pessoasDisponiveis.map((p) => ({ value: p.id, label: p.nome, sublabel: p.telefone ?? undefined }))}
+              />
+            </div>
+          )}
           <div className="w-40">
             <Select
               label="Cargo"
@@ -117,19 +185,34 @@ export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios
               options={CARGOS_MINISTERIO.map((c) => ({ value: c.valor, label: c.label }))}
             />
           </div>
-          <Button icon={Plus} onClick={handleAdicionar} loading={adicionando} disabled={!novoUsuarioId}>
+          <Button
+            icon={Plus}
+            onClick={handleAdicionar}
+            loading={adicionando}
+            disabled={modoAdicionar === 'usuario' ? !novoUsuarioId : !novaPessoaId}
+          >
             Adicionar
           </Button>
           <Button variant="secondary" icon={CalendarPlus} onClick={() => setModalEncontro(true)}>
             Registrar encontro
           </Button>
         </div>
-        {/* P4e: só é possível adicionar quem já está cadastrado como usuário */}
         <p className="mt-2 text-xs text-text-secondary">
-          Não encontrou a pessoa? Ela precisa estar cadastrada no app.{' '}
-          <Link href="/membros" className="inline-flex items-center gap-0.5 font-medium text-primary">
-            Convidar em Membros <ArrowRight size={12} />
-          </Link>
+          {modoAdicionar === 'usuario' ? (
+            <>
+              Não encontrou a pessoa? Cadastre em{' '}
+              <Link href="/pessoas" className="inline-flex items-center gap-0.5 font-medium text-primary">
+                Pessoas <ArrowRight size={12} />
+              </Link>{' '}
+              (sem login) ou{' '}
+              <Link href="/membros" className="inline-flex items-center gap-0.5 font-medium text-primary">
+                Membros <ArrowRight size={12} />
+              </Link>{' '}
+              (com login, para presença/encontros).
+            </>
+          ) : (
+            'Membros sem login não entram na presença de encontros — apenas na lista e no caixa.'
+          )}
         </p>
       </div>
 
@@ -179,6 +262,44 @@ export function AbaMembros({ ministerio, membros, encontros, presencas, usuarios
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Membros sem login (Pessoas) */}
+      {membrosPessoa.length > 0 && (
+        <div>
+          <h3 className="flex items-center gap-1 text-sm font-bold text-text-primary">
+            <IdCard size={14} /> Membros sem login ({membrosPessoa.length})
+          </h3>
+          <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border bg-bg-page text-xs uppercase text-text-secondary">
+                  <th className="px-3 py-2">Nome</th>
+                  <th className="px-3 py-2">Cargo</th>
+                  <th className="px-3 py-2">Entrou em</th>
+                </tr>
+              </thead>
+              <tbody>
+                {membrosPessoa.map((m) => (
+                  <tr key={m.id} className="border-b border-border last:border-b-0">
+                    <td className="px-3 py-2.5">
+                      <Link href={`/pessoas/${m.pessoa_id}`} className="flex items-center gap-2 hover:text-primary">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                          {iniciais(m.nome)}
+                        </div>
+                        {m.nome}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2.5 text-text-secondary">{CARGO_LABEL[m.cargo]}</td>
+                    <td className="px-3 py-2.5 text-text-secondary">
+                      {new Date(m.entrou_em).toLocaleDateString('pt-BR')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

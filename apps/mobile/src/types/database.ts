@@ -285,3 +285,83 @@ export const ETAPAS_FORMACAO: { valor: EtapaFormacao; label: string }[] = [
   { valor: 'obra', label: 'Obra' },
   { valor: 'integrado', label: 'Integrado' },
 ];
+
+// =========================================================
+// CADASTRO CENTRAL DE PESSOAS
+// =========================================================
+
+export type SituacaoFe = 'nao_praticante' | 'catolico_praticante' | 'outra_religiao' | 'sem_religiao' | 'nao_informado';
+export type OrigemPessoa = 'evangelizacao' | 'retiro' | 'indicacao' | 'celula' | 'evento' | 'outro';
+export type EtapaJornadaPessoa =
+  | 'contato_inicial'
+  | 'interessado'
+  | 'participando'
+  | 'cv'
+  | 'cal'
+  | 'integrado'
+  | 'afastado';
+export type FrequenciaAcompanhamentoPessoa = 'semanal' | 'quinzenal' | 'mensal' | 'sob_demanda' | 'nenhum';
+export type TipoInteracao = 'contato' | 'visita' | 'celula' | 'evento' | 'missa' | 'conversa' | 'outro';
+export type CanalInteracao = 'presencial' | 'whatsapp' | 'telefone' | 'email';
+
+export interface Pessoa {
+  id: string;
+  comunidade_id: string;
+  cadastrado_por: string;
+  nome: string;
+  telefone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  data_nascimento: string | null;
+  idade: number | null;
+  sexo: string | null;
+  cidade: string | null;
+  bairro: string | null;
+  situacao_fe: SituacaoFe;
+  origem: OrigemPessoa;
+  local_primeiro_contato: string | null;
+  data_primeiro_contato: string;
+  etapa_jornada: EtapaJornadaPessoa;
+  nivel_interesse: NivelInteresse;
+  frequencia_acompanhamento: FrequenciaAcompanhamentoPessoa | null;
+  proxima_visita: string | null;
+  ultimo_contato: string | null;
+  responsavel_id: string | null;
+  observacoes: string | null;
+  tags: string[] | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface PessoaInteracao {
+  id: string;
+  pessoa_id: string;
+  usuario_id: string;
+  data: string;
+  tipo: TipoInteracao;
+  canal: CanalInteracao | null;
+  descricao: string;
+  proximo_passo: string | null;
+  criado_em: string;
+}
+
+export const ETAPAS_JORNADA_PESSOA: { valor: EtapaJornadaPessoa; label: string }[] = [
+  { valor: 'contato_inicial', label: 'Contato inicial' },
+  { valor: 'interessado', label: 'Interessado' },
+  { valor: 'participando', label: 'Participando' },
+  { valor: 'cv', label: 'CV' },
+  { valor: 'cal', label: 'CAL' },
+  { valor: 'integrado', label: 'Integrado' },
+  { valor: 'afastado', label: 'Afastado' },
+];
+
+export const TIPOS_INTERACAO: { valor: TipoInteracao; label: string }[] = [
+  { valor: 'contato', label: 'Contato' },
+  { valor: 'visita', label: 'Visita' },
+  { valor: 'celula', label: 'Célula' },
+  { valor: 'evento', label: 'Evento' },
+  { valor: 'missa', label: 'Missa' },
+  { valor: 'conversa', label: 'Conversa' },
+  { valor: 'outro', label: 'Outro' },
+];

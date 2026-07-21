@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Filter, PartyPopper, HeartHandshake } from 'lucide-react';
+import { Filter, PartyPopper, HeartHandshake, IdCard } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -11,6 +11,8 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { promoverContatoParaPessoa } from '@/lib/pessoas';
+import { toastError, toastSuccess } from '@/lib/toast';
 import { ETAPAS_FUNIL, type Contato, type Usuario } from '@/types/database';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -97,6 +99,17 @@ export default function FunilPage() {
     const livro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(livro, planilha, 'Funil de evangelização');
     XLSX.writeFile(livro, 'funil-evangelizacao.xlsx');
+  }
+
+  async function handleCadastrarEmPessoas(c: Contato) {
+    if (!usuario) return;
+    try {
+      const pessoa = await promoverContatoParaPessoa(c, usuario.id);
+      setContatos((atual) => atual.map((x) => (x.id === c.id ? { ...x, pessoa_id: pessoa.id } : x)));
+      toastSuccess('Cadastrado em Pessoas!');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao cadastrar em Pessoas.');
+    }
   }
 
   if (!usuario?.comunidade_id) {
@@ -187,14 +200,31 @@ export default function FunilPage() {
                     {new Date(c.data_abordagem).toLocaleDateString('pt-BR')}
                   </span>
                 </div>
-                <Link
-                  href={`/pastoral?nome=${encodeURIComponent(c.nome)}${
-                    c.telefone ? `&telefone=${encodeURIComponent(c.telefone)}` : ''
-                  }`}
-                  className="inline-flex items-center gap-1 rounded-md border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
-                >
-                  <HeartHandshake size={13} /> Iniciar acompanhamento
-                </Link>
+                <div className="flex items-center gap-2">
+                  {c.pessoa_id ? (
+                    <Link
+                      href={`/pessoas/${c.pessoa_id}`}
+                      className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1 text-xs font-medium text-text-secondary hover:bg-bg-page"
+                    >
+                      <IdCard size={13} /> Ver em Pessoas
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => handleCadastrarEmPessoas(c)}
+                      className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1 text-xs font-medium text-text-secondary hover:bg-bg-page"
+                    >
+                      <IdCard size={13} /> Cadastrar em Pessoas
+                    </button>
+                  )}
+                  <Link
+                    href={`/pastoral?nome=${encodeURIComponent(c.nome)}${
+                      c.telefone ? `&telefone=${encodeURIComponent(c.telefone)}` : ''
+                    }${c.pessoa_id ? `&pessoaId=${encodeURIComponent(c.pessoa_id)}` : ''}`}
+                    className="inline-flex items-center gap-1 rounded-md border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
+                  >
+                    <HeartHandshake size={13} /> Iniciar acompanhamento
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

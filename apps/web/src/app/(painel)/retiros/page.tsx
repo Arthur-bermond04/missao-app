@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Tent, Search, HeartHandshake } from 'lucide-react';
+import { Tent, Search, HeartHandshake, IdCard } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -22,6 +22,7 @@ import {
   listarInscritos,
   listarRetiros,
 } from '@/lib/retiros';
+import { promoverInscricaoParaPessoa } from '@/lib/pessoas';
 import { toastSuccess, toastError } from '@/lib/toast';
 import type { InscricaoRetiro, Retiro } from '@/types/database';
 
@@ -62,6 +63,20 @@ export default function RetirosPage() {
   const linkInscricao = retiroSelecionadoId
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/inscricao/${retiroSelecionadoId}`
     : '';
+
+  async function handleCadastrarEmPessoas(i: InscricaoRetiro) {
+    if (!usuario?.comunidade_id || !retiroSelecionado) return;
+    try {
+      const pessoa = await promoverInscricaoParaPessoa(i, usuario.comunidade_id, usuario.id, {
+        nome: retiroSelecionado.nome,
+        data_inicio: retiroSelecionado.data_inicio,
+      });
+      setInscritos((atual) => atual.map((x) => (x.id === i.id ? { ...x, pessoa_id: pessoa.id } : x)));
+      toastSuccess('Cadastrado em Pessoas!');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao cadastrar em Pessoas.');
+    }
+  }
 
   async function handleCriarRetiro(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -367,15 +382,34 @@ export default function RetirosPage() {
                     },
                   ]}
                   rowActions={(i) => (
-                    <Link
-                      href={`/pastoral?nome=${encodeURIComponent(i.nome ?? '')}${
-                        i.telefone ? `&telefone=${encodeURIComponent(i.telefone)}` : ''
-                      }`}
-                      title="Adicionar ao acompanhamento pastoral"
-                      className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-primary px-2 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
-                    >
-                      <HeartHandshake size={12} /> Pastoral
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      {i.pessoa_id ? (
+                        <Link
+                          href={`/pessoas/${i.pessoa_id}`}
+                          title="Ver em Pessoas"
+                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-border px-2 py-1 text-xs font-medium text-text-secondary hover:bg-bg-page"
+                        >
+                          <IdCard size={12} /> Pessoas
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={() => handleCadastrarEmPessoas(i)}
+                          title="Cadastrar em Pessoas"
+                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-border px-2 py-1 text-xs font-medium text-text-secondary hover:bg-bg-page"
+                        >
+                          <IdCard size={12} /> Pessoas
+                        </button>
+                      )}
+                      <Link
+                        href={`/pastoral?nome=${encodeURIComponent(i.nome ?? '')}${
+                          i.telefone ? `&telefone=${encodeURIComponent(i.telefone)}` : ''
+                        }${i.pessoa_id ? `&pessoaId=${encodeURIComponent(i.pessoa_id)}` : ''}`}
+                        title="Adicionar ao acompanhamento pastoral"
+                        className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-primary px-2 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
+                      >
+                        <HeartHandshake size={12} /> Pastoral
+                      </Link>
+                    </div>
                   )}
                   emptyState={
                     <EmptyState

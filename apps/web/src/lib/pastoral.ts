@@ -32,11 +32,21 @@ export async function buscarOvelha(id: string): Promise<PastoralOvelha | null> {
   return data as PastoralOvelha;
 }
 
+// Usado no perfil de Pessoa para mostrar se já existe acompanhamento pastoral vinculado.
+// Retorna null tanto se não houver vínculo quanto se o usuário logado não tiver acesso
+// (RLS restringe pastoral a pastor/admin) — não dá pra distinguir os dois casos e não precisa.
+export async function buscarOvelhaPorPessoa(pessoaId: string): Promise<PastoralOvelha | null> {
+  const { data, error } = await supabase.from('pastoral_ovelhas').select('*').eq('pessoa_id', pessoaId).maybeSingle();
+  if (error) return null;
+  return data as PastoralOvelha | null;
+}
+
 export async function criarOvelha(dados: {
   comunidade_id: string;
   pastor_id: string;
   nome: string;
   usuario_id?: string;
+  pessoa_id?: string;
   telefone?: string;
   email?: string;
   idade?: number;
@@ -53,6 +63,7 @@ export async function criarOvelha(dados: {
       pastor_id: dados.pastor_id,
       nome: dados.nome,
       usuario_id: dados.usuario_id || null,
+      pessoa_id: dados.pessoa_id || null,
       telefone: dados.telefone || null,
       email: dados.email || null,
       idade: dados.idade ?? null,

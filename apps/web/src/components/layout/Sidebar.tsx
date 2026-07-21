@@ -13,6 +13,7 @@ import {
   Settings,
   HandHeart,
   HeartHandshake,
+  IdCard,
   type LucideIcon,
   LogOut,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ import type { Perfil } from '@/types/database';
 
 export const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/pessoas', label: 'Pessoas', icon: IdCard },
   { href: '/funil', label: 'Funil', icon: Filter },
   { href: '/retiros', label: 'Retiros', icon: Tent },
   { href: '/ministerios', label: 'Ministérios', icon: HandHeart },

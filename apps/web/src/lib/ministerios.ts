@@ -14,7 +14,11 @@ export interface MinisterioComContagem extends Ministerio {
   total_membros: number;
 }
 
+// Representa especificamente membros COM login (usuario_id sempre presente) —
+// é o que os componentes de presença/encontro já existentes esperam. Membros
+// só-pessoa (sem login) são tratados à parte nas telas que os suportam.
 export interface MembroDetalhe extends MinisterioMembro {
+  usuario_id: string;
   nome: string;
 }
 
@@ -86,6 +90,8 @@ export async function atualizarMinisterio(id: string, campos: Partial<Ministerio
 // Membros
 // ---------------------------------------------------------------------------
 
+// Só retorna membros COM login (usuario_id presente) — membros só-pessoa
+// (sem login) são listados à parte pelas telas que os suportam (Task #41).
 export async function listarMembrosMinisterio(ministerioId: string): Promise<MembroDetalhe[]> {
   const { data, error } = await supabase
     .from('ministerio_membros')
@@ -93,10 +99,13 @@ export async function listarMembrosMinisterio(ministerioId: string): Promise<Mem
     .eq('ministerio_id', ministerioId)
     .order('entrou_em', { ascending: true });
   if (error) throw error;
-  return ((data as (MinisterioMembro & { usuario: { nome: string } | null })[]) ?? []).map((m) => ({
-    ...m,
-    nome: m.usuario?.nome ?? 'Sem nome',
-  }));
+  return ((data as (MinisterioMembro & { usuario: { nome: string } | null })[]) ?? [])
+    .filter((m) => m.usuario_id !== null)
+    .map((m) => ({
+      ...m,
+      usuario_id: m.usuario_id as string,
+      nome: m.usuario?.nome ?? 'Sem nome',
+    }));
 }
 
 export async function adicionarMembro(ministerioId: string, usuarioId: string, cargo: CargoMinisterio) {
@@ -104,6 +113,46 @@ export async function adicionarMembro(ministerioId: string, usuarioId: string, c
     .from('ministerio_membros')
     .insert({ ministerio_id: ministerioId, usuario_id: usuarioId, cargo });
   if (error) throw error;
+}
+
+export interface MembroPessoaDetalhe extends MinisterioMembro {
+  pessoa_id: string;
+  nome: string;
+}
+
+// Membros só-pessoa (sem login) — não entram na presença/encontros, que dependem
+// de usuario_id (ministerio_presencas.usuario_id é NOT NULL no schema atual).
+export async function listarMembrosPessoaMinisterio(ministerioId: string): Promise<MembroPessoaDetalhe[]> {
+  const { data, error } = await supabase
+    .from('ministerio_membros')
+    .select('*, pessoa:pessoas(nome)')
+    .eq('ministerio_id', ministerioId)
+    .not('pessoa_id', 'is', null)
+    .order('entrou_em', { ascending: true });
+  if (error) throw error;
+  return ((data as (MinisterioMembro & { pessoa: { nome: string } | null })[]) ?? []).map((m) => ({
+    ...m,
+    pessoa_id: m.pessoa_id as string,
+    nome: m.pessoa?.nome ?? 'Sem nome',
+  }));
+}
+
+export async function adicionarMembroPessoa(ministerioId: string, pessoaId: string, cargo: CargoMinisterio) {
+  const { error } = await supabase
+    .from('ministerio_membros')
+    .insert({ ministerio_id: ministerioId, pessoa_id: pessoaId, cargo });
+  if (error) throw error;
+}
+
+// Usado no perfil de Pessoa para mostrar em quais ministérios ela já está.
+export async function listarMinisteriosDaPessoa(pessoaId: string): Promise<Ministerio[]> {
+  const { data, error } = await supabase
+    .from('ministerio_membros')
+    .select('ministerio:ministerios(*)')
+    .eq('pessoa_id', pessoaId)
+    .eq('ativo', true);
+  if (error) throw error;
+  return (((data as unknown as { ministerio: Ministerio | null }[]) ?? []).map((r) => r.ministerio).filter(Boolean)) as Ministerio[];
 }
 
 export async function atualizarMembroMinisterio(id: string, campos: Partial<MinisterioMembro>) {

@@ -16,6 +16,7 @@ import {
   FREQUENCIAS_ACOMPANHAMENTO,
   type EtapaFormacao,
   type FrequenciaAcompanhamento,
+  type Pessoa,
   type Usuario,
 } from '@/types/database';
 
@@ -25,7 +26,8 @@ interface NovaOvelhaModalProps {
   comunidadeId: string;
   pastorId: string;
   usuarios: Usuario[];
-  prefill?: { nome?: string; telefone?: string } | null;
+  pessoas: Pessoa[];
+  prefill?: { nome?: string; telefone?: string; pessoaId?: string } | null;
   onCriada: () => void;
 }
 
@@ -35,10 +37,12 @@ export function NovaOvelhaModal({
   comunidadeId,
   pastorId,
   usuarios,
+  pessoas,
   prefill,
   onCriada,
 }: NovaOvelhaModalProps) {
   const [usuarioId, setUsuarioId] = useState('');
+  const [pessoaId, setPessoaId] = useState('');
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [idade, setIdade] = useState('');
@@ -47,11 +51,12 @@ export function NovaOvelhaModal({
   const [objetivo, setObjetivo] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  // aplica o pré-preenchimento (vindo de contato/retiro) ao abrir
+  // aplica o pré-preenchimento (vindo de contato/retiro/pessoa) ao abrir
   useEffect(() => {
     if (open && prefill) {
       setNome(prefill.nome ?? '');
       setTelefone(prefill.telefone ?? '');
+      if (prefill.pessoaId) setPessoaId(prefill.pessoaId);
     }
   }, [open, prefill]);
 
@@ -64,6 +69,16 @@ export function NovaOvelhaModal({
     }
   }
 
+  function selecionarPessoa(id: string) {
+    setPessoaId(id);
+    const p = pessoas.find((x) => x.id === id);
+    if (p) {
+      setNome(p.nome);
+      if (p.telefone) setTelefone(p.telefone);
+      if (p.idade) setIdade(String(p.idade));
+    }
+  }
+
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
     setSalvando(true);
@@ -73,6 +88,7 @@ export function NovaOvelhaModal({
         pastor_id: pastorId,
         nome: nome.trim(),
         usuario_id: usuarioId || undefined,
+        pessoa_id: pessoaId || undefined,
         telefone: telefone.trim() || undefined,
         idade: idade ? Number(idade) : undefined,
         etapa_formacao: etapa,
@@ -80,6 +96,7 @@ export function NovaOvelhaModal({
         objetivo_atual: objetivo.trim() || undefined,
       });
       setUsuarioId('');
+      setPessoaId('');
       setNome('');
       setTelefone('');
       setIdade('');
@@ -104,7 +121,15 @@ export function NovaOvelhaModal({
       </p>
       <form onSubmit={handleSalvar} className="space-y-3">
         <Combobox
-          label="Vincular a membro cadastrado (opcional)"
+          label="Vincular a pessoa cadastrada (opcional)"
+          value={pessoaId}
+          onChange={selecionarPessoa}
+          placeholder="Buscar em Pessoas..."
+          emptyMessage="Nenhuma pessoa encontrada"
+          options={pessoas.map((p) => ({ value: p.id, label: p.nome, sublabel: p.telefone ?? undefined }))}
+        />
+        <Combobox
+          label="Vincular a membro do app (opcional)"
           value={usuarioId}
           onChange={selecionarMembro}
           placeholder="Buscar membro..."

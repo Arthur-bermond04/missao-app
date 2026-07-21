@@ -3,9 +3,11 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Target, LayoutDashboard, Wallet, MessageCircle, User, type LucideIcon } from 'lucide-react-native';
+import { Target, LayoutDashboard, Wallet, MessageCircle, User, IdCard, type LucideIcon } from 'lucide-react-native';
 
 import { ListaContatosScreen } from '../screens/ListaContatosScreen';
+import { PessoasScreen } from '../screens/PessoasScreen';
+import { PessoaPerfilScreen } from '../screens/PessoaPerfilScreen';
 import { CadastroContatoScreen } from '../screens/CadastroContatoScreen';
 import { ConfirmacaoContatoScreen } from '../screens/ConfirmacaoContatoScreen';
 import { PerfilContatoScreen } from '../screens/PerfilContatoScreen';
@@ -127,6 +129,27 @@ function DashboardStackNavigator({ usuario }: { usuario: Usuario }) {
 }
 
 // ---------------------------------------------------------------------------
+// Aba Pessoas (cadastro central)
+// ---------------------------------------------------------------------------
+const PessoasStack = createNativeStackNavigator();
+
+function PessoasStackNavigator({ usuario }: { usuario: Usuario }) {
+  const comunidadeId = usuario.comunidade_id as string;
+  return (
+    <PessoasStack.Navigator screenOptions={stackScreenOptions}>
+      <PessoasStack.Screen name="Pessoas" options={{ title: 'Pessoas' }}>
+        {() => <PessoasScreen comunidadeId={comunidadeId} usuarioId={usuario.id} />}
+      </PessoasStack.Screen>
+      <PessoasStack.Screen
+        name="PessoaPerfil"
+        component={PessoaPerfilScreen}
+        options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Pessoa' })}
+      />
+    </PessoasStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Aba Financeiro
 // ---------------------------------------------------------------------------
 const FinanceiroStack = createNativeStackNavigator();
@@ -218,6 +241,9 @@ function TabsAutenticado({
       </Tab.Screen>
       <Tab.Screen name="DashboardTab" options={{ title: 'Dashboard', tabBarIcon: iconePara(LayoutDashboard) }}>
         {() => <DashboardStackNavigator usuario={usuario} />}
+      </Tab.Screen>
+      <Tab.Screen name="PessoasTab" options={{ title: 'Pessoas', tabBarIcon: iconePara(IdCard) }}>
+        {() => <PessoasStackNavigator usuario={usuario} />}
       </Tab.Screen>
       <Tab.Screen name="FinanceiroTab" options={{ title: 'Financeiro', tabBarIcon: iconePara(Wallet) }}>
         {() => <FinanceiroStackNavigator comunidadeId={comunidadeId} />}

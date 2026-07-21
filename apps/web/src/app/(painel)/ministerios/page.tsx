@@ -15,14 +15,17 @@ import { AbaCaixa } from '@/components/ministerios/AbaCaixa';
 import { AbaDoacoes } from '@/components/ministerios/AbaDoacoes';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
+import { buscarPessoasParaCombobox } from '@/lib/pessoas';
 import {
   listarEncontros,
   listarFinanceiroMinisterio,
   listarMembrosMinisterio,
+  listarMembrosPessoaMinisterio,
   listarMinisterios,
   listarPresencasDoMinisterio,
   type LancamentoDetalhe,
   type MembroDetalhe,
+  type MembroPessoaDetalhe,
   type MinisterioComContagem,
 } from '@/lib/ministerios';
 import {
@@ -30,6 +33,7 @@ import {
   type Comunidade,
   type MinisterioEncontro,
   type MinisterioPresenca,
+  type Pessoa,
   type Usuario,
 } from '@/types/database';
 
@@ -44,6 +48,7 @@ export default function MinisteriosPage() {
 
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [ministerios, setMinisterios] = useState<MinisterioComContagem[]>([]);
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const [aba, setAba] = useState<Aba>('membros');
@@ -51,6 +56,7 @@ export default function MinisteriosPage() {
   const [modalUpgrade, setModalUpgrade] = useState(false);
 
   const [membros, setMembros] = useState<MembroDetalhe[]>([]);
+  const [membrosPessoa, setMembrosPessoa] = useState<MembroPessoaDetalhe[]>([]);
   const [encontros, setEncontros] = useState<MinisterioEncontro[]>([]);
   const [presencas, setPresencas] = useState<MinisterioPresenca[]>([]);
   const [financeiro, setFinanceiro] = useState<LancamentoDetalhe[]>([]);
@@ -75,17 +81,20 @@ export default function MinisteriosPage() {
       .eq('comunidade_id', comunidadeId)
       .order('nome', { ascending: true })
       .then(({ data }) => setUsuarios((data as Usuario[]) ?? []));
+    buscarPessoasParaCombobox(comunidadeId).then(setPessoas);
     carregarLista();
   }, [comunidadeId, carregarLista]);
 
   const carregarDetalhe = useCallback((ministerioId: string) => {
     Promise.all([
       listarMembrosMinisterio(ministerioId),
+      listarMembrosPessoaMinisterio(ministerioId),
       listarEncontros(ministerioId),
       listarPresencasDoMinisterio(ministerioId),
       listarFinanceiroMinisterio(ministerioId),
-    ]).then(([m, e, p, f]) => {
+    ]).then(([m, mp, e, p, f]) => {
       setMembros(m);
+      setMembrosPessoa(mp);
       setEncontros(e);
       setPresencas(p);
       setFinanceiro(f);
@@ -203,9 +212,11 @@ export default function MinisteriosPage() {
                   <AbaMembros
                     ministerio={selecionado}
                     membros={membros}
+                    membrosPessoa={membrosPessoa}
                     encontros={encontros}
                     presencas={presencas}
                     usuarios={usuarios}
+                    pessoas={pessoas}
                     onRefresh={() => {
                       carregarDetalhe(selecionado.id);
                       carregarLista();

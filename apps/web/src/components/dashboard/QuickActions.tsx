@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { UserPlus, Wallet, HeartHandshake, Tent, type LucideIcon } from 'lucide-react';
+import { UserPlus, Wallet, HeartHandshake, Tent, IdCard, type LucideIcon } from 'lucide-react';
 
 interface Acao {
   href: string;
@@ -9,6 +9,7 @@ interface Acao {
 }
 
 const ACOES: Acao[] = [
+  { href: '/pessoas', titulo: 'Nova pessoa', descricao: 'Cadastro central da comunidade', icon: IdCard },
   { href: '/funil', titulo: 'Registrar abordagem', descricao: 'Acompanhe a evangelização de campo', icon: UserPlus },
   { href: '/financeiro', titulo: 'Novo lançamento', descricao: 'Receita ou despesa da comunidade', icon: Wallet },
   { href: '/pastoral', titulo: 'Encontro pastoral', descricao: 'Acompanhe suas ovelhas', icon: HeartHandshake },
