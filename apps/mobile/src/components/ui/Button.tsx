@@ -16,8 +16,8 @@ interface ButtonProps {
 }
 
 const CONFIG: Record<Variante, { bg: string; borda: string; texto: string }> = {
-  primary: { bg: colors.primary, borda: colors.primary, texto: '#fff' },
-  secondary: { bg: 'transparent', borda: colors.primary, texto: colors.primary },
+  primary: { bg: colors.primary, borda: colors.primary, texto: colors.gold },
+  secondary: { bg: 'transparent', borda: colors.gold, texto: colors.gold },
   danger: { bg: 'transparent', borda: colors.dangerText, texto: colors.dangerText },
   success: { bg: colors.accent, borda: colors.accent, texto: '#fff' },
 };

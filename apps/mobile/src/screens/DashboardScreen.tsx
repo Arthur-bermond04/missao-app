@@ -68,8 +68,8 @@ export function DashboardScreen({
         <MetricCard
           style={styles.gridItem}
           icon={Users}
-          iconColor={colors.primary}
-          iconBg={colors.primaryLight}
+          iconColor={colors.goldDark}
+          iconBg={colors.goldBg}
           label="Membros ativos"
           value={d.membrosAtivos}
         />
@@ -84,8 +84,8 @@ export function DashboardScreen({
         <MetricCard
           style={styles.gridItem}
           icon={Tent}
-          iconColor={colors.amber}
-          iconBg={colors.amberLight}
+          iconColor={colors.goldDark}
+          iconBg={colors.goldBg}
           label="Próximo retiro"
           value={d.proximoRetiro?.nome ?? 'Nenhum'}
           subtitle={
@@ -95,8 +95,8 @@ export function DashboardScreen({
         <MetricCard
           style={styles.gridItem}
           icon={Wallet}
-          iconColor={colors.accent}
-          iconBg={colors.accentLight}
+          iconColor={colors.goldDark}
+          iconBg={colors.goldBg}
           label="Arrecadação do mês"
           value={`R$ ${d.arrecadacaoMes.toFixed(2)}`}
         />

@@ -35,7 +35,7 @@ const PERFIS_GESTAO_RETIROS = ['coordenador', 'admin'];
 
 const stackScreenOptions = {
   headerStyle: { backgroundColor: colors.primary },
-  headerTintColor: '#fff',
+  headerTintColor: colors.gold,
   headerTitleStyle: { fontWeight: '700' as const },
 };
 
@@ -222,8 +222,8 @@ function TabsAutenticado({
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: colors.gold,
+        tabBarInactiveTintColor: colors.stone,
         tabBarStyle: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border },
         tabBarLabelStyle: { fontSize: 11 },
       }}

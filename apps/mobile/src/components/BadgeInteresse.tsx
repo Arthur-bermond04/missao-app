@@ -1,19 +1,19 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
 import type { NivelInteresse } from '../types/database';
 
-const CONFIG: Record<NivelInteresse, { emoji: string; label: string; cor: string }> = {
-  quente: { emoji: '🔥', label: 'Quente', cor: colors.quente },
-  morno: { emoji: '💧', label: 'Morno', cor: colors.morno },
-  frio: { emoji: '❄️', label: 'Frio', cor: colors.frio },
+// Mesmas cores exatas do Badge.tsx web (quente/morno/frio)
+const CONFIG: Record<NivelInteresse, { emoji: string; label: string; bg: string; texto: string }> = {
+  quente: { emoji: '🔥', label: 'Quente', bg: '#FBF3E0', texto: '#8B6A2A' },
+  morno: { emoji: '💧', label: 'Morno', bg: '#E1F5EE', texto: '#085041' },
+  frio: { emoji: '❄️', label: 'Frio', bg: '#F7F4EE', texto: '#6B6357' },
 };
 
 export function BadgeInteresse({ nivel }: { nivel: NivelInteresse }) {
-  const { emoji, label, cor } = CONFIG[nivel];
+  const { emoji, label, bg, texto } = CONFIG[nivel];
   return (
-    <View style={[styles.badge, { backgroundColor: cor + '22' }]}>
-      <Text style={[styles.texto, { color: cor }]}>
+    <View style={[styles.badge, { backgroundColor: bg }]}>
+      <Text style={[styles.texto, { color: texto }]}>
         {emoji} {label}
       </Text>
     </View>

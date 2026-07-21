@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
@@ -108,5 +108,5 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
-  fabTexto: { color: '#fff', fontSize: 28, lineHeight: 30, fontWeight: '400' },
+  fabTexto: { color: colors.primary, fontSize: 28, lineHeight: 30, fontWeight: '400' },
 });

@@ -146,7 +146,7 @@ export function ListaContatosScreen({
           >
             <Text style={styles.fabOpcaoLabel}>Registrar presença</Text>
             <Pressable style={styles.fabOpcaoBotao} onPress={() => acaoFab('RetirosLista')}>
-              <CheckSquare size={20} color="#fff" />
+              <CheckSquare size={20} color={colors.primary} />
             </Pressable>
           </Animated.View>
           <Animated.View
@@ -157,7 +157,7 @@ export function ListaContatosScreen({
           >
             <Text style={styles.fabOpcaoLabel}>Novo contato</Text>
             <Pressable style={styles.fabOpcaoBotao} onPress={() => acaoFab('CadastroContato')}>
-              <UserPlus size={20} color="#fff" />
+              <UserPlus size={20} color={colors.primary} />
             </Pressable>
           </Animated.View>
         </View>
@@ -172,7 +172,7 @@ export function ListaContatosScreen({
         <Animated.View
           style={{ transform: [{ rotate: anim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] }) }] }}
         >
-          <Plus size={28} color="#fff" />
+          <Plus size={28} color={colors.primary} />
         </Animated.View>
       </Pressable>
     </View>
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
-  fabTexto: { color: '#fff', fontSize: 28, lineHeight: 30, fontWeight: '400' },
+  fabTexto: { color: colors.primary, fontSize: 28, lineHeight: 30, fontWeight: '400' },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.08)' },
   fabOpcoes: { position: 'absolute', right: 20, bottom: 92, alignItems: 'flex-end', gap: 12 },
   fabOpcaoLinha: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
