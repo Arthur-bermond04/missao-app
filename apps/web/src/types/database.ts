@@ -182,6 +182,8 @@ export interface MinisterioMembro {
   criado_em: string;
 }
 
+export type StatusEncontroMinisterio = 'agendado' | 'realizado';
+
 export interface MinisterioEncontro {
   id: string;
   ministerio_id: string;
@@ -190,6 +192,7 @@ export interface MinisterioEncontro {
   data: string;
   horario: string | null;
   local: string | null;
+  status: StatusEncontroMinisterio;
   criado_em: string;
 }
 

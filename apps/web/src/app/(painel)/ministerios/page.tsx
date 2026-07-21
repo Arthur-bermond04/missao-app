@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { HandHeart, Lock } from 'lucide-react';
+import { HandHeart, Lock, CalendarPlus, FileDown } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -13,10 +13,12 @@ import { AbaMembros } from '@/components/ministerios/AbaMembros';
 import { AbaPresenca } from '@/components/ministerios/AbaPresenca';
 import { AbaCaixa } from '@/components/ministerios/AbaCaixa';
 import { AbaDoacoes } from '@/components/ministerios/AbaDoacoes';
+import { AgendarEncontroModal } from '@/components/ministerios/AgendarEncontroModal';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { buscarPessoasParaCombobox } from '@/lib/pessoas';
 import {
+  calcularFrequencia,
   listarEncontros,
   listarFinanceiroMinisterio,
   listarMembrosMinisterio,
@@ -54,6 +56,7 @@ export default function MinisteriosPage() {
   const [aba, setAba] = useState<Aba>('membros');
   const [modalNovo, setModalNovo] = useState(false);
   const [modalUpgrade, setModalUpgrade] = useState(false);
+  const [modalAgendar, setModalAgendar] = useState(false);
 
   const [membros, setMembros] = useState<MembroDetalhe[]>([]);
   const [membrosPessoa, setMembrosPessoa] = useState<MembroPessoaDetalhe[]>([]);
@@ -115,6 +118,63 @@ export default function MinisteriosPage() {
     setModalNovo(true);
   }
 
+  async function exportarRelatorioMensal() {
+    if (!selecionado) return;
+    const inicioMes = new Date();
+    inicioMes.setDate(1);
+    const inicioMesIso = inicioMes.toISOString().slice(0, 10);
+
+    const encontrosDoMes = encontros.filter((e) => e.status === 'realizado' && e.data >= inicioMesIso);
+    const financeiroDoMes = financeiro.filter((f) => f.data >= inicioMesIso);
+    const receitasDoMes = financeiroDoMes.filter((f) => f.tipo === 'receita').reduce((s, f) => s + f.valor, 0);
+    const despesasDoMes = financeiroDoMes.filter((f) => f.tipo === 'despesa').reduce((s, f) => s + f.valor, 0);
+    const frequencia = calcularFrequencia(encontros, presencas, 90);
+    const doadores = new Map<string, number>();
+    for (const f of financeiroDoMes) {
+      if (f.tipo === 'receita' && f.doador_display) doadores.set(f.doador_display, (doadores.get(f.doador_display) ?? 0) + f.valor);
+    }
+
+    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
+    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
+    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+
+    pdfMake
+      .createPdf({
+        content: [
+          { text: `Relatório mensal — ${selecionado.nome}`, style: 'titulo' },
+          { text: 'Membros e frequência (90 dias)', style: 'secao' },
+          {
+            table: {
+              headerRows: 1,
+              widths: ['*', 'auto'],
+              body: [['Nome', 'Frequência'], ...membros.map((m) => [m.nome, `${frequencia.get(m.usuario_id) ?? 0}%`])],
+            },
+          },
+          { text: 'Extrato do caixa (mês atual)', style: 'secao' },
+          { text: `Receitas: R$ ${receitasDoMes.toFixed(2)}   Despesas: R$ ${despesasDoMes.toFixed(2)}   Saldo: R$ ${(receitasDoMes - despesasDoMes).toFixed(2)}` },
+          { text: 'Doadores do mês', style: 'secao' },
+          doadores.size === 0
+            ? { text: 'Nenhuma doação registrada este mês.', margin: [0, 0, 0, 8] }
+            : {
+                table: {
+                  headerRows: 1,
+                  widths: ['*', 'auto'],
+                  body: [['Doador', 'Total'], ...Array.from(doadores.entries()).map(([nome, total]) => [nome, `R$ ${total.toFixed(2)}`])],
+                },
+              },
+          { text: 'Encontros realizados no mês', style: 'secao' },
+          encontrosDoMes.length === 0
+            ? { text: 'Nenhum encontro realizado este mês.' }
+            : { ul: encontrosDoMes.map((e) => `${new Date(e.data).toLocaleDateString('pt-BR')} — ${e.titulo}`) },
+        ],
+        styles: {
+          titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 12] },
+          secao: { fontSize: 13, bold: true, margin: [0, 14, 0, 6] },
+        },
+      })
+      .download(`${selecionado.nome}-relatorio-mensal.pdf`);
+  }
+
   const ABAS: { valor: Aba; label: string; bloqueada?: boolean }[] = [
     { valor: 'membros', label: 'Membros' },
     { valor: 'presenca', label: 'Presença' },
@@ -141,6 +201,17 @@ export default function MinisteriosPage() {
         />
       )}
       <UpgradePlanoModal open={modalUpgrade} onClose={() => setModalUpgrade(false)} planoAtual={plano} />
+      {selecionado && (
+        <AgendarEncontroModal
+          open={modalAgendar}
+          onClose={() => setModalAgendar(false)}
+          ministerioId={selecionado.id}
+          onAgendado={() => {
+            carregarDetalhe(selecionado.id);
+            carregarLista();
+          }}
+        />
+      )}
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
         {/* Lista */}
@@ -164,6 +235,15 @@ export default function MinisteriosPage() {
                   <span className="rounded-full bg-bg-page px-2 py-0.5">{TIPO_LABEL[m.tipo]}</span>
                   <span>{m.total_membros} membros</span>
                 </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-5 text-xs text-text-secondary">
+                  {m.frequencia_media_3 != null && <span>Presença: {m.frequencia_media_3}%</span>}
+                  <span className={m.saldo_caixa >= 0 ? 'text-accent' : 'text-danger'}>
+                    Caixa: R$ {m.saldo_caixa.toFixed(2)}
+                  </span>
+                  {m.proximo_encontro && (
+                    <span>Próximo: {new Date(m.proximo_encontro.data).toLocaleDateString('pt-BR')}</span>
+                  )}
+                </div>
               </button>
             ))}
           </div>
@@ -183,9 +263,19 @@ export default function MinisteriosPage() {
             <p className="text-sm text-text-secondary">Selecione ou crie um ministério.</p>
           ) : (
             <>
-              <div className="flex items-center gap-2">
-                <span className="h-4 w-4 rounded-full" style={{ backgroundColor: selecionado.cor }} />
-                <h2 className="text-lg font-bold text-text-primary">{selecionado.nome}</h2>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-4 w-4 rounded-full" style={{ backgroundColor: selecionado.cor }} />
+                  <h2 className="text-lg font-bold text-text-primary">{selecionado.nome}</h2>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="secondary" icon={CalendarPlus} onClick={() => setModalAgendar(true)}>
+                    Agendar encontro
+                  </Button>
+                  <Button size="sm" variant="secondary" icon={FileDown} onClick={exportarRelatorioMensal}>
+                    Relatório do mês
+                  </Button>
+                </div>
               </div>
               {!!selecionado.descricao && (
                 <p className="mt-1 text-sm text-text-secondary">{selecionado.descricao}</p>
