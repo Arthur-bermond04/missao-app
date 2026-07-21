@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Filter, PartyPopper, HeartHandshake, IdCard } from 'lucide-react';
+import { Filter, PartyPopper, HeartHandshake, IdCard, MapPin } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -11,6 +11,8 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { FunilVisual } from '@/components/funil/FunilVisual';
+import { PainelContato } from '@/components/funil/PainelContato';
 import { promoverContatoParaPessoa } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
 import { ETAPAS_FUNIL, type Contato, type Usuario } from '@/types/database';
@@ -28,6 +30,7 @@ export default function FunilPage() {
   const [dataFim, setDataFim] = useState('');
   const [missionarioId, setMissionarioId] = useState('');
   const [local, setLocal] = useState('');
+  const [contatoSelecionado, setContatoSelecionado] = useState<Contato | null>(null);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -72,8 +75,6 @@ export default function FunilPage() {
     });
   }, [contatosFiltrados]);
 
-  const maiorTotal = funil[0]?.total || 1;
-
   const travados = useMemo(() => {
     const agora = Date.now();
     return contatosFiltrados.filter((c) => {
@@ -82,6 +83,16 @@ export default function FunilPage() {
       return agora - dataAbordagem > TRINTA_DIAS_MS;
     });
   }, [contatosFiltrados]);
+
+  const locaisMaisFrequentes = useMemo(() => {
+    const contagem = new Map<string, number>();
+    for (const c of contatosFiltrados) {
+      const local = c.local_abordagem?.trim() || 'Não informado';
+      contagem.set(local, (contagem.get(local) ?? 0) + 1);
+    }
+    return [...contagem.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  }, [contatosFiltrados]);
+  const maiorContagemLocal = locaisMaisFrequentes[0]?.[1] || 1;
 
   function exportarExcel() {
     const linhas = contatosFiltrados.map((c) => ({
@@ -105,7 +116,9 @@ export default function FunilPage() {
     if (!usuario) return;
     try {
       const pessoa = await promoverContatoParaPessoa(c, usuario.id);
-      setContatos((atual) => atual.map((x) => (x.id === c.id ? { ...x, pessoa_id: pessoa.id } : x)));
+      const atualizado = { ...c, pessoa_id: pessoa.id };
+      setContatos((atual) => atual.map((x) => (x.id === c.id ? atualizado : x)));
+      setContatoSelecionado((atual) => (atual && atual.id === c.id ? atualizado : atual));
       toastSuccess('Cadastrado em Pessoas!');
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao cadastrar em Pessoas.');
@@ -159,17 +172,31 @@ export default function FunilPage() {
         {carregandoDados ? (
           <p className="text-sm text-text-secondary">Carregando dados...</p>
         ) : (
-          <div className="space-y-3">
-            {funil.map((etapa) => (
-              <div key={etapa.valor}>
+          <div className="mx-auto max-w-sm">
+            <FunilVisual etapas={funil} />
+          </div>
+        )}
+      </div>
+
+      {/* Onde estamos evangelizando */}
+      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary">
+          <MapPin size={15} /> Onde estamos evangelizando
+        </h2>
+        {locaisMaisFrequentes.length === 0 ? (
+          <p className="mt-3 text-sm text-text-secondary">Nenhum local registrado ainda.</p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {locaisMaisFrequentes.map(([local, total]) => (
+              <div key={local}>
                 <div className="flex justify-between text-sm">
-                  <span className="font-semibold text-text-primary">{etapa.label}</span>
-                  <span className="text-text-secondary">{etapa.total}</span>
+                  <span className="text-text-primary">{local}</span>
+                  <span className="text-text-secondary">{total}</span>
                 </div>
-                <div className="mt-1 h-3 w-full rounded-full bg-bg-page">
+                <div className="mt-1 h-2 w-full rounded-full bg-bg-page">
                   <div
-                    className="h-3 rounded-full bg-primary"
-                    style={{ width: `${(etapa.total / maiorTotal) * 100}%` }}
+                    className="h-2 rounded-full bg-primary"
+                    style={{ width: `${(total / maiorContagemLocal) * 100}%` }}
                   />
                 </div>
               </div>
@@ -193,13 +220,17 @@ export default function FunilPage() {
           <ul className="mt-3 divide-y divide-border">
             {travados.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                <div>
-                  <span className="text-text-primary">{c.nome}</span>
+                <button
+                  onClick={() => setContatoSelecionado(c)}
+                  className="text-left hover:text-primary"
+                  title="Ver detalhe do contato"
+                >
+                  <span className="font-medium text-text-primary">{c.nome}</span>
                   <span className="ml-2 text-text-secondary">
                     {c.local_abordagem ?? 'Local não informado'} ·{' '}
                     {new Date(c.data_abordagem).toLocaleDateString('pt-BR')}
                   </span>
-                </div>
+                </button>
                 <div className="flex items-center gap-2">
                   {c.pessoa_id ? (
                     <Link
@@ -230,6 +261,17 @@ export default function FunilPage() {
           </ul>
         )}
       </div>
+
+      <PainelContato
+        contato={contatoSelecionado}
+        usuarioId={usuario.id}
+        onClose={() => setContatoSelecionado(null)}
+        onCadastrarEmPessoas={handleCadastrarEmPessoas}
+        onAtualizado={(c) => {
+          setContatos((atual) => atual.map((x) => (x.id === c.id ? c : x)));
+          setContatoSelecionado(c);
+        }}
+      />
     </div>
   );
 }

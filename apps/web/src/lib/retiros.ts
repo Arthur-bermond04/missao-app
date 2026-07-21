@@ -57,3 +57,13 @@ export async function atualizarInscricao(
   const { error } = await supabase.from('inscricoes_retiro').update(campos).eq('id', id);
   if (error) throw error;
 }
+
+// Usado na coluna "Pastoral" da tabela de inscritos — mostra "Acompanhado"
+// em vez do botão de vincular quando a pessoa já tem uma ovelha.
+export async function pessoasComAcompanhamentoPastoral(pessoaIds: string[]): Promise<Set<string>> {
+  const ids = pessoaIds.filter(Boolean);
+  if (ids.length === 0) return new Set();
+  const { data, error } = await supabase.from('pastoral_ovelhas').select('pessoa_id').in('pessoa_id', ids);
+  if (error) throw error;
+  return new Set(((data as { pessoa_id: string | null }[]) ?? []).map((o) => o.pessoa_id).filter(Boolean) as string[]);
+}

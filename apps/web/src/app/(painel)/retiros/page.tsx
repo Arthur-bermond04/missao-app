@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Tent, Search, HeartHandshake, IdCard } from 'lucide-react';
+import { Tent, Search, HeartHandshake, IdCard, CircleCheck, CircleAlert, BellRing, ClipboardCheck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -15,14 +15,17 @@ import { RetiroCard } from '@/components/retiros/RetiroCard';
 import { NovoRetiroModal } from '@/components/retiros/NovoRetiroModal';
 import { QrCodeInscricao } from '@/components/retiros/QrCodeInscricao';
 import { ProgressBar } from '@/components/retiros/ProgressBar';
+import { LembreteModal } from '@/components/retiros/LembreteModal';
 import {
   atualizarInscricao,
   contarInscritosPorRetiro,
   criarRetiro,
   listarInscritos,
   listarRetiros,
+  pessoasComAcompanhamentoPastoral,
 } from '@/lib/retiros';
 import { promoverInscricaoParaPessoa } from '@/lib/pessoas';
+import { buscarStatusIntegracoes, type StatusIntegracoes } from '@/lib/integracoes';
 import { toastSuccess, toastError } from '@/lib/toast';
 import type { InscricaoRetiro, Retiro } from '@/types/database';
 
@@ -37,6 +40,13 @@ export default function RetirosPage() {
   const [criandoRetiro, setCriandoRetiro] = useState(false);
   const [numGrupos, setNumGrupos] = useState('4');
   const [buscaCheckIn, setBuscaCheckIn] = useState('');
+  const [statusIntegracoes, setStatusIntegracoes] = useState<StatusIntegracoes | null>(null);
+  const [pessoasAcompanhadas, setPessoasAcompanhadas] = useState<Set<string>>(new Set());
+  const [modalLembrete, setModalLembrete] = useState(false);
+
+  useEffect(() => {
+    buscarStatusIntegracoes().then(setStatusIntegracoes);
+  }, []);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -52,7 +62,11 @@ export default function RetirosPage() {
       setInscritos([]);
       return;
     }
-    listarInscritos(retiroSelecionadoId).then(setInscritos);
+    listarInscritos(retiroSelecionadoId).then((lista) => {
+      setInscritos(lista);
+      const pessoaIds = lista.map((i) => i.pessoa_id).filter((id): id is string => !!id);
+      pessoasComAcompanhamentoPastoral(pessoaIds).then(setPessoasAcompanhadas);
+    });
   }, [retiroSelecionadoId]);
 
   const retiroSelecionado = useMemo(
@@ -246,6 +260,9 @@ export default function RetirosPage() {
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  <Button variant="secondary" size="sm" icon={BellRing} onClick={() => setModalLembrete(true)}>
+                    Enviar lembrete
+                  </Button>
                   <Button variant="secondary" size="sm" onClick={exportarExcel}>
                     Exportar Excel
                   </Button>
@@ -254,6 +271,17 @@ export default function RetirosPage() {
                   </Button>
                 </div>
               </div>
+
+              {usuario?.comunidade_id && (
+                <LembreteModal
+                  open={modalLembrete}
+                  onClose={() => setModalLembrete(false)}
+                  retiro={retiroSelecionado}
+                  totalInscritos={inscritos.length}
+                  comunidadeId={usuario.comunidade_id}
+                  remetenteId={usuario.id}
+                />
+              )}
 
               {/* Progresso */}
               <div className="mt-4 grid grid-cols-1 gap-4 rounded-md bg-bg-page p-4 sm:grid-cols-2">
@@ -271,9 +299,60 @@ export default function RetirosPage() {
                 />
               </div>
 
+              {/* Relatório pós-retiro */}
+              {retiroSelecionado.status === 'realizado' && (
+                <div className="mt-4 rounded-md border border-primary/30 bg-primary-xlight p-4">
+                  <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
+                    <ClipboardCheck size={15} /> Relatório pós-retiro
+                  </h3>
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div>
+                      <p className="text-xs text-text-secondary">Taxa de presença</p>
+                      <p className="text-lg font-bold text-text-primary">
+                        {inscritos.length > 0
+                          ? `${Math.round((inscritos.filter((i) => i.presente).length / inscritos.length) * 100)}%`
+                          : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-text-secondary">Arrecadação vs. meta</p>
+                      <p className="text-lg font-bold text-text-primary">
+                        {totalEsperado > 0 ? `${Math.round((totalArrecadado / totalEsperado) * 100)}%` : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-text-secondary">Inscritos</p>
+                      <p className="text-lg font-bold text-text-primary">{inscritos.length}</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="secondary" className="mt-3" onClick={exportarPdf}>
+                    Exportar relatório completo (PDF)
+                  </Button>
+                </div>
+              )}
+
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md bg-bg-page p-3">
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-text-secondary">Link de inscrição pública:</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold text-text-secondary">Link de inscrição pública:</p>
+                    {statusIntegracoes && (
+                      <span
+                        className={`inline-flex items-center gap-1 text-xs font-semibold ${
+                          statusIntegracoes.inscricaoPublica ? 'text-accent' : 'text-danger'
+                        }`}
+                      >
+                        {statusIntegracoes.inscricaoPublica ? (
+                          <>
+                            <CircleCheck size={13} /> Link ativo
+                          </>
+                        ) : (
+                          <>
+                            <CircleAlert size={13} /> Configure SUPABASE_SERVICE_ROLE_KEY
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </div>
                   <div className="mt-1 flex items-center gap-2">
                     <code className="rounded bg-white px-2 py-1 text-xs text-text-primary">{linkInscricao}</code>
                     <Button variant="secondary" size="sm" onClick={() => navigator.clipboard.writeText(linkInscricao)}>
@@ -400,15 +479,19 @@ export default function RetirosPage() {
                           <IdCard size={12} /> Pessoas
                         </button>
                       )}
-                      <Link
-                        href={`/pastoral?nome=${encodeURIComponent(i.nome ?? '')}${
-                          i.telefone ? `&telefone=${encodeURIComponent(i.telefone)}` : ''
-                        }${i.pessoa_id ? `&pessoaId=${encodeURIComponent(i.pessoa_id)}` : ''}`}
-                        title="Adicionar ao acompanhamento pastoral"
-                        className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-primary px-2 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
-                      >
-                        <HeartHandshake size={12} /> Pastoral
-                      </Link>
+                      {i.pessoa_id && pessoasAcompanhadas.has(i.pessoa_id) ? (
+                        <Badge variant="ativo">Acompanhado</Badge>
+                      ) : (
+                        <Link
+                          href={`/pastoral?nome=${encodeURIComponent(i.nome ?? '')}${
+                            i.telefone ? `&telefone=${encodeURIComponent(i.telefone)}` : ''
+                          }${i.pessoa_id ? `&pessoaId=${encodeURIComponent(i.pessoa_id)}` : ''}`}
+                          title="Adicionar ao acompanhamento pastoral"
+                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-primary px-2 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
+                        >
+                          <HeartHandshake size={12} /> Pastoral
+                        </Link>
+                      )}
                     </div>
                   )}
                   emptyState={
