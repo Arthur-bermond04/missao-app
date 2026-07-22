@@ -18,12 +18,14 @@ import {
   Calendar,
   BarChart3,
   ChevronDown,
+  Search,
   type LucideIcon,
   LogOut,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { Logo } from '@/components/ui/Logo';
+import { BuscaGlobal } from '@/components/layout/BuscaGlobal';
 import type { Perfil } from '@/types/database';
 
 interface NavLink {
@@ -138,11 +140,20 @@ export function iniciais(nome: string) {
   return letras.join('').toUpperCase();
 }
 
+// Cores fixas do novo padrão da sidebar (só o logo e o item ativo usam o
+// dourado cheio — o resto usa tons discretos, pra criar hierarquia visual
+// em vez de tudo competir pela mesma cor de destaque).
+const COR_INATIVO = '#A89880';
+const COR_INATIVO_HOVER = '#C4B49A';
+const COR_LABEL_GRUPO = '#6B5E4E';
+const COR_ATIVO = '#C9A84C';
+
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { usuario, sair } = usePainelSession();
   const [nomeComunidade, setNomeComunidade] = useState('');
+  const [buscaAberta, setBuscaAberta] = useState(false);
   const [submenuAberto, setSubmenuAberto] = useState<string | null>(
     NAV_GRUPOS.flatMap((g) => g.itens).find(
       (item) => item.tipo === 'submenu' && item.itens.some((sub) => pathname === sub.href)
@@ -159,30 +170,74 @@ export function Sidebar() {
       .then(({ data }) => setNomeComunidade((data as { nome: string } | null)?.nome ?? ''));
   }, [usuario?.comunidade_id]);
 
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setBuscaAberta(true);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   async function handleSair() {
     await sair();
     router.replace('/login');
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-primary text-white md:flex lg:w-[240px]">
-      <div className="px-5 pb-5 pt-6">
+    <aside
+      className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto text-white md:flex lg:w-[240px]"
+      style={{ backgroundColor: '#1E1810' }}
+    >
+      {usuario?.comunidade_id && (
+        <BuscaGlobal open={buscaAberta} onClose={() => setBuscaAberta(false)} comunidadeId={usuario.comunidade_id} />
+      )}
+
+      <div className="px-5 pb-4 pt-6">
         <div className="flex items-center justify-center lg:hidden">
           <Logo size={32} variant="dark" />
         </div>
         <div className="hidden lg:flex">
           <Logo size={36} variant="dark" showText />
         </div>
-        {!!nomeComunidade && <p className="mt-1 hidden text-xs text-stone lg:block">{nomeComunidade}</p>}
+        {!!nomeComunidade && (
+          <p className="mt-1 hidden truncate text-xs lg:block" style={{ color: '#6B5E4E' }}>
+            {nomeComunidade}
+          </p>
+        )}
       </div>
 
-      <nav className="mt-2 flex-1 space-y-4 px-3 pb-3">
-        {NAV_GRUPOS.map((grupo) => (
+      {/* Busca global — abre a mesma paleta de comando (Ctrl+K) usada no resto do app */}
+      <div className="px-3 pb-2">
+        <button
+          type="button"
+          onClick={() => setBuscaAberta(true)}
+          title="Buscar (Ctrl+K)"
+          className="flex w-full items-center justify-center gap-2 rounded-md border px-2.5 py-2 text-sm transition-colors focus:outline-none lg:justify-start"
+          style={{ backgroundColor: '#2C2416', borderColor: 'transparent', color: '#6B5E4E' }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = '#C9A84C')}
+          onBlur={(e) => (e.currentTarget.style.borderColor = 'transparent')}
+        >
+          <Search size={16} />
+          <span className="hidden flex-1 text-left lg:inline">Buscar...</span>
+        </button>
+      </div>
+
+      <nav className="mt-1 flex-1 space-y-1 px-3 pb-3">
+        {NAV_GRUPOS.map((grupo, indiceGrupo) => (
           <div key={grupo.titulo}>
-            <p className="hidden px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-gold/50 lg:block">
+            {indiceGrupo > 0 && (
+              <div className="my-2 mx-0 h-px" style={{ backgroundColor: 'rgba(201,168,76,0.15)' }} />
+            )}
+            <p
+              className="hidden px-3 pb-1 pt-2 text-[10px] font-bold uppercase lg:block"
+              style={{ color: COR_LABEL_GRUPO, letterSpacing: '0.07em' }}
+            >
               {grupo.titulo}
             </p>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {grupo.itens.map((item) => {
                 if (item.tipo === 'link') {
                   const ativo = pathname === item.href;
@@ -192,9 +247,18 @@ export function Sidebar() {
                       key={item.href}
                       href={item.href}
                       title={item.label}
-                      className={`flex items-center justify-center gap-3 rounded-md border-l-[3px] px-3 py-2 text-sm font-medium transition-colors lg:justify-start ${
-                        ativo ? 'border-gold bg-gold/12 text-gold' : 'border-transparent text-stone hover:bg-white/5 hover:text-gold-light'
-                      }`}
+                      className="group flex items-center justify-center gap-3 rounded-none border-l-[3px] px-3 py-2 text-sm font-medium transition-colors lg:justify-start"
+                      style={{
+                        borderColor: ativo ? COR_ATIVO : 'transparent',
+                        backgroundColor: ativo ? 'rgba(201,168,76,0.12)' : 'transparent',
+                        color: ativo ? COR_ATIVO : COR_INATIVO,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!ativo) e.currentTarget.style.color = COR_INATIVO_HOVER;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!ativo) e.currentTarget.style.color = COR_INATIVO;
+                      }}
                     >
                       <Icon size={18} />
                       <span className="hidden lg:inline">{item.label}</span>
@@ -211,9 +275,18 @@ export function Sidebar() {
                       type="button"
                       onClick={() => setSubmenuAberto((atual) => (atual === item.label ? null : item.label))}
                       title={item.label}
-                      className={`flex w-full items-center justify-center gap-3 rounded-md border-l-[3px] px-3 py-2 text-sm font-medium transition-colors lg:justify-start ${
-                        algumAtivo ? 'border-gold bg-gold/12 text-gold' : 'border-transparent text-stone hover:bg-white/5 hover:text-gold-light'
-                      }`}
+                      className="flex w-full items-center justify-center gap-3 rounded-none border-l-[3px] px-3 py-2 text-sm font-medium transition-colors lg:justify-start"
+                      style={{
+                        borderColor: algumAtivo ? COR_ATIVO : 'transparent',
+                        backgroundColor: algumAtivo ? 'rgba(201,168,76,0.12)' : 'transparent',
+                        color: algumAtivo ? COR_ATIVO : COR_INATIVO,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!algumAtivo) e.currentTarget.style.color = COR_INATIVO_HOVER;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!algumAtivo) e.currentTarget.style.color = COR_INATIVO;
+                      }}
                     >
                       <Icon size={18} />
                       <span className="hidden flex-1 text-left lg:inline">{item.label}</span>
@@ -223,16 +296,21 @@ export function Sidebar() {
                       />
                     </button>
                     {aberto && (
-                      <div className="ml-6 mt-1 hidden space-y-1 border-l border-gold/15 pl-3 lg:block">
+                      <div className="ml-6 mt-1 hidden space-y-1 border-l pl-3 lg:block" style={{ borderColor: 'rgba(201,168,76,0.15)' }}>
                         {item.itens.map((sub) => {
                           const ativo = pathname === sub.href;
                           return (
                             <Link
                               key={sub.href}
                               href={sub.href}
-                              className={`block rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                                ativo ? 'text-gold' : 'text-stone hover:text-gold-light'
-                              }`}
+                              className="block rounded-none px-2 py-1.5 text-xs font-medium transition-colors"
+                              style={{ color: ativo ? COR_ATIVO : COR_INATIVO }}
+                              onMouseEnter={(e) => {
+                                if (!ativo) e.currentTarget.style.color = COR_INATIVO_HOVER;
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!ativo) e.currentTarget.style.color = COR_INATIVO;
+                              }}
                             >
                               {sub.label}
                             </Link>
@@ -248,20 +326,30 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-gold/20 px-4 py-4">
+      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(201,168,76,0.15)' }}>
         <div className="flex items-center justify-center gap-2 lg:justify-start">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-xs font-bold text-primary">
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+            style={{ backgroundColor: COR_ATIVO, color: '#1E1810' }}
+          >
             {usuario ? iniciais(usuario.nome) : ''}
           </div>
           <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-sm font-semibold text-[#F5E6C8]">{usuario?.nome}</p>
-            <p className="text-xs text-stone">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
+            <p className="truncate text-sm font-semibold" style={{ color: '#D4C4A8' }}>
+              {usuario?.nome}
+            </p>
+            <p className="text-xs" style={{ color: '#6B5E4E' }}>
+              {usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}
+            </p>
           </div>
         </div>
         <button
           onClick={handleSair}
           title="Sair"
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-stone px-2 py-1.5 text-xs text-stone transition-colors hover:border-gold hover:text-gold lg:justify-start"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors lg:justify-start"
+          style={{ borderColor: '#6B5E4E', color: '#6B5E4E' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = COR_INATIVO)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = '#6B5E4E')}
         >
           <LogOut size={14} />
           <span className="hidden lg:inline">Sair</span>

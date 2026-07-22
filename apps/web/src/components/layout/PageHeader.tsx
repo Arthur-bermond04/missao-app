@@ -15,7 +15,7 @@ export function PageHeader({ icon: Icon, title, subtitle, actions }: PageHeaderP
           <Icon size={20} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">{title}</h1>
+          <h1 className="font-sans text-[28px] font-bold text-text-primary">{title}</h1>
           {!!subtitle && <p className="text-sm text-stone">{subtitle}</p>}
         </div>
       </div>

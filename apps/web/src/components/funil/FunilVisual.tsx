@@ -1,8 +1,18 @@
-// Degradê roxo claro → escuro, mesma matiz do primary (sequencial — não é
+// Degradê dourado claro → preto nobre, tema Vaticano (sequencial — não é
 // categórico, então não precisa do validador de paleta, só contraste de texto).
-const CORES_DEGRADE = ['#EEEDFE', '#C7C2F0', '#7A70C9', '#3C3489', '#2A2563'];
+const CORES_DEGRADE = ['#FBF3E0', '#E8C96A', '#C9A84C', '#8B6A2A', '#1A1208'];
 const ALTURA_ETAPA = 56;
 const GAP = 4;
+
+// Luminância relativa (WCAG) pra decidir se o texto em cima da cor precisa ser
+// claro ou escuro, em vez de fixar por índice (evita texto ilegível quando o
+// degradê muda).
+function luminanciaRelativa(hex: string): number {
+  const [r, g, b] = [hex.slice(1, 3), hex.slice(3, 5), hex.slice(5, 7)]
+    .map((h) => parseInt(h, 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
 
 export function FunilVisual({ etapas }: { etapas: { label: string; total: number }[] }) {
   const maiorTotal = etapas[0]?.total || 1;
@@ -25,7 +35,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
           .map((p) => p.join(','))
           .join(' ');
         const cor = CORES_DEGRADE[Math.min(i, CORES_DEGRADE.length - 1)];
-        const textoEscuro = i <= 1;
+        const textoEscuro = luminanciaRelativa(cor) > 0.45;
         return (
           <g key={etapa.label}>
             <title>
@@ -38,7 +48,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
               textAnchor="middle"
               fontSize="5.5"
               fontWeight="700"
-              fill={textoEscuro ? '#1A1A2E' : '#FFFFFF'}
+              fill={textoEscuro ? '#1A1208' : '#FBF3E0'}
             >
               {etapa.label}
             </text>
@@ -47,7 +57,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
               y={yTop + ALTURA_ETAPA / 2 + 8}
               textAnchor="middle"
               fontSize="5"
-              fill={textoEscuro ? '#6B6B8A' : '#EEEDFE'}
+              fill={textoEscuro ? '#6B6357' : '#E8C96A'}
             >
               {etapa.total}
             </text>

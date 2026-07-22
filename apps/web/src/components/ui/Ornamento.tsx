@@ -1,15 +1,6 @@
-// Divisor ornamental com cruz central — uso entre seções
+// Divisor fino — uso entre seções muito diferentes do dashboard/detalhe
 export function Ornamento({ className }: { className?: string }) {
-  return (
-    <div className={`flex items-center gap-3 my-4 ${className}`}>
-      <div className="flex-1 h-px bg-[#E2D9C8]" />
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-        <rect x="7" y="2" width="2" height="12" rx="1" fill="#C9A84C" opacity=".4" />
-        <rect x="2" y="7" width="12" height="2" rx="1" fill="#C9A84C" opacity=".4" />
-      </svg>
-      <div className="flex-1 h-px bg-[#E2D9C8]" />
-    </div>
-  );
+  return <div className={`my-4 h-px w-full bg-[#E2D9C8] ${className}`} style={{ height: '0.5px' }} />;
 }
 
 // Borda ornamental dourada — uso em cards de destaque (ex: card de plano, onboarding)

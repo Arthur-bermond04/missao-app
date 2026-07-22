@@ -49,7 +49,7 @@ export function Logo({ size = 44, variant = 'dark', showText = false }: LogoProp
           <div
             className="logo-text"
             style={{
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: 500,
               color: variant === 'dark' ? '#C9A84C' : '#1A1208',
               letterSpacing: '0.5px',

@@ -187,7 +187,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         ],
         styles: {
           titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 6] },
-          aviso: { fontSize: 10, italics: true, color: '#993C1D', margin: [0, 0, 0, 12] },
+          aviso: { fontSize: 10, italics: true, color: '#8B2B1A', margin: [0, 0, 0, 12] },
           secao: { fontSize: 13, bold: true, margin: [0, 14, 0, 6] },
         },
       })

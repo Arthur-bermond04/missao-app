@@ -7,7 +7,7 @@ import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
-import { Ornamento, CardOrnamental } from '@/components/ui/Ornamento';
+import { Ornamento } from '@/components/ui/Ornamento';
 import { resumoMinisterios } from '@/lib/ministerios';
 import { resumoPastoral, type ResumoPastoral } from '@/lib/pastoral';
 import { resumoPessoas, type ResumoPessoas } from '@/lib/pessoas';
@@ -235,11 +235,11 @@ export default function DashboardPage() {
 
           <Ornamento />
 
-          {/* Pessoas + Ministérios + Pastoral */}
+          {/* Pessoas + Ministérios + Pastoral — nível secundário: marfim plano, sem sombra */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Link href="/pessoas" className="rounded-lg bg-bg-card p-5 shadow-card transition-all hover:shadow-hover">
+            <Link href="/pessoas" className="rounded-lg bg-[#F5E6C8] p-5 transition-colors hover:bg-[#F0DEB4]">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-xlight text-gold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card text-gold">
                   <IdCard size={16} />
                 </div>
                 <h3 className="text-sm font-bold text-text-primary">Pessoas</h3>
@@ -260,9 +260,9 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/ministerios" className="rounded-lg bg-bg-card p-5 shadow-card transition-all hover:shadow-hover">
+            <Link href="/ministerios" className="rounded-lg bg-[#F5E6C8] p-5 transition-colors hover:bg-[#F0DEB4]">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-xlight text-gold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card text-gold">
                   <HandHeart size={16} />
                 </div>
                 <h3 className="text-sm font-bold text-text-primary">Ministérios</h3>
@@ -276,39 +276,43 @@ export default function DashboardPage() {
                 </span>
                 <span className="text-text-secondary">
                   Saldo dos caixas:{' '}
-                  <span className="font-bold text-accent">R$ {(resumoMin?.saldo ?? 0).toFixed(2)}</span>
+                  <span
+                    className={`font-bold ${
+                      (resumoMin?.saldo ?? 0) > 0 ? 'text-accent' : (resumoMin?.saldo ?? 0) < 0 ? 'text-danger' : 'text-text-secondary'
+                    }`}
+                  >
+                    R$ {(resumoMin?.saldo ?? 0).toFixed(2)}
+                  </span>
                 </span>
               </div>
             </Link>
 
-            <Link href="/pastoral" className="block transition-all hover:shadow-hover">
-              <CardOrnamental>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-xlight text-gold">
-                    <Heart size={16} />
-                  </div>
-                  <h3 className="text-sm font-bold text-text-primary">Pastoral</h3>
+            <Link href="/pastoral" className="rounded-lg bg-[#F5E6C8] p-5 transition-colors hover:bg-[#F0DEB4]">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card text-gold">
+                  <Heart size={16} />
                 </div>
-                <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                  <span className="text-text-secondary">
-                    Ovelhas: <span className="font-bold text-text-primary">{resumoPast?.totalAtivas ?? 0}</span>
+                <h3 className="text-sm font-bold text-text-primary">Pastoral</h3>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                <span className="text-text-secondary">
+                  Ovelhas: <span className="font-bold text-text-primary">{resumoPast?.totalAtivas ?? 0}</span>
+                </span>
+                <span className="text-text-secondary">
+                  Atenção/Risco:{' '}
+                  <span
+                    className={`font-bold ${
+                      (resumoPast?.atencao ?? 0) + (resumoPast?.risco ?? 0) > 0 ? 'text-danger' : 'text-text-primary'
+                    }`}
+                  >
+                    {(resumoPast?.atencao ?? 0) + (resumoPast?.risco ?? 0)}
                   </span>
-                  <span className="text-text-secondary">
-                    Atenção/Risco:{' '}
-                    <span
-                      className={`font-bold ${
-                        (resumoPast?.atencao ?? 0) + (resumoPast?.risco ?? 0) > 0 ? 'text-danger' : 'text-text-primary'
-                      }`}
-                    >
-                      {(resumoPast?.atencao ?? 0) + (resumoPast?.risco ?? 0)}
-                    </span>
-                  </span>
-                  <span className="text-text-secondary">
-                    Reuniões esta semana:{' '}
-                    <span className="font-bold text-text-primary">{resumoPast?.proximasReunioesSemana ?? 0}</span>
-                  </span>
-                </div>
-              </CardOrnamental>
+                </span>
+                <span className="text-text-secondary">
+                  Reuniões esta semana:{' '}
+                  <span className="font-bold text-text-primary">{resumoPast?.proximasReunioesSemana ?? 0}</span>
+                </span>
+              </div>
             </Link>
           </div>
 

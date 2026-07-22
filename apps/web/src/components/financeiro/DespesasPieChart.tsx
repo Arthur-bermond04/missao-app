@@ -6,8 +6,8 @@ interface DespesasPieChartProps {
   data: { categoria: string; total: number }[];
 }
 
-// Degradê de âmbar a roxo — paleta sequencial para categorias de despesa
-const CORES = ['#854F0B', '#993C1D', '#3c3489', '#534AB7', '#6B6B8A', '#0F6E56', '#2a2563', '#8B84D4'];
+// Paleta categórica tema Vaticano — uma cor por categoria de despesa
+const CORES = ['#C9A84C', '#8B2B1A', '#1C3A5C', '#5A7A52', '#8B6A2A', '#0F6E56', '#8B7355', '#1A1208'];
 
 export function DespesasPieChart({ data }: DespesasPieChartProps) {
   if (data.length === 0) {

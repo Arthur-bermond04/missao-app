@@ -27,9 +27,10 @@ export function QuickActions() {
             <Link
               key={a.href}
               href={a.href}
-              className="flex items-center gap-3 rounded-lg border border-gold-light/60 bg-primary-xlight p-4 transition-all hover:bg-gold-bg hover:shadow-hover"
+              className="flex items-center gap-3 rounded-lg bg-bg-card p-4 transition-all hover:bg-gold-bg hover:shadow-hover"
+              style={{ border: '0.5px solid #C9A84C' }}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-bg text-gold-dark">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-bg text-gold">
                 <Icon size={20} />
               </div>
               <div>
