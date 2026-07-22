@@ -18,13 +18,14 @@ import { listarTemplates } from '@/lib/mensagensTemplates';
 import { listarMinisterios, type MinisterioComContagem } from '@/lib/ministerios';
 import { buscarStatusIntegracoes, type StatusIntegracoes } from '@/lib/integracoes';
 import { toastSuccess, toastError } from '@/lib/toast';
-import type { Canal, MensagemEnviada, MensagemTemplate, RecorrenciaMensagem } from '@/types/database';
+import type { Canal, MensagemEnviada, MensagemTemplate } from '@/types/database';
 
+// SMS removido: nunca teve integração no plano e é caro/complexo de viabilizar
+// no Brasil sem custo — não faz sentido pro público-alvo por enquanto.
 const CANAIS: { valor: Canal; label: string }[] = [
   { valor: 'push', label: 'Notificação push' },
   { valor: 'whatsapp', label: 'WhatsApp' },
   { valor: 'email', label: 'E-mail' },
-  { valor: 'sms', label: 'SMS' },
 ];
 
 const DESTINATARIOS = [
@@ -49,7 +50,6 @@ export default function MensagensPage() {
   const [titulo, setTitulo] = useState('');
   const [corpo, setCorpo] = useState('');
   const [agendarEm, setAgendarEm] = useState('');
-  const [recorrencia, setRecorrencia] = useState<'' | RecorrenciaMensagem>('');
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
@@ -82,13 +82,11 @@ export default function MensagensPage() {
         titulo: titulo.trim() || undefined,
         corpo: corpo.trim(),
         enviarEm: agendarEm ? new Date(agendarEm).toISOString() : undefined,
-        recorrencia: recorrencia || undefined,
       });
       setHistorico((atual) => [nova, ...atual]);
       setTitulo('');
       setCorpo('');
       setAgendarEm('');
-      setRecorrencia('');
       toastSuccess(
         agendarEm
           ? 'Mensagem agendada e registrada.'
@@ -171,16 +169,6 @@ export default function MensagensPage() {
                 type="datetime-local"
                 value={agendarEm}
                 onChange={(e) => setAgendarEm(e.target.value)}
-              />
-              <Select
-                label="Repetir"
-                value={recorrencia}
-                onChange={(e) => setRecorrencia(e.target.value as '' | RecorrenciaMensagem)}
-                options={[
-                  { value: '', label: 'Não repetir' },
-                  { value: 'semanal', label: 'Semanal' },
-                  { value: 'mensal', label: 'Mensal' },
-                ]}
               />
             </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -59,16 +59,6 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
 
   return (
     <form onSubmit={handleSalvar} className="max-w-md space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-page text-text-secondary">
-          <Camera size={22} />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-text-primary">Logotipo</p>
-          <p className="text-xs text-text-secondary">Upload de imagem em breve.</p>
-        </div>
-      </div>
-
       <Input label="Nome da comunidade" value={nome} onChange={(e) => setNome(e.target.value)} required />
       <Select label="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} options={OPCOES_TIPO} />
       <Input label="Telefone de contato" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />

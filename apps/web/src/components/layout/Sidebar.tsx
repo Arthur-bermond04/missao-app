@@ -14,10 +14,8 @@ import {
   HandHeart,
   HeartHandshake,
   IdCard,
-  Building2,
   Calendar,
   BarChart3,
-  ChevronDown,
   Search,
   type LucideIcon,
   LogOut,
@@ -29,102 +27,56 @@ import { BuscaGlobal } from '@/components/layout/BuscaGlobal';
 import type { Perfil } from '@/types/database';
 
 interface NavLink {
-  tipo: 'link';
   href: string;
   label: string;
   icon: LucideIcon;
 }
-interface NavSubmenu {
-  tipo: 'submenu';
-  label: string;
-  icon: LucideIcon;
-  itens: { href: string; label: string }[];
-}
-type NavItem = NavLink | NavSubmenu;
 interface NavGrupo {
   titulo: string;
-  itens: NavItem[];
+  itens: NavLink[];
 }
 
+// Estrutura enxuta: cada rota aparece uma única vez, sem submenu — Pessoas,
+// Pastoral e Ministérios já são cadastros de gente, não precisam de duas
+// portas de entrada diferentes pra mesma tela.
 export const NAV_GRUPOS: NavGrupo[] = [
   {
     titulo: 'Início',
-    itens: [{ tipo: 'link', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+    itens: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
   },
   {
     titulo: 'Cadastros',
     itens: [
-      {
-        tipo: 'submenu',
-        label: 'Pessoas',
-        icon: IdCard,
-        itens: [
-          { href: '/pessoas', label: 'Evangelizados' },
-          { href: '/pastoral', label: 'Ovelhas' },
-          { href: '/ministerios', label: 'Membros de ministério' },
-        ],
-      },
-      { tipo: 'link', href: '/configuracoes', label: 'Comunidade', icon: Building2 },
-      { tipo: 'link', href: '/membros', label: 'Membros', icon: Users },
+      { href: '/pessoas', label: 'Pessoas', icon: IdCard },
+      { href: '/membros', label: 'Membros', icon: Users },
     ],
   },
   {
     titulo: 'Missão',
     itens: [
-      { tipo: 'link', href: '/funil', label: 'Funil de evangelização', icon: Filter },
-      { tipo: 'link', href: '/retiros', label: 'Retiros', icon: Tent },
-      { tipo: 'link', href: '/ministerios', label: 'Ministérios', icon: HandHeart },
-      { tipo: 'link', href: '/pastoral', label: 'Pastoral', icon: HeartHandshake },
-      { tipo: 'link', href: '/agenda', label: 'Agenda', icon: Calendar },
+      { href: '/funil', label: 'Funil', icon: Filter },
+      { href: '/retiros', label: 'Retiros', icon: Tent },
+      { href: '/ministerios', label: 'Ministérios', icon: HandHeart },
+      { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake },
+      { href: '/agenda', label: 'Agenda', icon: Calendar },
     ],
   },
   {
     titulo: 'Gestão',
     itens: [
-      { tipo: 'link', href: '/mensagens', label: 'Comunicação', icon: MessageCircle },
-      { tipo: 'link', href: '/financeiro', label: 'Financeiro', icon: Wallet },
-      { tipo: 'link', href: '/relatorios', label: 'Relatórios', icon: BarChart3 },
+      { href: '/mensagens', label: 'Comunicação', icon: MessageCircle },
+      { href: '/financeiro', label: 'Financeiro', icon: Wallet },
+      { href: '/relatorios', label: 'Relatórios', icon: BarChart3 },
     ],
   },
   {
     titulo: 'Sistema',
-    itens: [{ tipo: 'link', href: '/configuracoes', label: 'Configurações', icon: Settings }],
+    itens: [{ href: '/configuracoes', label: 'Configurações', icon: Settings }],
   },
 ];
 
-// Lista achatada e sem duplicatas (por href) — usada pelo breadcrumb da Topbar
-// e pelo drawer mobile, que não precisam da estrutura em grupos/submenu.
-// Links de topo (label limpo, ex. "Ministérios") têm prioridade sobre itens
-// de submenu que apontam pra mesma rota (ex. "Pessoas · Membros de ministério"),
-// pra não duplicar a mesma página duas vezes com labels diferentes na lista.
-function construirNavAchatada(): { href: string; label: string; icon: LucideIcon }[] {
-  const vistos = new Set<string>();
-  const resultado: { href: string; label: string; icon: LucideIcon }[] = [];
-
-  for (const grupo of NAV_GRUPOS) {
-    for (const item of grupo.itens) {
-      if (item.tipo === 'link' && !vistos.has(item.href)) {
-        vistos.add(item.href);
-        resultado.push({ href: item.href, label: item.label, icon: item.icon });
-      }
-    }
-  }
-  for (const grupo of NAV_GRUPOS) {
-    for (const item of grupo.itens) {
-      if (item.tipo === 'submenu') {
-        for (const sub of item.itens) {
-          if (!vistos.has(sub.href)) {
-            vistos.add(sub.href);
-            resultado.push({ href: sub.href, label: `${item.label} · ${sub.label}`, icon: item.icon });
-          }
-        }
-      }
-    }
-  }
-  return resultado;
-}
-
-export const NAV: { href: string; label: string; icon: LucideIcon }[] = construirNavAchatada();
+// Lista achatada — usada pelo breadcrumb da Topbar e pelo drawer mobile.
+export const NAV: NavLink[] = NAV_GRUPOS.flatMap((g) => g.itens);
 
 export const PERFIL_LABEL_SIDEBAR: Record<Perfil, string> = {
   missionario: 'Missionário',
@@ -144,7 +96,6 @@ export function iniciais(nome: string) {
 // verde só no item ativo e nos estados de hover/foco.
 const COR_INATIVO_TEXTO = '#374151';
 const COR_INATIVO_ICONE = '#6B7280';
-const COR_HOVER_ICONE = '#1A7A4A';
 const COR_LABEL_GRUPO = '#9CA3AF';
 const COR_ATIVO_BG = '#E8F5EE';
 const COR_ATIVO_TEXTO = '#1A7A4A';
@@ -157,11 +108,6 @@ export function Sidebar() {
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
   const [buscaFocada, setBuscaFocada] = useState(false);
-  const [submenuAberto, setSubmenuAberto] = useState<string | null>(
-    NAV_GRUPOS.flatMap((g) => g.itens).find(
-      (item) => item.tipo === 'submenu' && item.itens.some((sub) => pathname === sub.href)
-    )?.label ?? null
-  );
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -255,107 +201,37 @@ export function Sidebar() {
             </p>
             <div>
               {grupo.itens.map((item) => {
-                if (item.tipo === 'link') {
-                  const ativo = pathname === item.href;
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      title={item.label}
-                      className="group flex items-center justify-center gap-3 rounded-md text-sm transition-colors lg:justify-start"
-                      style={{
-                        margin: '1px 8px',
-                        padding: '7px 10px',
-                        backgroundColor: ativo ? COR_ATIVO_BG : 'transparent',
-                        color: ativo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
-                        fontWeight: ativo ? 500 : 400,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!ativo) {
-                          e.currentTarget.style.backgroundColor = '#F9FAFB';
-                          e.currentTarget.style.color = '#111827';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!ativo) {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = COR_INATIVO_TEXTO;
-                        }
-                      }}
-                    >
-                      <Icon size={18} color={ativo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE} className="shrink-0" />
-                      <span className="hidden lg:inline">{item.label}</span>
-                    </Link>
-                  );
-                }
-
+                const ativo = pathname === item.href;
                 const Icon = item.icon;
-                const algumAtivo = item.itens.some((sub) => pathname === sub.href);
-                const aberto = submenuAberto === item.label || algumAtivo;
                 return (
-                  <div key={item.label}>
-                    <button
-                      type="button"
-                      onClick={() => setSubmenuAberto((atual) => (atual === item.label ? null : item.label))}
-                      title={item.label}
-                      className="flex w-full items-center justify-center gap-3 rounded-md text-sm transition-colors lg:justify-start"
-                      style={{
-                        margin: '1px 8px',
-                        padding: '7px 10px',
-                        backgroundColor: algumAtivo ? COR_ATIVO_BG : 'transparent',
-                        color: algumAtivo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
-                        fontWeight: algumAtivo ? 500 : 400,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!algumAtivo) {
-                          e.currentTarget.style.backgroundColor = '#F9FAFB';
-                          e.currentTarget.style.color = '#111827';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!algumAtivo) {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = COR_INATIVO_TEXTO;
-                        }
-                      }}
-                    >
-                      <Icon size={18} color={algumAtivo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE} className="shrink-0" />
-                      <span className="hidden flex-1 text-left lg:inline">{item.label}</span>
-                      <ChevronDown
-                        size={14}
-                        color={algumAtivo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE}
-                        className={`hidden transition-transform lg:block ${aberto ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-                    {aberto && (
-                      <div className="ml-6 mt-1 hidden space-y-1 border-l pl-3 lg:block" style={{ borderColor: '#E5E7EB' }}>
-                        {item.itens.map((sub) => {
-                          const ativo = pathname === sub.href;
-                          return (
-                            <Link
-                              key={sub.href}
-                              href={sub.href}
-                              className="block rounded-md px-2 py-1.5 text-xs transition-colors"
-                              style={{
-                                color: ativo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
-                                fontWeight: ativo ? 500 : 400,
-                                backgroundColor: ativo ? COR_ATIVO_BG : 'transparent',
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!ativo) e.currentTarget.style.color = '#111827';
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!ativo) e.currentTarget.style.color = COR_INATIVO_TEXTO;
-                              }}
-                            >
-                              {sub.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={item.label}
+                    className="group flex items-center justify-center gap-3 rounded-md text-sm transition-colors lg:justify-start"
+                    style={{
+                      margin: '1px 8px',
+                      padding: '7px 10px',
+                      backgroundColor: ativo ? COR_ATIVO_BG : 'transparent',
+                      color: ativo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
+                      fontWeight: ativo ? 500 : 400,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!ativo) {
+                        e.currentTarget.style.backgroundColor = '#F9FAFB';
+                        e.currentTarget.style.color = '#111827';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!ativo) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = COR_INATIVO_TEXTO;
+                      }
+                    }}
+                  >
+                    <Icon size={18} color={ativo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE} className="shrink-0" />
+                    <span className="hidden lg:inline">{item.label}</span>
+                  </Link>
                 );
               })}
             </div>

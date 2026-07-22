@@ -1,11 +1,13 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { Check, MessageCircle } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { CardOrnamental } from '@/components/ui/Ornamento';
-import { toastInfo } from '@/lib/toast';
 import type { Plano } from '@/types/database';
+
+// TODO: trocar pelo número real da equipe (formato DDI+DDD+número, só dígitos).
+const WHATSAPP_UPGRADE = '5500000000000';
 
 const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[] = [
   {
@@ -27,18 +29,17 @@ const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[
       'Exportação Excel/PDF e IA',
     ],
   },
-  {
-    valor: 'diocese',
-    nome: 'Diocese',
-    preco: 'Sob consulta',
-    recursos: ['Multi-paróquia', 'Painel consolidado (todos os pastores)', 'Suporte prioritário'],
-  },
 ];
 
 export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean; onClose: () => void; planoAtual: Plano }) {
+  function abrirWhatsapp(nomePlano: string) {
+    const texto = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoApp para o plano ${nomePlano}.`);
+    window.open(`https://wa.me/${WHATSAPP_UPGRADE}?text=${texto}`, '_blank');
+  }
+
   return (
     <Modal open={open} onClose={onClose} title="Desbloquear mais recursos" size="lg">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {PLANOS.map((p) => {
           const conteudo = (
             <>
@@ -52,16 +53,15 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
                   </li>
                 ))}
               </ul>
-              <Button
-                size="sm"
-                fullWidth
-                className="mt-4"
-                variant={p.valor === planoAtual ? 'secondary' : 'primary'}
-                disabled={p.valor === planoAtual}
-                onClick={() => toastInfo('Contrate seu novo plano em breve — pagamento ainda não está disponível.')}
-              >
-                {p.valor === planoAtual ? 'Plano atual' : 'Escolher'}
-              </Button>
+              {p.valor === planoAtual ? (
+                <Button size="sm" fullWidth className="mt-4" variant="secondary" disabled>
+                  Plano atual
+                </Button>
+              ) : (
+                <Button size="sm" fullWidth className="mt-4" icon={MessageCircle} onClick={() => abrirWhatsapp(p.nome)}>
+                  Falar com a equipe
+                </Button>
+              )}
             </>
           );
           return p.valor === planoAtual ? (
@@ -73,6 +73,9 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
           );
         })}
       </div>
+      <p className="mt-4 text-center text-xs text-text-secondary">
+        Para fazer upgrade, fale com a equipe pelo WhatsApp — o pagamento automático ainda não está disponível.
+      </p>
     </Modal>
   );
 }

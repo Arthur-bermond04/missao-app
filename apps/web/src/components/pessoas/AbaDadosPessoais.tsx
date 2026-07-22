@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -81,21 +80,6 @@ export function AbaDadosPessoais({
 
   return (
     <form onSubmit={handleSalvar} className="max-w-2xl space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-bg-page text-text-secondary">
-          {pessoa.foto_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={pessoa.foto_url} alt={pessoa.nome} className="h-full w-full object-cover" />
-          ) : (
-            <Camera size={22} />
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-medium text-text-primary">Foto</p>
-          <p className="text-xs text-text-secondary">Upload de imagem em breve.</p>
-        </div>
-      </div>
-
       <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
       <div className="grid grid-cols-2 gap-3">
         <Input label="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
