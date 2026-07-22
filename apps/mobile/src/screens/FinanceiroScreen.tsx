@@ -12,15 +12,16 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
-import { TrendingUp, TrendingDown, Scale, Wallet, X } from 'lucide-react-native';
+import { TrendingUp, TrendingDown, Scale, Wallet, Trash2, X } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
-import { lancarFinanceiro, listarFinanceiro } from '../lib/financeiro';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { excluirFinanceiro, lancarFinanceiro, listarFinanceiro } from '../lib/financeiro';
 import { toastSucesso, toastErro } from '../lib/toast';
 import { hapticoSucesso, hapticoErro } from '../lib/haptics';
-import { CATEGORIAS_FINANCEIRO, type Financeiro, type TipoFinanceiro } from '../types/database';
+import { CATEGORIAS_FINANCEIRO, type Financeiro, type Perfil, type TipoFinanceiro } from '../types/database';
 
 function inicioMesAtual() {
   const d = new Date();
@@ -123,11 +124,13 @@ function LancamentoModal({ visivel, tipo, onFechar, onSalvar, salvando }: Lancam
   );
 }
 
-export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
+export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: string; perfil: Perfil }) {
+  const podeExcluir = perfil === 'coordenador' || perfil === 'admin';
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
   const [modalTipo, setModalTipo] = useState<TipoFinanceiro | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
+  const [paraExcluir, setParaExcluir] = useState<Financeiro | null>(null);
 
   const carregar = useCallback(() => {
     return listarFinanceiro(comunidadeId).then(setLancamentos);
@@ -182,8 +185,24 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
     }
   }
 
+  async function handleExcluir() {
+    if (!paraExcluir) return;
+    await excluirFinanceiro(paraExcluir.id);
+    setLancamentos((atual) => atual.filter((l) => l.id !== paraExcluir.id));
+    setParaExcluir(null);
+    toastSucesso('Lançamento excluído.');
+  }
+
   return (
     <View style={styles.container}>
+      <ConfirmModal
+        visivel={!!paraExcluir}
+        onFechar={() => setParaExcluir(null)}
+        onConfirmar={handleExcluir}
+        titulo="Excluir lançamento?"
+        descricao={`${paraExcluir?.tipo === 'receita' ? 'Receita' : 'Despesa'} de R$ ${paraExcluir?.valor.toFixed(2)}${paraExcluir?.descricao ? ` — ${paraExcluir.descricao}` : ''}`}
+        labelConfirmar="Excluir"
+      />
       <ScrollView
         contentContainerStyle={styles.conteudo}
         refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={colors.primary} />}
@@ -216,6 +235,7 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
             icon={Scale}
             iconColor={saldoMes >= 0 ? colors.accent : colors.dangerText}
             iconBg={saldoMes >= 0 ? colors.accentLight : colors.dangerLight}
+            valorColor={saldoMes >= 0 ? colors.accent : colors.dangerText}
             label="Saldo do mês"
             value={`R$ ${saldoMes.toFixed(2)}`}
           />
@@ -266,6 +286,11 @@ export function FinanceiroScreen({ comunidadeId }: { comunidadeId: string }) {
                     R$ {l.valor.toFixed(2)}
                   </Text>
                   <Text style={styles.lancData}>{new Date(l.data).toLocaleDateString('pt-BR')}</Text>
+                  {podeExcluir && (
+                    <Pressable onPress={() => setParaExcluir(l)} hitSlop={8} style={{ marginTop: 6 }}>
+                      <Trash2 size={14} color={colors.textMuted} />
+                    </Pressable>
+                  )}
                 </View>
               </View>
             ))}

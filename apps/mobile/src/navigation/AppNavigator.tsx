@@ -8,6 +8,7 @@ import { Target, LayoutDashboard, Wallet, MessageCircle, User, IdCard, type Luci
 import { ListaContatosScreen } from '../screens/ListaContatosScreen';
 import { PessoasScreen } from '../screens/PessoasScreen';
 import { PessoaPerfilScreen } from '../screens/PessoaPerfilScreen';
+import { EquipeScreen } from '../screens/EquipeScreen';
 import { CadastroContatoScreen } from '../screens/CadastroContatoScreen';
 import { ConfirmacaoContatoScreen } from '../screens/ConfirmacaoContatoScreen';
 import { PerfilContatoScreen } from '../screens/PerfilContatoScreen';
@@ -73,11 +74,9 @@ function MissaoStackNavigator({ usuario }: { usuario: Usuario }) {
         component={ConfirmacaoContatoScreen}
         options={{ title: 'Confirmação', headerBackVisible: false }}
       />
-      <MissaoStack.Screen
-        name="PerfilContato"
-        component={PerfilContatoScreen}
-        options={{ title: 'Perfil do contato' }}
-      />
+      <MissaoStack.Screen name="PerfilContato" options={{ title: 'Perfil do contato' }}>
+        {() => <PerfilContatoScreen comunidadeId={comunidadeId} />}
+      </MissaoStack.Screen>
       <MissaoStack.Screen name="RetirosLista" options={{ title: 'Retiros' }}>
         {() => <RetirosListScreen comunidadeId={comunidadeId} />}
       </MissaoStack.Screen>
@@ -121,9 +120,10 @@ function DashboardStackNavigator({ usuario }: { usuario: Usuario }) {
       </DashboardStack.Screen>
       <DashboardStack.Screen
         name="OvelhaDetalhe"
-        component={OvelhaDetalheScreen}
         options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Ovelha' })}
-      />
+      >
+        {() => <OvelhaDetalheScreen comunidadeId={comunidadeId} perfil={usuario.perfil} />}
+      </DashboardStack.Screen>
     </DashboardStack.Navigator>
   );
 }
@@ -137,14 +137,28 @@ function PessoasStackNavigator({ usuario }: { usuario: Usuario }) {
   const comunidadeId = usuario.comunidade_id as string;
   return (
     <PessoasStack.Navigator screenOptions={stackScreenOptions}>
-      <PessoasStack.Screen name="Pessoas" options={{ title: 'Pessoas' }}>
+      <PessoasStack.Screen
+        name="Pessoas"
+        options={({ navigation }) => ({
+          title: 'Pessoas',
+          headerRight: () => (
+            <Pressable onPress={() => navigation.navigate('Equipe')}>
+              <Text style={styles.headerBotao}>Equipe</Text>
+            </Pressable>
+          ),
+        })}
+      >
         {() => <PessoasScreen comunidadeId={comunidadeId} usuarioId={usuario.id} />}
       </PessoasStack.Screen>
       <PessoasStack.Screen
         name="PessoaPerfil"
-        component={PessoaPerfilScreen}
         options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Pessoa' })}
-      />
+      >
+        {() => <PessoaPerfilScreen comunidadeId={comunidadeId} perfil={usuario.perfil} />}
+      </PessoasStack.Screen>
+      <PessoasStack.Screen name="Equipe" options={{ title: 'Equipe' }}>
+        {() => <EquipeScreen comunidadeId={comunidadeId} perfil={usuario.perfil} />}
+      </PessoasStack.Screen>
     </PessoasStack.Navigator>
   );
 }
@@ -154,11 +168,11 @@ function PessoasStackNavigator({ usuario }: { usuario: Usuario }) {
 // ---------------------------------------------------------------------------
 const FinanceiroStack = createNativeStackNavigator();
 
-function FinanceiroStackNavigator({ comunidadeId }: { comunidadeId: string }) {
+function FinanceiroStackNavigator({ comunidadeId, perfil }: { comunidadeId: string; perfil: Usuario['perfil'] }) {
   return (
     <FinanceiroStack.Navigator screenOptions={stackScreenOptions}>
       <FinanceiroStack.Screen name="Financeiro" options={{ title: 'Financeiro' }}>
-        {() => <FinanceiroScreen comunidadeId={comunidadeId} />}
+        {() => <FinanceiroScreen comunidadeId={comunidadeId} perfil={perfil} />}
       </FinanceiroStack.Screen>
     </FinanceiroStack.Navigator>
   );
@@ -246,7 +260,7 @@ function TabsAutenticado({
         {() => <PessoasStackNavigator usuario={usuario} />}
       </Tab.Screen>
       <Tab.Screen name="FinanceiroTab" options={{ title: 'Financeiro', tabBarIcon: iconePara(Wallet) }}>
-        {() => <FinanceiroStackNavigator comunidadeId={comunidadeId} />}
+        {() => <FinanceiroStackNavigator comunidadeId={comunidadeId} perfil={usuario.perfil} />}
       </Tab.Screen>
       <Tab.Screen name="MensagensTab" options={{ title: 'Mensagens', tabBarIcon: iconePara(MessageCircle) }}>
         {() => <MensagensStackNavigator usuario={usuario} />}

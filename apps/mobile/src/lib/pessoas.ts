@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { CanalInteracao, EtapaJornadaPessoa, Pessoa, PessoaInteracao, TipoInteracao } from '../types/database';
+import type { CanalInteracao, EtapaJornadaPessoa, OrigemPessoa, Pessoa, PessoaInteracao, TipoInteracao } from '../types/database';
 
 export async function listarPessoas(comunidadeId: string): Promise<Pessoa[]> {
   // RLS já limita a quem cadastrou/é responsável (ou todas, se admin/coordenador)
@@ -26,6 +26,8 @@ export async function criarPessoa(dados: {
   telefone?: string;
   etapa_jornada?: EtapaJornadaPessoa;
   proxima_visita?: string;
+  origem?: OrigemPessoa;
+  origem_descricao?: string;
 }): Promise<Pessoa> {
   const { data, error } = await supabase
     .from('pessoas')
@@ -37,6 +39,8 @@ export async function criarPessoa(dados: {
       etapa_jornada: dados.etapa_jornada ?? 'contato_inicial',
       proxima_visita: dados.proxima_visita || null,
       responsavel_id: dados.cadastrado_por,
+      origem: dados.origem || 'evangelizacao',
+      origem_descricao: dados.origem_descricao || null,
     })
     .select('*')
     .single();
@@ -49,6 +53,28 @@ export async function atualizarPessoa(id: string, campos: Partial<Pessoa>) {
     .from('pessoas')
     .update({ ...campos, atualizado_em: new Date().toISOString() })
     .eq('id', id);
+  if (error) throw error;
+}
+
+// Nula referências de FKs sem ON DELETE CASCADE/SET NULL antes de excluir a
+// pessoa (mesmo banco do painel web — ver apps/web/src/lib/pessoas.ts), e
+// remove linhas de ministerio_membros/presencas vinculadas só por pessoa_id
+// (têm CHECK usuario_id IS NOT NULL OR pessoa_id IS NOT NULL, então nulificar
+// pessoa_id violaria a constraint — precisa deletar a linha inteira).
+export async function excluirPessoa(id: string) {
+  await Promise.all([
+    supabase.from('contatos').update({ pessoa_id: null }).eq('pessoa_id', id),
+    supabase.from('inscricoes_retiro').update({ pessoa_id: null }).eq('pessoa_id', id),
+    supabase.from('pastoral_ovelhas').update({ pessoa_id: null }).eq('pessoa_id', id),
+    supabase.from('ministerio_membros').delete().eq('pessoa_id', id),
+    supabase.from('ministerio_presencas').delete().eq('pessoa_id', id),
+  ]);
+  const { error } = await supabase.from('pessoas').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function excluirInteracao(id: string) {
+  const { error } = await supabase.from('pessoa_interacoes').delete().eq('id', id);
   if (error) throw error;
 }
 

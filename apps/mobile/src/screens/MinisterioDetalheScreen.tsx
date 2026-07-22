@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
@@ -9,11 +9,13 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { HandHeart } from 'lucide-react-native';
 import {
+  atualizarEncontroComPresencas,
   criarEncontroComPresencas,
   lancarFinanceiro,
   listarEncontros,
   listarFinanceiro,
   listarMembros,
+  listarPresencasDoEncontro,
   type MembroDetalhe,
 } from '../lib/ministerios';
 import { toastSucesso, toastErro } from '../lib/toast';
@@ -22,8 +24,12 @@ import {
   CATEGORIAS_FINANCEIRO,
   type MinisterioEncontro,
   type MinisterioFinanceiro,
+  type MinisterioPresenca,
   type TipoFinanceiro,
 } from '../types/database';
+
+const STATUS_LABEL: Record<string, string> = { agendado: 'Agendado', realizado: 'Realizado', cancelado: 'Cancelado' };
+const STATUS_COR: Record<string, string> = { agendado: colors.amber, realizado: colors.accent, cancelado: colors.textMuted };
 
 type Aba = 'membros' | 'encontros' | 'caixa';
 const CARGO_LABEL: Record<string, string> = { coordenador: 'Coordenador', 'vice-coordenador': 'Vice', membro: 'Membro' };
@@ -49,6 +55,8 @@ export function MinisterioDetalheScreen() {
   const [encontros, setEncontros] = useState<MinisterioEncontro[]>([]);
   const [financeiro, setFinanceiro] = useState<MinisterioFinanceiro[]>([]);
   const [modalEncontro, setModalEncontro] = useState(false);
+  const [encontroEditando, setEncontroEditando] = useState<MinisterioEncontro | null>(null);
+  const [presencasEditando, setPresencasEditando] = useState<MinisterioPresenca[]>([]);
   const [modalLancamento, setModalLancamento] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
 
@@ -65,6 +73,19 @@ export function MinisterioDetalheScreen() {
   function atualizar() {
     setAtualizando(true);
     carregar().finally(() => setAtualizando(false));
+  }
+
+  function abrirNovoEncontro() {
+    setEncontroEditando(null);
+    setPresencasEditando([]);
+    setModalEncontro(true);
+  }
+
+  async function abrirEncontroExistente(e: MinisterioEncontro) {
+    const presencas = await listarPresencasDoEncontro(e.id).catch(() => []);
+    setEncontroEditando(e);
+    setPresencasEditando(presencas);
+    setModalEncontro(true);
   }
 
   const { receitaMes, despesaMes, saldo } = useMemo(() => {
@@ -84,6 +105,8 @@ export function MinisterioDetalheScreen() {
         onFechar={() => setModalEncontro(false)}
         ministerioId={ministerioId}
         membros={membros}
+        encontroExistente={encontroEditando}
+        presencasExistentes={presencasEditando}
         onSalvo={carregar}
       />
       <LancamentoModal
@@ -126,14 +149,25 @@ export function MinisterioDetalheScreen() {
         {aba === 'encontros' && (
           <View>
             {isCoordenador && (
-              <Button label="+ Registrar encontro" onPress={() => setModalEncontro(true)} style={styles.acao} />
+              <Button label="+ Registrar encontro" onPress={abrirNovoEncontro} style={styles.acao} />
             )}
             <View style={styles.lista}>
               {encontros.map((e) => (
-                <View key={e.id} style={styles.card}>
-                  <Text style={styles.itemNome}>{e.titulo}</Text>
-                  <Text style={styles.itemMeta}>{new Date(e.data).toLocaleDateString('pt-BR')}</Text>
-                </View>
+                <Pressable
+                  key={e.id}
+                  style={styles.itemLinhaEntre}
+                  onPress={() => (isCoordenador ? abrirEncontroExistente(e) : undefined)}
+                >
+                  <View>
+                    <Text style={styles.itemNome}>{e.titulo}</Text>
+                    <Text style={styles.itemMeta}>{new Date(e.data).toLocaleDateString('pt-BR')}</Text>
+                  </View>
+                  <View style={styles.statusPill}>
+                    <Text style={[styles.statusTexto, { color: STATUS_COR[e.status] ?? colors.textMuted }]}>
+                      {STATUS_LABEL[e.status] ?? e.status}
+                    </Text>
+                  </View>
+                </Pressable>
               ))}
               {encontros.length === 0 && (
                 <EmptyState icon={HandHeart} title="Nenhum encontro registrado" />
@@ -147,7 +181,7 @@ export function MinisterioDetalheScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsResumo}>
               <MetricCard style={styles.cardResumo} icon={TrendingUp} iconColor={colors.accent} iconBg={colors.accentLight} label="Receitas do mês" value={`R$ ${receitaMes.toFixed(2)}`} />
               <MetricCard style={styles.cardResumo} icon={TrendingDown} iconColor={colors.dangerText} iconBg={colors.dangerLight} label="Despesas do mês" value={`R$ ${despesaMes.toFixed(2)}`} />
-              <MetricCard style={styles.cardResumo} icon={Scale} iconColor={saldo >= 0 ? colors.accent : colors.dangerText} iconBg={saldo >= 0 ? colors.accentLight : colors.dangerLight} label="Saldo" value={`R$ ${saldo.toFixed(2)}`} />
+              <MetricCard style={styles.cardResumo} icon={Scale} iconColor={saldo >= 0 ? colors.accent : colors.dangerText} iconBg={saldo >= 0 ? colors.accentLight : colors.dangerLight} valorColor={saldo >= 0 ? colors.accent : colors.dangerText} label="Saldo" value={`R$ ${saldo.toFixed(2)}`} />
             </ScrollView>
 
             {isCoordenador && (
@@ -181,17 +215,37 @@ function EncontroModal({
   onFechar,
   ministerioId,
   membros,
+  encontroExistente,
+  presencasExistentes,
   onSalvo,
 }: {
   visivel: boolean;
   onFechar: () => void;
   ministerioId: string;
   membros: MembroDetalhe[];
+  encontroExistente?: MinisterioEncontro | null;
+  presencasExistentes?: MinisterioPresenca[];
   onSalvo: () => void;
 }) {
   const [titulo, setTitulo] = useState('Reunião');
   const [presencas, setPresencas] = useState<Record<string, boolean>>({});
   const [salvando, setSalvando] = useState(false);
+  const editando = !!encontroExistente;
+
+  useEffect(() => {
+    if (!visivel) return;
+    if (encontroExistente) {
+      setTitulo(encontroExistente.titulo);
+      const mapa: Record<string, boolean> = {};
+      for (const p of presencasExistentes ?? []) {
+        if (p.usuario_id) mapa[p.usuario_id] = p.presente;
+      }
+      setPresencas(mapa);
+    } else {
+      setTitulo('Reunião');
+      setPresencas({});
+    }
+  }, [visivel, encontroExistente, presencasExistentes]);
 
   function togglePresenca(usuarioId: string) {
     setPresencas((p) => ({ ...p, [usuarioId]: !(p[usuarioId] ?? true) }));
@@ -200,14 +254,24 @@ function EncontroModal({
   async function salvar() {
     setSalvando(true);
     try {
-      await criarEncontroComPresencas(
-        { ministerio_id: ministerioId, titulo: titulo.trim() || 'Reunião', data: new Date().toISOString().slice(0, 10) },
-        membros.map((m) => ({ usuario_id: m.usuario_id, presente: presencas[m.usuario_id] ?? true }))
-      );
+      const listaPresencas = membros.map((m) => ({ usuario_id: m.usuario_id, presente: presencas[m.usuario_id] ?? true }));
+      if (encontroExistente) {
+        await atualizarEncontroComPresencas(
+          encontroExistente.id,
+          { titulo: titulo.trim() || 'Reunião', data: encontroExistente.data },
+          listaPresencas
+        );
+        toastSucesso('Presença atualizada!');
+      } else {
+        await criarEncontroComPresencas(
+          { ministerio_id: ministerioId, titulo: titulo.trim() || 'Reunião', data: new Date().toISOString().slice(0, 10) },
+          listaPresencas
+        );
+        toastSucesso('Encontro registrado!');
+      }
       onSalvo();
       onFechar();
       hapticoSucesso();
-      toastSucesso('Encontro registrado!');
     } catch (e: any) {
       hapticoErro();
       toastErro(e?.message ?? 'Erro ao registrar.');
@@ -221,7 +285,7 @@ function EncontroModal({
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
           <View style={styles.modalTopo}>
-            <Text style={styles.modalTitulo}>Registrar encontro</Text>
+            <Text style={styles.modalTitulo}>{editando ? 'Completar encontro' : 'Registrar encontro'}</Text>
             <Pressable onPress={onFechar}>
               <X size={20} color={colors.textMuted} />
             </Pressable>
@@ -241,7 +305,7 @@ function EncontroModal({
               );
             })}
           </ScrollView>
-          <Button label="Salvar encontro" onPress={salvar} loading={salvando} style={styles.acao} />
+          <Button label={editando ? 'Salvar presença' : 'Salvar encontro'} onPress={salvar} loading={salvando} style={styles.acao} />
         </View>
       </View>
     </Modal>
@@ -365,6 +429,8 @@ const styles = StyleSheet.create({
   itemNome: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
   itemMeta: { fontSize: 12, color: colors.textMuted },
   vazio: { fontSize: 14, color: colors.textMuted, textAlign: 'center', marginTop: 20 },
+  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.background },
+  statusTexto: { fontSize: 11, fontWeight: '700' },
   acao: { marginTop: 12 },
   cardsResumo: { gap: 12, paddingRight: 4 },
   cardResumo: { width: 150 },

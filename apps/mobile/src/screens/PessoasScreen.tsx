@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { IdCard, X } from 'lucide-react-native';
 import { colors } from '../theme/colors';
@@ -9,10 +9,14 @@ import { BadgeInteresse } from '../components/BadgeInteresse';
 import { criarPessoa, listarPessoas, proximoContatoVencido } from '../lib/pessoas';
 import { toastSucesso, toastErro } from '../lib/toast';
 import { hapticoSucesso, hapticoErro } from '../lib/haptics';
-import { ETAPAS_JORNADA_PESSOA, type Pessoa } from '../types/database';
+import { labelEtapaJornadaPessoa, useTerminologia } from '../lib/terminologia';
+import { ORIGENS_PESSOA, type OrigemPessoa, type Pessoa } from '../types/database';
+
+const ORIGEM_OUTRO = 'outro';
 
 export function PessoasScreen({ comunidadeId, usuarioId }: { comunidadeId: string; usuarioId: string }) {
   const navigation = useNavigation<any>();
+  const terminologia = useTerminologia(comunidadeId);
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalNova, setModalNova] = useState(false);
@@ -55,7 +59,7 @@ export function PessoasScreen({ comunidadeId, usuarioId }: { comunidadeId: strin
         }
         renderItem={({ item }) => {
           const vencido = proximoContatoVencido(item);
-          const etapaLabel = ETAPAS_JORNADA_PESSOA.find((e) => e.valor === item.etapa_jornada)?.label ?? item.etapa_jornada;
+          const etapaLabel = labelEtapaJornadaPessoa(item.etapa_jornada, terminologia);
           return (
             <Pressable
               style={[styles.card, vencido && styles.cardCritico]}
@@ -102,6 +106,8 @@ function NovaPessoaModal({
 }) {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [origem, setOrigem] = useState<OrigemPessoa>('evangelizacao');
+  const [origemDescricao, setOrigemDescricao] = useState('');
   const [salvando, setSalvando] = useState(false);
 
   async function salvar() {
@@ -109,11 +115,24 @@ function NovaPessoaModal({
       toastErro('Informe o nome.');
       return;
     }
+    if (origem === ORIGEM_OUTRO && !origemDescricao.trim()) {
+      toastErro('Conte qual foi a origem.');
+      return;
+    }
     setSalvando(true);
     try {
-      await criarPessoa({ comunidade_id: comunidadeId, cadastrado_por: cadastradoPor, nome: nome.trim(), telefone: telefone.trim() || undefined });
+      await criarPessoa({
+        comunidade_id: comunidadeId,
+        cadastrado_por: cadastradoPor,
+        nome: nome.trim(),
+        telefone: telefone.trim() || undefined,
+        origem,
+        origem_descricao: origem === ORIGEM_OUTRO ? origemDescricao.trim() : undefined,
+      });
       setNome('');
       setTelefone('');
+      setOrigem('evangelizacao');
+      setOrigemDescricao('');
       onSalvo();
       onFechar();
       hapticoSucesso();
@@ -136,8 +155,28 @@ function NovaPessoaModal({
               <X size={20} color={colors.textMuted} />
             </Pressable>
           </View>
-          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor={colors.textMuted} />
-          <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} placeholder="Telefone (opcional)" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
+          <ScrollView style={{ maxHeight: 420 }}>
+            <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor={colors.textMuted} />
+            <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} placeholder="Telefone (opcional)" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
+
+            <Text style={styles.campoLabel}>Origem</Text>
+            <View style={styles.chipsWrap}>
+              {ORIGENS_PESSOA.map((o) => (
+                <Pressable key={o.valor} onPress={() => setOrigem(o.valor)} style={[styles.chip, origem === o.valor && styles.chipAtivo]}>
+                  <Text style={[styles.chipTexto, origem === o.valor && styles.chipTextoAtivo]}>{o.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            {origem === ORIGEM_OUTRO && (
+              <TextInput
+                style={styles.input}
+                value={origemDescricao}
+                onChangeText={setOrigemDescricao}
+                placeholder="Qual a origem?"
+                placeholderTextColor={colors.textMuted}
+              />
+            )}
+          </ScrollView>
           <Button label="Cadastrar" onPress={salvar} loading={salvando} style={{ marginTop: 12 }} />
         </View>
       </View>
@@ -162,4 +201,10 @@ const styles = StyleSheet.create({
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
   input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipTexto: { fontSize: 13, color: colors.text },
+  chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

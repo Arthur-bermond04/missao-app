@@ -1,14 +1,21 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Heart, X } from 'lucide-react-native';
+import { Heart, Sparkles, X } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Button } from '../components/ui/Button';
-import { criarOvelha, listarOvelhas, reuniaoAtrasada } from '../lib/pastoral';
+import {
+  contarFrutosPorOvelha,
+  criarOvelha,
+  listarEncontrosPastorais,
+  listarOvelhas,
+  reuniaoAtrasada,
+} from '../lib/pastoral';
 import { toastSucesso, toastErro } from '../lib/toast';
 import { hapticoSucesso, hapticoErro } from '../lib/haptics';
-import { ESTADOS_ESPIRITUAL, type PastoralOvelha } from '../types/database';
+import { useTerminologia } from '../lib/terminologia';
+import { ESTADOS_ESPIRITUAL, type PastoralEncontro, type PastoralOvelha } from '../types/database';
 
 function EstadoBadge({ estado }: { estado: PastoralOvelha['estado_espiritual'] }) {
   const cfg = ESTADOS_ESPIRITUAL.find((e) => e.valor === estado);
@@ -22,18 +29,45 @@ function EstadoBadge({ estado }: { estado: PastoralOvelha['estado_espiritual'] }
 
 export function PastoralScreen({ comunidadeId, usuarioId }: { comunidadeId: string; usuarioId: string }) {
   const navigation = useNavigation<any>();
+  const terminologia = useTerminologia(comunidadeId);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
+  const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
+  const [frutosPorOvelha, setFrutosPorOvelha] = useState<Record<string, number>>({});
   const [carregando, setCarregando] = useState(true);
   const [modalNova, setModalNova] = useState(false);
 
   const carregar = useCallback(() => {
     setCarregando(true);
     listarOvelhas(comunidadeId)
-      .then(setOvelhas)
+      .then(async (lista) => {
+        setOvelhas(lista);
+        const ids = lista.map((o) => o.id);
+        if (ids.length === 0) {
+          setEncontros([]);
+          setFrutosPorOvelha({});
+          return;
+        }
+        const [encontrosPorOvelha, frutos] = await Promise.all([
+          Promise.all(ids.map((id) => listarEncontrosPastorais(id))),
+          contarFrutosPorOvelha(ids),
+        ]);
+        setEncontros(encontrosPorOvelha.flat());
+        setFrutosPorOvelha(frutos);
+      })
       .finally(() => setCarregando(false));
   }, [comunidadeId]);
 
   useFocusEffect(useCallback(() => carregar(), [carregar]));
+
+  const encontrosPorOvelha = useMemo(() => {
+    const mapa = new Map<string, PastoralEncontro[]>();
+    for (const e of encontros) {
+      const arr = mapa.get(e.ovelha_id) ?? [];
+      arr.push(e);
+      mapa.set(e.ovelha_id, arr);
+    }
+    return mapa;
+  }, [encontros]);
 
   return (
     <View style={styles.container}>
@@ -42,6 +76,7 @@ export function PastoralScreen({ comunidadeId, usuarioId }: { comunidadeId: stri
         onFechar={() => setModalNova(false)}
         comunidadeId={comunidadeId}
         pastorId={usuarioId}
+        nomeOvelha={terminologia.nome_ovelha}
         onSalvo={carregar}
       />
 
@@ -55,9 +90,9 @@ export function PastoralScreen({ comunidadeId, usuarioId }: { comunidadeId: stri
           !carregando ? (
             <EmptyState
               icon={Heart}
-              title="Nenhuma ovelha ainda"
+              title={`Nenhum(a) ${terminologia.nome_ovelha.toLowerCase()} ainda`}
               description="Registre as pessoas que você acompanha pastoralmente."
-              actionLabel="+ Nova ovelha"
+              actionLabel={`+ Nova ${terminologia.nome_ovelha.toLowerCase()}`}
               onAction={() => setModalNova(true)}
             />
           ) : null
@@ -65,6 +100,9 @@ export function PastoralScreen({ comunidadeId, usuarioId }: { comunidadeId: stri
         renderItem={({ item }) => {
           const atrasada = reuniaoAtrasada(item);
           const critico = item.estado_espiritual === 'risco' || atrasada;
+          const encontrosOvelha = encontrosPorOvelha.get(item.id) ?? [];
+          const ultimoEncontro = [...encontrosOvelha].sort((a, b) => b.data.localeCompare(a.data))[0];
+          const totalFrutos = frutosPorOvelha[item.id] ?? 0;
           return (
             <Pressable
               style={[styles.card, critico && styles.cardCritico]}
@@ -84,8 +122,21 @@ export function PastoralScreen({ comunidadeId, usuarioId }: { comunidadeId: stri
                     ? `Próxima: ${new Date(item.proxima_reuniao).toLocaleDateString('pt-BR')}`
                     : 'Sem reunião agendada'}
                 </Text>
+                <Text style={styles.metaSecundaria}>
+                  {ultimoEncontro ? `Último: ${new Date(ultimoEncontro.data).toLocaleDateString('pt-BR')}` : 'Sem encontros'}
+                  {' · '}
+                  {encontrosOvelha.length} encontro(s)
+                </Text>
               </View>
-              <EstadoBadge estado={item.estado_espiritual} />
+              <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                <EstadoBadge estado={item.estado_espiritual} />
+                {totalFrutos > 0 && (
+                  <View style={styles.frutosBadge}>
+                    <Sparkles size={11} color={colors.accent} />
+                    <Text style={styles.frutosBadgeTexto}>{totalFrutos}</Text>
+                  </View>
+                )}
+              </View>
             </Pressable>
           );
         }}
@@ -103,12 +154,14 @@ function NovaOvelhaModal({
   onFechar,
   comunidadeId,
   pastorId,
+  nomeOvelha,
   onSalvo,
 }: {
   visivel: boolean;
   onFechar: () => void;
   comunidadeId: string;
   pastorId: string;
+  nomeOvelha: string;
   onSalvo: () => void;
 }) {
   const [nome, setNome] = useState('');
@@ -128,7 +181,7 @@ function NovaOvelhaModal({
       onSalvo();
       onFechar();
       hapticoSucesso();
-      toastSucesso('Ovelha adicionada!');
+      toastSucesso(`${nomeOvelha} adicionada!`);
     } catch (e: any) {
       hapticoErro();
       toastErro(e?.message ?? 'Erro ao adicionar.');
@@ -142,7 +195,7 @@ function NovaOvelhaModal({
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
           <View style={styles.modalTopo}>
-            <Text style={styles.modalTitulo}>Nova ovelha</Text>
+            <Text style={styles.modalTitulo}>Nova {nomeOvelha.toLowerCase()}</Text>
             <Pressable onPress={onFechar}>
               <X size={20} color={colors.textMuted} />
             </Pressable>
@@ -166,6 +219,9 @@ const styles = StyleSheet.create({
   info: { flex: 1 },
   nome: { fontSize: 15, fontWeight: '700', color: colors.text },
   meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  metaSecundaria: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  frutosBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
+  frutosBadgeTexto: { fontSize: 11, fontWeight: '700', color: colors.accent },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   badgeTexto: { fontSize: 12, fontWeight: '600' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accentGreen, alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: 'rgba(34,197,94,0.4)', shadowOpacity: 0.4, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },

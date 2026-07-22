@@ -9,18 +9,19 @@ interface MetricCardProps {
   iconBg: string;
   label: string;
   value: string | number;
+  valorColor?: string;
   subtitle?: string;
   style?: StyleProp<ViewStyle>;
 }
 
-export function MetricCard({ icon: Icon, iconColor, iconBg, label, value, subtitle, style }: MetricCardProps) {
+export function MetricCard({ icon: Icon, iconColor, iconBg, label, value, valorColor, subtitle, style }: MetricCardProps) {
   return (
     <View style={[styles.card, style]}>
       <View style={[styles.iconeCirculo, { backgroundColor: iconBg }]}>
         <Icon size={18} color={iconColor} />
       </View>
       <Text style={styles.label}>{label}</Text>
-      <Text style={styles.valor} numberOfLines={1} adjustsFontSizeToFit>
+      <Text style={[styles.valor, valorColor ? { color: valorColor } : null]} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
       {!!subtitle && (

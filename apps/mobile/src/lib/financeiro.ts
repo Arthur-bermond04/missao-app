@@ -27,3 +27,8 @@ export async function lancarFinanceiro(dados: {
   if (error) throw error;
   return data as Financeiro;
 }
+
+export async function excluirFinanceiro(id: string) {
+  const { error } = await supabase.from('financeiro').delete().eq('id', id);
+  if (error) throw error;
+}

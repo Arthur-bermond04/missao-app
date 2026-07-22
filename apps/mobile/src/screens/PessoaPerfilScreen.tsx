@@ -1,24 +1,31 @@
 import React, { useCallback, useState } from 'react';
 import { Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
-import { X } from 'lucide-react-native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { Trash2, X } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { Button } from '../components/ui/Button';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { BadgeInteresse } from '../components/BadgeInteresse';
-import { buscarPessoa, criarInteracao, listarInteracoes } from '../lib/pessoas';
+import { buscarPessoa, criarInteracao, excluirInteracao, excluirPessoa, listarInteracoes } from '../lib/pessoas';
 import { toastSucesso, toastErro } from '../lib/toast';
 import { hapticoSucesso, hapticoErro } from '../lib/haptics';
-import { ETAPAS_JORNADA_PESSOA, TIPOS_INTERACAO, type Pessoa, type PessoaInteracao, type TipoInteracao } from '../types/database';
+import { labelEtapaJornadaPessoa, useTerminologia } from '../lib/terminologia';
+import { TIPOS_INTERACAO, type Pessoa, type PessoaInteracao, type Perfil, type TipoInteracao } from '../types/database';
 
-export function PessoaPerfilScreen() {
+export function PessoaPerfilScreen({ comunidadeId, perfil }: { comunidadeId: string; perfil: Perfil }) {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const { pessoaId, usuarioId } = route.params as { pessoaId: string; nome: string; usuarioId: string };
+  const terminologia = useTerminologia(comunidadeId);
+  const isAdmin = perfil === 'admin';
 
   const [pessoa, setPessoa] = useState<Pessoa | null>(null);
   const [interacoes, setInteracoes] = useState<PessoaInteracao[]>([]);
   const [modal, setModal] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
+  const [confirmExcluirPessoa, setConfirmExcluirPessoa] = useState(false);
+  const [interacaoParaExcluir, setInteracaoParaExcluir] = useState<PessoaInteracao | null>(null);
 
   const carregar = useCallback(() => {
     return Promise.all([buscarPessoa(pessoaId).then(setPessoa), listarInteracoes(pessoaId).then(setInteracoes)]);
@@ -31,9 +38,21 @@ export function PessoaPerfilScreen() {
     carregar().finally(() => setAtualizando(false));
   }
 
-  const etapaLabel = pessoa
-    ? ETAPAS_JORNADA_PESSOA.find((e) => e.valor === pessoa.etapa_jornada)?.label ?? pessoa.etapa_jornada
-    : '';
+  async function handleExcluirPessoa() {
+    await excluirPessoa(pessoaId);
+    toastSucesso('Pessoa excluída.');
+    navigation.goBack();
+  }
+
+  async function handleExcluirInteracao() {
+    if (!interacaoParaExcluir) return;
+    await excluirInteracao(interacaoParaExcluir.id);
+    setInteracaoParaExcluir(null);
+    toastSucesso('Interação excluída.');
+    carregar();
+  }
+
+  const etapaLabel = pessoa ? labelEtapaJornadaPessoa(pessoa.etapa_jornada, terminologia) : '';
 
   return (
     <View style={styles.container}>
@@ -46,6 +65,22 @@ export function PessoaPerfilScreen() {
           onSalvo={carregar}
         />
       )}
+      <ConfirmModal
+        visivel={confirmExcluirPessoa}
+        onFechar={() => setConfirmExcluirPessoa(false)}
+        onConfirmar={handleExcluirPessoa}
+        titulo="Excluir permanentemente?"
+        descricao={`Isso remove ${pessoa?.nome ?? 'esta pessoa'} e todo o histórico de interações para sempre. Esta ação não pode ser desfeita.`}
+        labelConfirmar="Excluir"
+      />
+      <ConfirmModal
+        visivel={!!interacaoParaExcluir}
+        onFechar={() => setInteracaoParaExcluir(null)}
+        onConfirmar={handleExcluirInteracao}
+        titulo="Excluir esta interação?"
+        descricao="Ação irreversível."
+        labelConfirmar="Excluir"
+      />
 
       <ScrollView
         contentContainerStyle={styles.conteudo}
@@ -72,6 +107,12 @@ export function PessoaPerfilScreen() {
           </View>
         )}
 
+        {isAdmin && (
+          <Pressable onPress={() => setConfirmExcluirPessoa(true)} style={{ marginTop: 10 }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.dangerText }}>Excluir permanentemente</Text>
+          </Pressable>
+        )}
+
         {!!pessoa?.observacoes && (
           <View style={styles.observacoes}>
             <Text style={styles.observacoesTexto}>{pessoa.observacoes}</Text>
@@ -91,7 +132,12 @@ export function PessoaPerfilScreen() {
                 <View key={i.id} style={styles.card}>
                   <View style={styles.cardTopo}>
                     <Text style={styles.itemNome}>{new Date(i.data).toLocaleDateString('pt-BR')}</Text>
-                    <Text style={styles.itemMeta}>{tipoLabel}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <Text style={styles.itemMeta}>{tipoLabel}</Text>
+                      <Pressable onPress={() => setInteracaoParaExcluir(i)} hitSlop={8}>
+                        <Trash2 size={14} color={colors.textMuted} />
+                      </Pressable>
+                    </View>
                   </View>
                   <Text style={styles.relato}>{i.descricao}</Text>
                   {!!i.proximo_passo && <Text style={styles.encaminhamentos}>→ {i.proximo_passo}</Text>}

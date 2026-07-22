@@ -7,20 +7,21 @@ import { Avatar } from '../components/Avatar';
 import { listarContatosLocais, atualizarEtapaJornadaLocal } from '../lib/localDb';
 import { sincronizarContatos } from '../lib/sync';
 import { hapticoSucesso } from '../lib/haptics';
+import { useTerminologia } from '../lib/terminologia';
 import type { Contato, EtapaJornada } from '../types/database';
 
-const ETAPAS: { valor: EtapaJornada; label: string }[] = [
-  { valor: 'abordagem', label: 'Abordagem' },
-  { valor: 'celula', label: 'Célula' },
-  { valor: 'retiro', label: 'Retiro' },
-  { valor: 'cv', label: 'CV' },
-  { valor: 'cal', label: 'CAL' },
-];
-
-export function PerfilContatoScreen() {
+export function PerfilContatoScreen({ comunidadeId }: { comunidadeId: string }) {
   const { params } = useRoute<any>();
   const { contatoId } = params as { contatoId: string };
   const [contato, setContato] = useState<Contato | null>(null);
+  const terminologia = useTerminologia(comunidadeId);
+  const ETAPAS: { valor: EtapaJornada; label: string }[] = [
+    { valor: 'abordagem', label: 'Abordagem' },
+    { valor: 'celula', label: 'Célula' },
+    { valor: 'retiro', label: 'Retiro' },
+    { valor: 'cv', label: terminologia.etapa_cv },
+    { valor: 'cal', label: terminologia.etapa_cal },
+  ];
 
   async function carregar() {
     const lista = await listarContatosLocais();

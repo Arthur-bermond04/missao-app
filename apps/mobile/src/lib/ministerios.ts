@@ -4,6 +4,7 @@ import type {
   Ministerio,
   MinisterioEncontro,
   MinisterioFinanceiro,
+  MinisterioPresenca,
   TipoFinanceiro,
 } from '../types/database';
 
@@ -91,6 +92,41 @@ export async function criarEncontroComPresencas(
     );
   }
   return encontro;
+}
+
+export async function listarPresencasDoEncontro(encontroId: string): Promise<MinisterioPresenca[]> {
+  const { data, error } = await supabase.from('ministerio_presencas').select('*').eq('encontro_id', encontroId);
+  if (error) throw error;
+  return (data as MinisterioPresenca[]) ?? [];
+}
+
+// Completa um encontro que já existe (normalmente um "agendado" cuja data
+// chegou, criado pela Agenda no painel web) com título/local atualizados e a
+// lista de presença — ao contrário de criarEncontroComPresencas, NÃO cria uma
+// linha nova em ministerio_encontros. Isso corrige o bug em que "Registrar
+// encontro" sempre criava um encontro duplicado em vez de completar o
+// agendado. As presenças são substituídas por completo (delete + insert) em
+// vez de upsert, pelo mesmo motivo do painel web (ver lib/ministerios.ts lá).
+export async function atualizarEncontroComPresencas(
+  encontroId: string,
+  dados: { titulo: string; data: string; local?: string },
+  presencas: { usuario_id: string; presente: boolean }[]
+): Promise<void> {
+  const { error: erroEncontro } = await supabase
+    .from('ministerio_encontros')
+    .update({ titulo: dados.titulo, data: dados.data, local: dados.local || null, status: 'realizado' })
+    .eq('id', encontroId);
+  if (erroEncontro) throw erroEncontro;
+
+  const { error: erroDelete } = await supabase.from('ministerio_presencas').delete().eq('encontro_id', encontroId);
+  if (erroDelete) throw erroDelete;
+
+  if (presencas.length > 0) {
+    const { error: erroInsert } = await supabase
+      .from('ministerio_presencas')
+      .insert(presencas.map((p) => ({ encontro_id: encontroId, usuario_id: p.usuario_id, presente: p.presente })));
+    if (erroInsert) throw erroInsert;
+  }
 }
 
 export async function listarFinanceiro(ministerioId: string): Promise<MinisterioFinanceiro[]> {

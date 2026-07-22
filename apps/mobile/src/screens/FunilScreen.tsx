@@ -7,6 +7,7 @@ import { colors } from '../theme/colors';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { listarContatosComunidade } from '../lib/funil';
+import { labelEtapaJornada, useTerminologia } from '../lib/terminologia';
 import { ETAPAS_FUNIL, type Contato } from '../types/database';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -51,6 +52,7 @@ function DateField({
 
 export function FunilScreen({ comunidadeId }: { comunidadeId: string }) {
   const navigation = useNavigation<any>();
+  const terminologia = useTerminologia(comunidadeId);
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [dataInicio, setDataInicio] = useState<Date | null>(null);
@@ -83,9 +85,9 @@ export function FunilScreen({ comunidadeId }: { comunidadeId: string }) {
           const indice = ETAPAS_FUNIL.findIndex((e) => e.valor === c.etapa_jornada);
           return indice >= index;
         }).length;
-        return { ...etapa, total };
+        return { ...etapa, label: labelEtapaJornada(etapa.valor, terminologia), total };
       }),
-    [contatosFiltrados]
+    [contatosFiltrados, terminologia]
   );
 
   const maiorTotal = funil[0]?.total || 1;

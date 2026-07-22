@@ -8,12 +8,27 @@ export type StatusRetiro = 'aberto' | 'encerrado' | 'realizado';
 export type TipoFinanceiro = 'receita' | 'despesa';
 export type Canal = 'push' | 'whatsapp' | 'email' | 'sms';
 
+export interface Terminologia {
+  etapa_cv: string;
+  etapa_cal: string;
+  nome_ovelha: string;
+  nome_pastor: string;
+}
+
+export const TERMINOLOGIA_PADRAO: Terminologia = {
+  etapa_cv: 'CV',
+  etapa_cal: 'CAL',
+  nome_ovelha: 'Ovelha',
+  nome_pastor: 'Pastor',
+};
+
 export interface Comunidade {
   id: string;
   nome: string;
   tipo: 'paroquia' | 'comunidade' | 'movimento';
   plano: Plano;
   max_contatos: number | null;
+  terminologia: Terminologia;
   criado_em: string;
 }
 
@@ -193,6 +208,8 @@ export interface MinisterioMembro {
   criado_em: string;
 }
 
+export type StatusEncontroMinisterio = 'agendado' | 'realizado' | 'cancelado';
+
 export interface MinisterioEncontro {
   id: string;
   ministerio_id: string;
@@ -201,6 +218,16 @@ export interface MinisterioEncontro {
   data: string;
   horario: string | null;
   local: string | null;
+  status: StatusEncontroMinisterio;
+  criado_em: string;
+}
+
+export interface MinisterioPresenca {
+  id: string;
+  encontro_id: string;
+  usuario_id: string | null;
+  pessoa_id: string | null;
+  presente: boolean;
   criado_em: string;
 }
 
@@ -286,12 +313,58 @@ export const ETAPAS_FORMACAO: { valor: EtapaFormacao; label: string }[] = [
   { valor: 'integrado', label: 'Integrado' },
 ];
 
+// A comunidade pode cadastrar seus próprios tipos de evento em
+// tipos_evento_comunidade — a coluna no banco sempre foi `text`, então o
+// valor salvo é texto livre.
+export type TipoEventoPastoral = string;
+
+export interface PastoralPresenca {
+  id: string;
+  ovelha_id: string;
+  tipo_evento: TipoEventoPastoral;
+  nome_evento: string | null;
+  data: string;
+  presente: boolean;
+  criado_em: string;
+}
+
+export type TipoFrutoPastoral = 'conquista' | 'sacramento' | 'missao' | 'cura' | 'conversao' | 'outro';
+
+export const TIPOS_FRUTO_PASTORAL: { valor: TipoFrutoPastoral; label: string }[] = [
+  { valor: 'conquista', label: 'Conquista espiritual' },
+  { valor: 'sacramento', label: 'Sacramento' },
+  { valor: 'missao', label: 'Entrou na missão' },
+  { valor: 'cura', label: 'Cura' },
+  { valor: 'conversao', label: 'Conversão' },
+  { valor: 'outro', label: 'Outro' },
+];
+
+export interface PastoralFruto {
+  id: string;
+  ovelha_id: string;
+  pastor_id: string;
+  data: string;
+  tipo: TipoFrutoPastoral;
+  titulo: string;
+  descricao: string | null;
+  criado_em: string;
+}
+
 // =========================================================
 // CADASTRO CENTRAL DE PESSOAS
 // =========================================================
 
 export type SituacaoFe = 'nao_praticante' | 'catolico_praticante' | 'outra_religiao' | 'sem_religiao' | 'nao_informado';
 export type OrigemPessoa = 'evangelizacao' | 'retiro' | 'indicacao' | 'celula' | 'evento' | 'outro';
+
+export const ORIGENS_PESSOA: { valor: OrigemPessoa; label: string }[] = [
+  { valor: 'evangelizacao', label: 'Evangelização na rua' },
+  { valor: 'retiro', label: 'Retiro' },
+  { valor: 'indicacao', label: 'Indicação' },
+  { valor: 'celula', label: 'Célula' },
+  { valor: 'evento', label: 'Evento' },
+  { valor: 'outro', label: 'Outro' },
+];
 export type EtapaJornadaPessoa =
   | 'contato_inicial'
   | 'interessado'
@@ -319,6 +392,7 @@ export interface Pessoa {
   bairro: string | null;
   situacao_fe: SituacaoFe;
   origem: OrigemPessoa;
+  origem_descricao: string | null;
   local_primeiro_contato: string | null;
   data_primeiro_contato: string;
   etapa_jornada: EtapaJornadaPessoa;
@@ -365,3 +439,55 @@ export const TIPOS_INTERACAO: { valor: TipoInteracao; label: string }[] = [
   { valor: 'conversa', label: 'Conversa' },
   { valor: 'outro', label: 'Outro' },
 ];
+
+// =========================================================
+// TIPOS DE EVENTO — customizáveis por comunidade
+// =========================================================
+
+export interface TipoEventoComunidade {
+  id: string;
+  comunidade_id: string;
+  nome: string;
+  ativo: boolean;
+  criado_em: string;
+}
+
+// =========================================================
+// EQUIPE — estrutura e cargos da comunidade (com ou sem login)
+// =========================================================
+
+export type NivelEquipe = 'lideranca' | 'formacao' | 'servico' | 'membro';
+
+export const NIVEIS_EQUIPE: { valor: NivelEquipe; label: string }[] = [
+  { valor: 'lideranca', label: 'Liderança' },
+  { valor: 'formacao', label: 'Formação' },
+  { valor: 'servico', label: 'Serviço' },
+  { valor: 'membro', label: 'Membro' },
+];
+
+export const CARGOS_EQUIPE_SUGERIDOS = [
+  'Coordenador geral',
+  'Coordenador de célula',
+  'Coordenador de pastoral',
+  'Formador',
+  'Catequista',
+  'Líder de louvor',
+  'Tesoureiro',
+  'Secretário',
+] as const;
+
+export interface EquipeCargo {
+  id: string;
+  comunidade_id: string;
+  pessoa_id: string | null;
+  usuario_id: string | null;
+  cargo: string;
+  cargo_descricao: string | null;
+  nivel: NivelEquipe;
+  celula_id: string | null;
+  data_inicio: string | null;
+  data_fim: string | null;
+  ativo: boolean;
+  notas: string | null;
+  criado_em: string;
+}
