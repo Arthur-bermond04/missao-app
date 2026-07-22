@@ -1,18 +1,22 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
-import { resumoNotificacoes, type ResumoNotificacoes } from '@/lib/notificacoes';
+import { usePainelSession } from '@/lib/PainelSessionContext';
+import { resumoNotificacoes, LABEL_CATEGORIA, type ResumoNotificacoes } from '@/lib/notificacoes';
+
+const ORDEM_CATEGORIAS = ['pastoral', 'pessoas', 'retiros', 'ministerios', 'financeiro', 'mensagens'] as const;
 
 export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
+  const { usuario } = usePainelSession();
   const [resumo, setResumo] = useState<ResumoNotificacoes | null>(null);
   const [aberto, setAberto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    resumoNotificacoes(comunidadeId).then(setResumo);
-  }, [comunidadeId]);
+    resumoNotificacoes(comunidadeId, usuario?.perfil).then(setResumo);
+  }, [comunidadeId, usuario?.perfil]);
 
   useEffect(() => {
     function onClickFora(e: MouseEvent) {
@@ -23,6 +27,14 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
   }, []);
 
   const total = resumo?.total ?? 0;
+
+  const grupos = useMemo(() => {
+    if (!resumo) return [];
+    return ORDEM_CATEGORIAS.map((categoria) => ({
+      categoria,
+      itens: resumo.itens.filter((i) => i.categoria === categoria),
+    })).filter((g) => g.itens.length > 0);
+  }, [resumo]);
 
   return (
     <div className="relative" ref={ref}>
@@ -44,23 +56,32 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
       </button>
 
       {aberto && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-border bg-bg-card p-2 shadow-hover">
+        <div className="absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-80 overflow-y-auto rounded-lg border border-border bg-bg-card p-2 shadow-hover">
           <p className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">Notificações</p>
-          {!resumo || resumo.itens.length === 0 ? (
+          {grupos.length === 0 ? (
             <p className="px-2 py-3 text-sm text-text-secondary">Tudo em dia — nenhum alerta agora.</p>
           ) : (
-            <div className="mt-1 space-y-1">
-              {resumo.itens.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setAberto(false)}
-                  className={`block rounded-md px-2 py-2 text-sm hover:bg-bg-page ${
-                    item.tone === 'danger' ? 'text-danger' : 'text-warning'
-                  }`}
-                >
-                  {item.label}
-                </Link>
+            <div className="mt-1 space-y-3">
+              {grupos.map((grupo) => (
+                <div key={grupo.categoria}>
+                  <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-text-secondary/70">
+                    {LABEL_CATEGORIA[grupo.categoria]}
+                  </p>
+                  <div className="space-y-1">
+                    {grupo.itens.map((item, indice) => (
+                      <Link
+                        key={`${grupo.categoria}-${indice}`}
+                        href={item.href}
+                        onClick={() => setAberto(false)}
+                        className={`block rounded-md px-2 py-2 text-sm hover:bg-bg-page ${
+                          item.tone === 'danger' ? 'text-danger' : 'text-warning'
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}

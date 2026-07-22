@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Tent, Search, HeartHandshake, IdCard, CircleCheck, CircleAlert, BellRing, ClipboardCheck } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { exportarExcel as exportarExcelLib, exportarPDF as exportarPDFLib } from '@/lib/exportacao';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
@@ -162,43 +162,70 @@ export default function RetirosPage() {
   }
 
   function exportarExcel() {
-    const linhas = inscritos.map((i) => ({
-      Nome: i.nome ?? '',
-      Telefone: i.telefone ?? '',
-      Grupo: i.grupo ?? '',
-      Pago: i.pagou ? 'Sim' : 'Não',
-      'Valor pago': i.valor_pago ?? 0,
-      Presente: i.presente ? 'Sim' : 'Não',
-    }));
-    const planilha = XLSX.utils.json_to_sheet(linhas);
-    const livro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(livro, planilha, 'Inscritos');
-    XLSX.writeFile(livro, `${retiroSelecionado?.nome ?? 'retiro'}-inscritos.xlsx`);
+    exportarExcelLib(
+      inscritos,
+      [
+        { header: 'Nome', render: (i) => i.nome ?? '' },
+        { header: 'Telefone', render: (i) => i.telefone ?? '' },
+        { header: 'Grupo', render: (i) => i.grupo ?? '' },
+        { header: 'Pago', render: (i) => (i.pagou ? 'Sim' : 'Não') },
+        { header: 'Valor pago', render: (i) => i.valor_pago ?? 0 },
+        { header: 'Presente', render: (i) => (i.presente ? 'Sim' : 'Não') },
+      ],
+      `${retiroSelecionado?.nome ?? 'retiro'}-inscritos.xlsx`,
+      'Inscritos'
+    );
   }
 
-  async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+  function exportarListaPresenca() {
+    exportarPDFLib(
+      `Lista de presença — ${retiroSelecionado?.nome ?? ''}`,
+      [
+        {
+          tipo: 'tabela',
+          cabecalho: ['Nome', 'Grupo', 'Presente'],
+          larguras: ['*', 'auto', 'auto'],
+          linhas: inscritos.map((i) => [i.nome ?? '', i.grupo ?? '', i.presente ? 'Sim' : '']),
+        },
+      ],
+      `${retiroSelecionado?.nome ?? 'retiro'}-presenca.pdf`
+    );
+  }
 
-    pdfMake
-      .createPdf({
-        content: [
-          { text: `Lista de presença — ${retiroSelecionado?.nome ?? ''}`, style: 'titulo' },
-          {
-            table: {
-              headerRows: 1,
-              widths: ['*', 'auto', 'auto'],
-              body: [
-                ['Nome', 'Grupo', 'Presente'],
-                ...inscritos.map((i) => [i.nome ?? '', i.grupo ?? '', i.presente ? 'Sim' : '']),
-              ],
-            },
-          },
-        ],
-        styles: { titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 12] } },
-      })
-      .download(`${retiroSelecionado?.nome ?? 'retiro'}-presenca.pdf`);
+  // Relatório de verdade (não a lista de presença reaproveitada) — estatísticas
+  // do retiro: presença, arrecadação vs. meta e distribuição por grupo.
+  function exportarRelatorioCompleto() {
+    if (!retiroSelecionado) return;
+    const totalPresentes = inscritos.filter((i) => i.presente).length;
+    const taxaPresenca = inscritos.length > 0 ? Math.round((totalPresentes / inscritos.length) * 100) : 0;
+    const percArrecadacao = totalEsperado > 0 ? Math.round((totalArrecadado / totalEsperado) * 100) : 0;
+
+    exportarPDFLib(
+      `Relatório do retiro — ${retiroSelecionado.nome}`,
+      [
+        {
+          tipo: 'tabela',
+          cabecalho: ['Indicador', 'Valor'],
+          larguras: ['*', 'auto'],
+          linhas: [
+            ['Inscritos', String(inscritos.length)],
+            ['Presentes', `${totalPresentes} (${taxaPresenca}%)`],
+            ['Arrecadado', `R$ ${totalArrecadado.toFixed(2)}`],
+            ['Valor esperado', `R$ ${totalEsperado.toFixed(2)}`],
+            ['Arrecadação vs. meta', `${percArrecadacao}%`],
+          ],
+        },
+        { tipo: 'subtitulo', texto: 'Distribuição por grupo' },
+        {
+          tipo: 'tabela',
+          cabecalho: ['Grupo', 'Inscritos'],
+          larguras: ['*', 'auto'],
+          linhas:
+            grupos.length > 0 ? grupos.map(([nome, membros]) => [nome, String(membros.length)]) : [['Sem grupos definidos', '']],
+        },
+      ],
+      `${retiroSelecionado.nome}-relatorio.pdf`
+    );
   }
 
   const inscritosFiltrados = useMemo(() => {
@@ -299,7 +326,7 @@ export default function RetirosPage() {
                   <Button variant="secondary" size="sm" onClick={exportarExcel}>
                     Exportar Excel
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={exportarPdf}>
+                  <Button variant="secondary" size="sm" onClick={exportarListaPresenca}>
                     Lista de presença (PDF)
                   </Button>
                 </div>
@@ -372,7 +399,7 @@ export default function RetirosPage() {
                       <p className="text-lg font-bold text-text-primary">{inscritos.length}</p>
                     </div>
                   </div>
-                  <Button size="sm" variant="secondary" className="mt-3" onClick={exportarPdf}>
+                  <Button size="sm" variant="secondary" className="mt-3" onClick={exportarRelatorioCompleto}>
                     Exportar relatório completo (PDF)
                   </Button>
                 </div>

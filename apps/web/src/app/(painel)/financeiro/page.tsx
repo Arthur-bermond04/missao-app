@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
-import * as XLSX from 'xlsx';
+import { exportarExcel as exportarExcelLib, exportarPDF as exportarPDFLib } from '@/lib/exportacao';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/Input';
@@ -125,6 +125,8 @@ export default function FinanceiroPage() {
         filtroFim ? new Date(filtroFim).toLocaleDateString('pt-BR') : 'hoje'
       }${filtroCategoria ? ` · ${filtroCategoria}` : ''}`;
 
+  const saldoMinisterios = useMemo(() => ministerios.reduce((s, m) => s + m.saldo_caixa, 0), [ministerios]);
+
   const despesasPorCategoria = useMemo(() => {
     const mapa = new Map<string, number>();
     for (const l of filtrados) {
@@ -137,49 +139,40 @@ export default function FinanceiroPage() {
   }, [filtrados]);
 
   function exportarExcel() {
-    const linhas = filtrados.map((l) => ({
-      Tipo: l.tipo,
-      Categoria: l.categoria,
-      Descrição: l.descricao ?? '',
-      Valor: l.valor,
-      Data: new Date(l.data).toLocaleDateString('pt-BR'),
-    }));
-    const planilha = XLSX.utils.json_to_sheet(linhas);
-    const livro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(livro, planilha, 'Financeiro');
-    XLSX.writeFile(livro, 'financeiro.xlsx');
+    exportarExcelLib(
+      filtrados,
+      [
+        { header: 'Tipo', render: (l) => l.tipo },
+        { header: 'Categoria', render: (l) => l.categoria },
+        { header: 'Descrição', render: (l) => l.descricao ?? '' },
+        { header: 'Valor', render: (l) => l.valor },
+        { header: 'Data', render: (l) => new Date(l.data).toLocaleDateString('pt-BR') },
+      ],
+      'financeiro.xlsx',
+      'Financeiro'
+    );
   }
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
-
-    pdfMake
-      .createPdf({
-        content: [
-          { text: 'Relatório financeiro', style: 'titulo' },
-          { text: `Receitas: R$ ${totalReceitas.toFixed(2)}   Despesas: R$ ${totalDespesas.toFixed(2)}`, margin: [0, 0, 0, 10] },
-          {
-            table: {
-              headerRows: 1,
-              widths: ['auto', 'auto', '*', 'auto', 'auto'],
-              body: [
-                ['Tipo', 'Categoria', 'Descrição', 'Valor', 'Data'],
-                ...filtrados.map((l) => [
-                  l.tipo,
-                  l.categoria,
-                  l.descricao ?? '',
-                  `R$ ${l.valor.toFixed(2)}`,
-                  new Date(l.data).toLocaleDateString('pt-BR'),
-                ]),
-              ],
-            },
-          },
-        ],
-        styles: { titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 12] } },
-      })
-      .download('financeiro.pdf');
+    exportarPDFLib(
+      'Relatório financeiro',
+      [
+        { tipo: 'texto', texto: `Receitas: R$ ${totalReceitas.toFixed(2)}   Despesas: R$ ${totalDespesas.toFixed(2)}` },
+        {
+          tipo: 'tabela',
+          cabecalho: ['Tipo', 'Categoria', 'Descrição', 'Valor', 'Data'],
+          larguras: ['auto', 'auto', '*', 'auto', 'auto'],
+          linhas: filtrados.map((l) => [
+            l.tipo,
+            l.categoria,
+            l.descricao ?? '',
+            `R$ ${l.valor.toFixed(2)}`,
+            new Date(l.data).toLocaleDateString('pt-BR'),
+          ]),
+        },
+      ],
+      'financeiro.pdf'
+    );
   }
 
   return (
@@ -270,6 +263,32 @@ export default function FinanceiroPage() {
           <EvolucaoFinanceiraChart lancamentos={lancamentos} />
         </div>
       </div>
+
+      {ministerios.length > 0 && (
+        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-text-primary">Caixas de ministérios</h2>
+            <span className="text-xs text-text-secondary">Só leitura — não entra nos lançamentos gerais acima</span>
+          </div>
+          <div className="mt-3 space-y-2">
+            {ministerios.map((m) => (
+              <div key={m.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
+                <span className="flex items-center gap-2 text-text-primary">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: m.cor }} />
+                  {m.nome}
+                </span>
+                <span className={`font-semibold ${m.saldo_caixa > 0 ? 'text-accent' : m.saldo_caixa < 0 ? 'text-danger' : 'text-text-secondary'}`}>
+                  R$ {m.saldo_caixa.toFixed(2)}
+                </span>
+              </div>
+            ))}
+            <div className="mt-1 flex items-center justify-between border-t border-border px-3 pt-2 text-sm font-bold">
+              <span className="text-text-primary">Total consolidado</span>
+              <span className={saldoMinisterios >= 0 ? 'text-accent' : 'text-danger'}>R$ {saldoMinisterios.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
         <div className="flex flex-wrap items-end justify-between gap-3">

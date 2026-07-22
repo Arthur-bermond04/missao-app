@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Users, UserPlus, Search, HeartHandshake } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { exportarExcel as exportarExcelLib } from '@/lib/exportacao';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -81,18 +81,19 @@ export default function MembrosPage() {
   }, [membros, busca, filtroPerfil, filtroMinisterio, membrosPorMinisterio]);
 
   function exportarExcel() {
-    const linhas = membrosFiltrados.map((m) => ({
-      Nome: m.nome,
-      Telefone: m.telefone ?? '',
-      Perfil: PERFIL_LABEL[m.perfil],
-      'Contatos cadastrados': m.contatos_cadastrados,
-      'Último acesso': m.ultimo_acesso ? new Date(m.ultimo_acesso).toLocaleDateString('pt-BR') : 'Nunca',
-      Ativo: m.ativo ? 'Sim' : 'Não',
-    }));
-    const planilha = XLSX.utils.json_to_sheet(linhas);
-    const livro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(livro, planilha, 'Membros');
-    XLSX.writeFile(livro, 'membros.xlsx');
+    exportarExcelLib(
+      membrosFiltrados,
+      [
+        { header: 'Nome', render: (m) => m.nome },
+        { header: 'Telefone', render: (m) => m.telefone ?? '' },
+        { header: 'Perfil', render: (m) => PERFIL_LABEL[m.perfil] },
+        { header: 'Contatos cadastrados', render: (m) => m.contatos_cadastrados },
+        { header: 'Último acesso', render: (m) => (m.ultimo_acesso ? new Date(m.ultimo_acesso).toLocaleDateString('pt-BR') : 'Nunca') },
+        { header: 'Ativo', render: (m) => (m.ativo ? 'Sim' : 'Não') },
+      ],
+      'membros.xlsx',
+      'Membros'
+    );
   }
 
   // Reativar não é destrutivo — executa direto. Desativar pede confirmação

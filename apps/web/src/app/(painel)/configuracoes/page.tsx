@@ -10,10 +10,11 @@ import { AbaFinanceiro } from '@/components/configuracoes/AbaFinanceiro';
 import { AbaIntegracoes } from '@/components/configuracoes/AbaIntegracoes';
 import { AbaNotificacoes } from '@/components/configuracoes/AbaNotificacoes';
 import { AbaSeguranca } from '@/components/configuracoes/AbaSeguranca';
+import { AbaDuplicatas } from '@/components/configuracoes/AbaDuplicatas';
 import { buscarComunidade } from '@/lib/comunidades';
 import type { Comunidade, Usuario } from '@/types/database';
 
-type Aba = 'comunidade' | 'plano' | 'financeiro' | 'integracoes' | 'notificacoes' | 'seguranca';
+type Aba = 'comunidade' | 'plano' | 'financeiro' | 'integracoes' | 'notificacoes' | 'seguranca' | 'duplicatas';
 
 const ABAS: { valor: Aba; label: string }[] = [
   { valor: 'comunidade', label: 'Comunidade' },
@@ -43,12 +44,15 @@ export default function ConfiguracoesPage() {
     buscarComunidade(usuario.comunidade_id).then(setComunidade);
   }, [usuario?.comunidade_id]);
 
+  const abasVisiveis =
+    usuario?.perfil === 'admin' ? [...ABAS, { valor: 'duplicatas' as const, label: 'Duplicatas' }] : ABAS;
+
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader icon={Settings} title="Configurações" subtitle="Comunidade, plano, notificações e segurança" />
 
       <div className="mt-6 flex gap-1 border-b border-border">
-        {ABAS.map((a) => (
+        {abasVisiveis.map((a) => (
           <button
             key={a.valor}
             onClick={() => setAba(a.valor)}
@@ -85,6 +89,9 @@ export default function ConfiguracoesPage() {
           ) : (
             <p className="text-sm text-text-secondary">Carregando...</p>
           ))}
+        {aba === 'duplicatas' && usuario?.comunidade_id && usuario.perfil === 'admin' && (
+          <AbaDuplicatas comunidadeId={usuario.comunidade_id} cadastradoPor={usuario.id} />
+        )}
       </div>
     </div>
   );
