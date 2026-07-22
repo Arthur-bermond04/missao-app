@@ -1,13 +1,13 @@
 'use client';
 
-import { Check, MessageCircle } from 'lucide-react';
+import { Check, Mail } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { CardOrnamental } from '@/components/ui/Ornamento';
 import type { Plano } from '@/types/database';
 
-// TODO: trocar pelo número real da equipe (formato DDI+DDD+número, só dígitos).
-const WHATSAPP_UPGRADE = '5500000000000';
+// TODO: trocar pelo e-mail real da equipe.
+const EMAIL_UPGRADE = 'contato@missaoapp.com.br';
 
 const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[] = [
   {
@@ -32,9 +32,10 @@ const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[
 ];
 
 export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean; onClose: () => void; planoAtual: Plano }) {
-  function abrirWhatsapp(nomePlano: string) {
-    const texto = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoApp para o plano ${nomePlano}.`);
-    window.open(`https://wa.me/${WHATSAPP_UPGRADE}?text=${texto}`, '_blank');
+  function abrirEmail(nomePlano: string) {
+    const assunto = encodeURIComponent(`Upgrade do MissãoApp para o plano ${nomePlano}`);
+    const corpo = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoApp para o plano ${nomePlano}.`);
+    window.location.href = `mailto:${EMAIL_UPGRADE}?subject=${assunto}&body=${corpo}`;
   }
 
   return (
@@ -58,7 +59,7 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
                   Plano atual
                 </Button>
               ) : (
-                <Button size="sm" fullWidth className="mt-4" icon={MessageCircle} onClick={() => abrirWhatsapp(p.nome)}>
+                <Button size="sm" fullWidth className="mt-4" icon={Mail} onClick={() => abrirEmail(p.nome)}>
                   Falar com a equipe
                 </Button>
               )}
@@ -74,7 +75,7 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
         })}
       </div>
       <p className="mt-4 text-center text-xs text-text-secondary">
-        Para fazer upgrade, fale com a equipe pelo WhatsApp — o pagamento automático ainda não está disponível.
+        Para fazer upgrade, fale com a equipe por e-mail — o pagamento automático ainda não está disponível.
       </p>
     </Modal>
   );
