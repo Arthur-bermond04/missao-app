@@ -17,6 +17,7 @@ import {
   Calendar,
   BarChart3,
   Search,
+  Network,
   type LucideIcon,
   LogOut,
 } from 'lucide-react';
@@ -52,6 +53,7 @@ export const NAV_GRUPOS: NavGrupo[] = [
     itens: [
       { href: '/pessoas', label: 'Pessoas', icon: IdCard },
       { href: '/membros', label: 'Membros', icon: Users },
+      { href: '/equipe', label: 'Equipe', icon: Network },
     ],
   },
   {
