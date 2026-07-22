@@ -118,8 +118,13 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
       {/* Header info */}
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-xlight text-lg font-bold text-primary">
-            {pessoa.nome.slice(0, 2).toUpperCase()}
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-lg font-bold text-gold-dark">
+            {pessoa.foto_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={pessoa.foto_url} alt={pessoa.nome} className="h-full w-full object-cover" />
+            ) : (
+              pessoa.nome.slice(0, 2).toUpperCase()
+            )}
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">

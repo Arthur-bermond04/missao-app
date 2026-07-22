@@ -193,8 +193,13 @@ export default function PessoasPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
-                        {p.nome.slice(0, 2).toUpperCase()}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-xs font-bold text-gold-dark">
+                        {p.foto_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.foto_url} alt={p.nome} className="h-full w-full object-cover" />
+                        ) : (
+                          p.nome.slice(0, 2).toUpperCase()
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-text-primary">{p.nome}</p>

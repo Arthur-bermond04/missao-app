@@ -70,6 +70,7 @@ export function NovaPessoaModal({
   const [frequencia, setFrequencia] = useState<FrequenciaAcompanhamentoPessoa>('mensal');
   const [proximaVisita, setProximaVisita] = useState('');
   const [responsavelId, setResponsavelId] = useState('');
+  const [objetivoAtual, setObjetivoAtual] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [tags, setTags] = useState<string[]>([]);
 
@@ -104,6 +105,7 @@ export function NovaPessoaModal({
     setNivelInteresse('morno');
     setFrequencia('mensal');
     setProximaVisita('');
+    setObjetivoAtual('');
     setObservacoes('');
     setTags([]);
   }
@@ -131,6 +133,7 @@ export function NovaPessoaModal({
         frequencia_acompanhamento: frequencia,
         proxima_visita: proximaVisita || undefined,
         responsavel_id: responsavelId || undefined,
+        objetivo_atual: objetivoAtual.trim() || undefined,
         observacoes: observacoes.trim() || undefined,
         tags,
       });
@@ -267,6 +270,12 @@ export function NovaPessoaModal({
                 ))}
               </div>
             </div>
+            <Input
+              label="Objetivo atual do acompanhamento (opcional)"
+              value={objetivoAtual}
+              onChange={(e) => setObjetivoAtual(e.target.value)}
+              placeholder="Ex: aproximar da célula, iniciar CV..."
+            />
             <Textarea
               label="Observações (opcional)"
               value={observacoes}

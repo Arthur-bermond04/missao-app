@@ -193,7 +193,7 @@ export interface MinisterioMembro {
   criado_em: string;
 }
 
-export type StatusEncontroMinisterio = 'agendado' | 'realizado';
+export type StatusEncontroMinisterio = 'agendado' | 'realizado' | 'cancelado';
 
 export interface MinisterioEncontro {
   id: string;
@@ -210,7 +210,8 @@ export interface MinisterioEncontro {
 export interface MinisterioPresenca {
   id: string;
   encontro_id: string;
-  usuario_id: string;
+  usuario_id: string | null;
+  pessoa_id: string | null;
   presente: boolean;
   justificativa: string | null;
   criado_em: string;
@@ -224,7 +225,7 @@ export interface MinisterioFinanceiro {
   categoria: CategoriaMinisterioFinanceiro;
   descricao: string | null;
   valor: number;
-  doador_id: string | null;
+  doador_id: string | null; // referencia pessoas(id) — doador não precisa ter login no app
   doador_nome: string | null;
   data: string;
   criado_em: string;
@@ -426,8 +427,10 @@ export interface Pessoa {
   proxima_visita: string | null;
   ultimo_contato: string | null;
   responsavel_id: string | null;
+  objetivo_atual: string | null;
   observacoes: string | null;
   tags: string[] | null;
+  foto_url: string | null;
   ativo: boolean;
   criado_em: string;
   atualizado_em: string;

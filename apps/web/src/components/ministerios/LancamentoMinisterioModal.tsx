@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Combobox } from '@/components/ui/Combobox';
 import { Button } from '@/components/ui/Button';
 import { lancarFinanceiroMinisterio } from '@/lib/ministerios';
 import { toastError, toastSuccess } from '@/lib/toast';
 import {
   CATEGORIAS_MINISTERIO_FINANCEIRO,
+  type Pessoa,
   type TipoFinanceiro,
-  type Usuario,
 } from '@/types/database';
 
 interface LancamentoMinisterioModalProps {
@@ -19,7 +20,7 @@ interface LancamentoMinisterioModalProps {
   tipoInicial: TipoFinanceiro;
   ministerioId: string;
   comunidadeId: string;
-  usuarios: Usuario[];
+  pessoas: Pessoa[];
   onLancado: () => void;
 }
 
@@ -29,7 +30,7 @@ export function LancamentoMinisterioModal({
   tipoInicial,
   ministerioId,
   comunidadeId,
-  usuarios,
+  pessoas,
   onLancado,
 }: LancamentoMinisterioModalProps) {
   const [tipo, setTipo] = useState<TipoFinanceiro>(tipoInicial);
@@ -113,11 +114,13 @@ export function LancamentoMinisterioModal({
             <Input label="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} required />
           </div>
         </div>
-        <Select
-          label="Doador (membro)"
+        <Combobox
+          label="Doador (buscar em Pessoas)"
           value={doadorId}
-          onChange={(e) => setDoadorId(e.target.value)}
-          options={[{ value: '', label: 'Nenhum / externo' }, ...usuarios.map((u) => ({ value: u.id, label: u.nome }))]}
+          onChange={setDoadorId}
+          placeholder="Buscar por nome..."
+          emptyMessage="Nenhuma pessoa encontrada"
+          options={pessoas.map((p) => ({ value: p.id, label: p.nome, sublabel: p.telefone ?? undefined }))}
         />
         {!doadorId && (
           <Input

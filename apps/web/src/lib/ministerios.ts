@@ -187,6 +187,13 @@ export interface MembroPessoaDetalhe extends MinisterioMembro {
   nome: string;
 }
 
+// Chave única pra uma linha de presença/membro, já que MembroDetalhe e
+// MembroPessoaDetalhe herdam as duas colunas de MinisterioMembro (uma delas
+// sempre null) — o discriminador tem que ser por valor, não por "in".
+export function chaveMembroMinisterio(m: MembroDetalhe | MembroPessoaDetalhe): string {
+  return m.usuario_id ?? m.pessoa_id ?? m.id;
+}
+
 // Membros só-pessoa (sem login) — não entram na presença/encontros, que dependem
 // de usuario_id (ministerio_presencas.usuario_id é NOT NULL no schema atual).
 export async function listarMembrosPessoaMinisterio(ministerioId: string): Promise<MembroPessoaDetalhe[]> {
@@ -260,7 +267,7 @@ export async function criarEncontroComPresencas(
     data: string;
     local?: string;
   },
-  presencas: { usuario_id: string; presente: boolean; justificativa?: string }[]
+  presencas: { usuario_id?: string; pessoa_id?: string; presente: boolean; justificativa?: string }[]
 ): Promise<MinisterioEncontro> {
   const { data, error } = await supabase
     .from('ministerio_encontros')
@@ -280,7 +287,8 @@ export async function criarEncontroComPresencas(
     const { error: erroPres } = await supabase.from('ministerio_presencas').insert(
       presencas.map((p) => ({
         encontro_id: encontro.id,
-        usuario_id: p.usuario_id,
+        usuario_id: p.usuario_id || null,
+        pessoa_id: p.pessoa_id || null,
         presente: p.presente,
         justificativa: p.justificativa || null,
       }))
@@ -330,7 +338,9 @@ export async function listarPresencasDoMinisterio(ministerioId: string): Promise
   return (data as MinisterioPresenca[]) ?? [];
 }
 
-// Frequência (%) de cada membro nos últimos N dias, a partir de encontros+presenças
+// Frequência (%) de cada membro nos últimos N dias, a partir de encontros+presenças.
+// Chave do mapa: usuario_id para membros com login, pessoa_id para membros sem login
+// (nunca os dois — CHECK constraint garante isso no banco).
 export function calcularFrequencia(
   encontros: MinisterioEncontro[],
   presencas: MinisterioPresenca[],
@@ -347,13 +357,15 @@ export function calcularFrequencia(
   const presentesPorMembro = new Map<string, number>();
   for (const p of presencas) {
     if (!idsEncontros.has(p.encontro_id)) continue;
-    if (p.presente) presentesPorMembro.set(p.usuario_id, (presentesPorMembro.get(p.usuario_id) ?? 0) + 1);
+    const chave = p.usuario_id ?? p.pessoa_id;
+    if (!chave) continue;
+    if (p.presente) presentesPorMembro.set(chave, (presentesPorMembro.get(chave) ?? 0) + 1);
   }
 
   const frequencia = new Map<string, number>();
   if (totalEncontros === 0) return frequencia;
-  for (const [usuarioId, presentes] of presentesPorMembro) {
-    frequencia.set(usuarioId, Math.round((presentes / totalEncontros) * 100));
+  for (const [chave, presentes] of presentesPorMembro) {
+    frequencia.set(chave, Math.round((presentes / totalEncontros) * 100));
   }
   return frequencia;
 }
@@ -369,7 +381,7 @@ export interface LancamentoDetalhe extends MinisterioFinanceiro {
 export async function listarFinanceiroMinisterio(ministerioId: string): Promise<LancamentoDetalhe[]> {
   const { data, error } = await supabase
     .from('ministerio_financeiro')
-    .select('*, doador:usuarios(nome)')
+    .select('*, doador:pessoas(nome)')
     .eq('ministerio_id', ministerioId)
     .order('data', { ascending: false });
   if (error) throw error;

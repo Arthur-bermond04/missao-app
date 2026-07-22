@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Wallet } from 'lucide-react';
 import { LancamentoMinisterioModal } from './LancamentoMinisterioModal';
 import type { LancamentoDetalhe } from '@/lib/ministerios';
-import type { Ministerio, TipoFinanceiro, Usuario } from '@/types/database';
+import type { Ministerio, Pessoa, TipoFinanceiro } from '@/types/database';
 
 function inicioMesAtual() {
   const d = new Date();
@@ -23,11 +23,11 @@ interface AbaCaixaProps {
   ministerio: Ministerio;
   comunidadeId: string;
   lancamentos: LancamentoDetalhe[];
-  usuarios: Usuario[];
+  pessoas: Pessoa[];
   onRefresh: () => void;
 }
 
-export function AbaCaixa({ ministerio, comunidadeId, lancamentos, usuarios, onRefresh }: AbaCaixaProps) {
+export function AbaCaixa({ ministerio, comunidadeId, lancamentos, pessoas, onRefresh }: AbaCaixaProps) {
   const [modalTipo, setModalTipo] = useState<TipoFinanceiro | null>(null);
 
   const { receitaMes, despesaMes, saldo } = useMemo(() => {
@@ -63,7 +63,7 @@ export function AbaCaixa({ ministerio, comunidadeId, lancamentos, usuarios, onRe
           tipoInicial={modalTipo}
           ministerioId={ministerio.id}
           comunidadeId={comunidadeId}
-          usuarios={usuarios}
+          pessoas={pessoas}
           onLancado={onRefresh}
         />
       )}

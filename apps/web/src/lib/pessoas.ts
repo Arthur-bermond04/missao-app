@@ -123,6 +123,7 @@ export interface NovaPessoaDados {
   frequencia_acompanhamento?: string;
   proxima_visita?: string;
   responsavel_id?: string;
+  objetivo_atual?: string;
   observacoes?: string;
   tags?: string[];
 }
@@ -151,6 +152,7 @@ export async function criarPessoa(dados: NovaPessoaDados): Promise<Pessoa> {
       frequencia_acompanhamento: dados.frequencia_acompanhamento || 'mensal',
       proxima_visita: dados.proxima_visita || null,
       responsavel_id: dados.responsavel_id || dados.cadastrado_por,
+      objetivo_atual: dados.objetivo_atual || null,
       observacoes: dados.observacoes || null,
       tags: dados.tags ?? [],
     })

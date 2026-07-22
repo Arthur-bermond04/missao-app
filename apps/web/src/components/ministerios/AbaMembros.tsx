@@ -124,6 +124,7 @@ export function AbaMembros({
         onClose={() => setModalEncontro(false)}
         ministerioId={ministerio.id}
         membros={membros}
+        membrosPessoa={membrosPessoa}
         onRegistrado={onRefresh}
       />
 

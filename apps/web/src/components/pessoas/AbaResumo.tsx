@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, CalendarClock, HandHeart, HeartHandshake, Link2, Plus } from 'lucide-react';
+import { AlertTriangle, CalendarClock, HandHeart, HeartHandshake, Link2, Plus, Target } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -70,6 +70,15 @@ export function AbaResumo({
         <div className="flex items-center gap-2 rounded-md bg-danger-light px-3 py-2 text-sm font-medium text-danger">
           <AlertTriangle size={16} />
           Contato vencido — a próxima visita marcada já passou.
+        </div>
+      )}
+
+      {!!pessoa.objetivo_atual && (
+        <div className="rounded-md border border-gold-light bg-gold-bg p-3">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gold-dark">
+            <Target size={13} /> Objetivo atual
+          </p>
+          <p className="mt-1 text-sm text-text-primary">{pessoa.objetivo_atual}</p>
         </div>
       )}
 

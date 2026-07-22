@@ -313,7 +313,9 @@ export default function MinisteriosPage() {
                     }}
                   />
                 )}
-                {aba === 'presenca' && <AbaPresenca membros={membros} encontros={encontros} presencas={presencas} />}
+                {aba === 'presenca' && (
+                  <AbaPresenca membros={membros} membrosPessoa={membrosPessoa} encontros={encontros} presencas={presencas} />
+                )}
                 {(aba === 'caixa' || aba === 'doacoes') && semCaixa ? (
                   <EmptyState
                     icon={Lock}
@@ -328,7 +330,7 @@ export default function MinisteriosPage() {
                         ministerio={selecionado}
                         comunidadeId={comunidadeId}
                         lancamentos={financeiro}
-                        usuarios={usuarios}
+                        pessoas={pessoas}
                         onRefresh={() => carregarDetalhe(selecionado.id)}
                       />
                     )}
