@@ -1,48 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { registrarPresencaOvelha } from '@/lib/pastoral';
+import { listarTiposEvento } from '@/lib/tiposEvento';
 import { toastError, toastSuccess } from '@/lib/toast';
-import type { TipoEventoPastoral } from '@/types/database';
+import type { TipoEventoComunidade } from '@/types/database';
 
-const TIPOS_EVENTO: { valor: TipoEventoPastoral; label: string }[] = [
-  { valor: 'missa', label: 'Missa' },
-  { valor: 'celula', label: 'Célula' },
-  { valor: 'retiro', label: 'Retiro' },
-  { valor: 'ministerio', label: 'Ministério' },
-  { valor: 'formacao', label: 'Formação' },
-];
+const OUTRO = '__outro__';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   ovelhaId: string;
+  comunidadeId: string;
   onRegistrado: () => void;
 }
 
-export function RegistrarPresencaModal({ open, onClose, ovelhaId, onRegistrado }: Props) {
-  const [tipoEvento, setTipoEvento] = useState<TipoEventoPastoral>('missa');
-  const [nomeEvento, setNomeEvento] = useState('');
+export function RegistrarPresencaModal({ open, onClose, ovelhaId, comunidadeId, onRegistrado }: Props) {
+  const [tiposEvento, setTiposEvento] = useState<TipoEventoComunidade[]>([]);
+  const [tipoEvento, setTipoEvento] = useState('');
+  const [nomeEventoCustom, setNomeEventoCustom] = useState('');
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
   const [presente, setPresente] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
+  useEffect(() => {
+    if (!open || !comunidadeId) return;
+    listarTiposEvento(comunidadeId).then((lista) => {
+      setTiposEvento(lista);
+      setTipoEvento((atual) => atual || lista[0]?.nome || OUTRO);
+    });
+  }, [open, comunidadeId]);
+
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
+    if (tipoEvento === OUTRO && !nomeEventoCustom.trim()) {
+      toastError('Conte qual foi o evento.');
+      return;
+    }
     setSalvando(true);
     try {
       await registrarPresencaOvelha({
         ovelha_id: ovelhaId,
-        tipo_evento: tipoEvento,
-        nome_evento: nomeEvento.trim() || undefined,
+        tipo_evento: tipoEvento === OUTRO ? 'outro' : tipoEvento,
+        nome_evento: tipoEvento === OUTRO ? nomeEventoCustom.trim() : undefined,
         data,
         presente,
       });
-      setNomeEvento('');
+      setNomeEventoCustom('');
       onRegistrado();
       onClose();
       toastSuccess('Presença registrada!');
@@ -59,10 +68,18 @@ export function RegistrarPresencaModal({ open, onClose, ovelhaId, onRegistrado }
         <Select
           label="Tipo de evento"
           value={tipoEvento}
-          onChange={(e) => setTipoEvento(e.target.value as TipoEventoPastoral)}
-          options={TIPOS_EVENTO.map((t) => ({ value: t.valor, label: t.label }))}
+          onChange={(e) => setTipoEvento(e.target.value)}
+          options={[...tiposEvento.map((t) => ({ value: t.nome, label: t.nome })), { value: OUTRO, label: 'Outro' }]}
         />
-        <Input label="Nome do evento (opcional)" value={nomeEvento} onChange={(e) => setNomeEvento(e.target.value)} />
+        {tipoEvento === OUTRO && (
+          <Input
+            label="Qual evento?"
+            value={nomeEventoCustom}
+            onChange={(e) => setNomeEventoCustom(e.target.value)}
+            placeholder="Ex: Grupo de oração, Encontro de jovens..."
+            required
+          />
+        )}
         <Input label="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} required />
         <div>
           <label className="mb-1 block text-xs font-semibold text-text-secondary">Compareceu?</label>

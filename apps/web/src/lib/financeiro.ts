@@ -11,6 +11,12 @@ export async function listarFinanceiro(comunidadeId: string): Promise<Financeiro
   return (data as Financeiro[]) ?? [];
 }
 
+// RLS já restringe (financeiro_write_lideranca) a coordenador/admin.
+export async function excluirFinanceiro(id: string) {
+  const { error } = await supabase.from('financeiro').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function lancarFinanceiro(dados: {
   comunidade_id: string;
   tipo: TipoFinanceiro;

@@ -4,12 +4,14 @@ import {
   FREQUENCIAS_ACOMPANHAMENTO,
   type EstadoEspiritual,
   type PastoralEncontro,
+  type PastoralFruto,
   type PastoralObjetivo,
   type PastoralOvelha,
   type PastoralPresenca,
   type TemaPastoral,
   type TipoEncontroPastoral,
   type TipoEventoPastoral,
+  type TipoFrutoPastoral,
 } from '../types/database';
 
 // ---------------------------------------------------------------------------
@@ -102,6 +104,24 @@ export async function atualizarOvelha(id: string, campos: Partial<PastoralOvelha
 // e presenças é mantido, só o pastor_id muda.
 export async function transferirOvelha(id: string, novoPastorId: string) {
   await atualizarOvelha(id, { pastor_id: novoPastorId });
+}
+
+export async function arquivarOvelha(id: string) {
+  await atualizarOvelha(id, { ativo: false });
+}
+
+// Hard delete — apaga a ovelha e (via ON DELETE CASCADE) todos os
+// encontros/presenças/objetivos/frutos ligados a ela. RLS restringe a
+// quem já pode escrever nessa ovelha (pastor dono ou admin); a UI só
+// mostra esse botão pra admin, por ser irreversível.
+export async function excluirOvelha(id: string) {
+  const { error } = await supabase.from('pastoral_ovelhas').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function excluirEncontroPastoral(id: string) {
+  const { error } = await supabase.from('pastoral_encontros').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +253,60 @@ export async function registrarPresencaOvelha(dados: {
     .single();
   if (error) throw error;
   return data as PastoralPresenca;
+}
+
+// ---------------------------------------------------------------------------
+// Frutos do acompanhamento (conquistas espirituais, sacramentos, etc.)
+// ---------------------------------------------------------------------------
+
+export async function listarFrutos(ovelhaId: string): Promise<PastoralFruto[]> {
+  const { data, error } = await supabase
+    .from('pastoral_frutos')
+    .select('*')
+    .eq('ovelha_id', ovelhaId)
+    .order('data', { ascending: false });
+  if (error) throw error;
+  return (data as PastoralFruto[]) ?? [];
+}
+
+export async function contarFrutosPorOvelha(ovelhaIds: string[]): Promise<Record<string, number>> {
+  if (ovelhaIds.length === 0) return {};
+  const { data, error } = await supabase.from('pastoral_frutos').select('ovelha_id').in('ovelha_id', ovelhaIds);
+  if (error) throw error;
+  const contagem: Record<string, number> = {};
+  for (const f of (data as { ovelha_id: string }[]) ?? []) {
+    contagem[f.ovelha_id] = (contagem[f.ovelha_id] ?? 0) + 1;
+  }
+  return contagem;
+}
+
+export async function registrarFruto(dados: {
+  ovelha_id: string;
+  pastor_id: string;
+  data: string;
+  tipo: TipoFrutoPastoral;
+  titulo: string;
+  descricao?: string;
+}): Promise<PastoralFruto> {
+  const { data, error } = await supabase
+    .from('pastoral_frutos')
+    .insert({
+      ovelha_id: dados.ovelha_id,
+      pastor_id: dados.pastor_id,
+      data: dados.data,
+      tipo: dados.tipo,
+      titulo: dados.titulo,
+      descricao: dados.descricao || null,
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data as PastoralFruto;
+}
+
+export async function excluirFruto(id: string) {
+  const { error } = await supabase.from('pastoral_frutos').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { atualizarComunidade } from '@/lib/comunidades';
+import { listarTiposEvento, criarTipoEvento, removerTipoEvento } from '@/lib/tiposEvento';
 import { toastError, toastSuccess } from '@/lib/toast';
-import { TERMINOLOGIA_PADRAO, type Comunidade, type HorarioMissa, type Terminologia } from '@/types/database';
+import { TERMINOLOGIA_PADRAO, type Comunidade, type HorarioMissa, type Terminologia, type TipoEventoComunidade } from '@/types/database';
 
 const OPCOES_TIPO = [
   { value: 'paróquia', label: 'Paróquia' },
@@ -38,6 +39,42 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
     ...comunidade.terminologia,
   });
   const [salvando, setSalvando] = useState(false);
+
+  const [tiposEvento, setTiposEvento] = useState<TipoEventoComunidade[]>([]);
+  const [novoTipoEvento, setNovoTipoEvento] = useState('');
+  const [salvandoTipo, setSalvandoTipo] = useState(false);
+
+  useEffect(() => {
+    listarTiposEvento(comunidade.id).then(setTiposEvento);
+  }, [comunidade.id]);
+
+  async function handleAdicionarTipoEvento() {
+    const nome = novoTipoEvento.trim();
+    if (!nome) return;
+    if (tiposEvento.some((t) => t.nome.toLowerCase() === nome.toLowerCase())) {
+      toastError('Esse tipo de evento já existe.');
+      return;
+    }
+    setSalvandoTipo(true);
+    try {
+      const criado = await criarTipoEvento(comunidade.id, nome);
+      setTiposEvento((atual) => [...atual, criado].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setNovoTipoEvento('');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao adicionar tipo de evento.');
+    } finally {
+      setSalvandoTipo(false);
+    }
+  }
+
+  async function handleRemoverTipoEvento(tipo: TipoEventoComunidade) {
+    try {
+      await removerTipoEvento(tipo.id);
+      setTiposEvento((atual) => atual.filter((t) => t.id !== tipo.id));
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao remover tipo de evento.');
+    }
+  }
 
   function adicionarMissa() {
     if (!novoHorario) return;
@@ -147,6 +184,46 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
       <Button type="submit" loading={salvando}>
         Salvar alterações
       </Button>
+
+      <div className="border-t border-border pt-4">
+        <p className="text-xs font-semibold text-text-secondary">Tipos de evento</p>
+        <p className="mt-0.5 text-xs text-text-secondary">
+          Usados no registro de presença da Pastoral. Adicione os que sua comunidade usa, além dos padrões.
+        </p>
+        {tiposEvento.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {tiposEvento.map((t) => (
+              <span
+                key={t.id}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-text-primary"
+              >
+                {t.nome}
+                <button type="button" onClick={() => handleRemoverTipoEvento(t)} className="text-text-secondary hover:text-danger">
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="mt-2 flex items-end gap-2">
+          <div className="min-w-[160px] flex-1">
+            <Input
+              placeholder="Ex: Grupo de oração"
+              value={novoTipoEvento}
+              onChange={(e) => setNovoTipoEvento(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAdicionarTipoEvento();
+                }
+              }}
+            />
+          </div>
+          <Button type="button" variant="secondary" size="md" icon={Plus} loading={salvandoTipo} onClick={handleAdicionarTipoEvento}>
+            Adicionar
+          </Button>
+        </div>
+      </div>
     </form>
   );
 }

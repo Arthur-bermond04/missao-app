@@ -176,6 +176,27 @@ export async function arquivarPessoa(id: string) {
   await atualizarPessoa(id, { ativo: false });
 }
 
+// Hard delete — só admin (RLS: pessoas_delete_admin).
+// pessoa_retiros/pessoa_interacoes têm ON DELETE CASCADE (somem sozinhos).
+// contatos/inscricoes_retiro/pastoral_ovelhas.pessoa_id NÃO têm CASCADE/SET
+// NULL no banco — sem tratar isso aqui, o DELETE falharia com violação de
+// FK sempre que a pessoa tiver algum vínculo. Zeramos esses vínculos antes
+// (o registro em si continua existindo, só perde a referência à pessoa).
+// ministerio_membros/ministerio_presencas com pessoa_id são removidos por
+// completo em vez de zerados, porque o CHECK constraint exige usuario_id
+// OU pessoa_id — zerar pessoa_id sem usuario_id violaria essa constraint.
+export async function excluirPessoa(id: string) {
+  await Promise.all([
+    supabase.from('contatos').update({ pessoa_id: null }).eq('pessoa_id', id),
+    supabase.from('inscricoes_retiro').update({ pessoa_id: null }).eq('pessoa_id', id),
+    supabase.from('pastoral_ovelhas').update({ pessoa_id: null }).eq('pessoa_id', id),
+    supabase.from('ministerio_membros').delete().eq('pessoa_id', id),
+    supabase.from('ministerio_presencas').delete().eq('pessoa_id', id),
+  ]);
+  const { error } = await supabase.from('pessoas').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ---------------------------------------------------------------------------
 // Interações
 // ---------------------------------------------------------------------------
@@ -217,6 +238,11 @@ export async function criarInteracao(dados: {
   // atualiza o "último contato" da pessoa automaticamente
   await atualizarPessoa(dados.pessoa_id, { ultimo_contato: dados.data });
   return data as PessoaInteracao;
+}
+
+export async function excluirInteracao(id: string) {
+  const { error } = await supabase.from('pessoa_interacoes').delete().eq('id', id);
+  if (error) throw error;
 }
 
 // ---------------------------------------------------------------------------

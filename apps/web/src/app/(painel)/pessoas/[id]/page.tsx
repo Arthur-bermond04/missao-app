@@ -3,22 +3,23 @@
 import { use, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Archive, IdCard, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowLeft, IdCard, Phone, Mail, MapPin, MoreVertical } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { EtapaJornadaBadge } from '@/components/pessoas/EtapaJornadaBadge';
 import { AbaResumo } from '@/components/pessoas/AbaResumo';
 import { AbaInteracoes } from '@/components/pessoas/AbaInteracoes';
 import { AbaDadosPessoais } from '@/components/pessoas/AbaDadosPessoais';
 import { AbaHistorico } from '@/components/pessoas/AbaHistorico';
-import { arquivarPessoa, buscarPessoa, listarInteracoes, listarRetirosDaPessoa } from '@/lib/pessoas';
+import { arquivarPessoa, buscarPessoa, excluirPessoa, listarInteracoes, listarRetirosDaPessoa } from '@/lib/pessoas';
 import { buscarOvelhaPorPessoa } from '@/lib/pastoral';
 import { listarMinisteriosDaPessoa } from '@/lib/ministerios';
 import { registrarAcessoRecente } from '@/lib/recentes';
-import { toastSuccess } from '@/lib/toast';
+import { toastError, toastSuccess } from '@/lib/toast';
 import type { Ministerio, PastoralOvelha, Pessoa, PessoaInteracao, PessoaRetiro, Usuario } from '@/types/database';
 
 type Aba = 'resumo' | 'interacoes' | 'dados' | 'historico';
@@ -36,6 +37,8 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
   const [ministeriosDaPessoa, setMinisteriosDaPessoa] = useState<Ministerio[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [aba, setAba] = useState<Aba>('resumo');
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [modalExcluir, setModalExcluir] = useState(false);
 
   const carregar = useCallback(() => {
     setCarregando(true);
@@ -71,10 +74,21 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
 
   async function handleArquivar() {
     if (!pessoa) return;
-    if (!confirm(`Arquivar ${pessoa.nome}? A pessoa deixará de aparecer na lista, mas o histórico é mantido.`)) return;
+    setMenuAberto(false);
     await arquivarPessoa(pessoa.id);
     toastSuccess('Pessoa arquivada.');
     router.push('/pessoas');
+  }
+
+  async function handleExcluir() {
+    if (!pessoa) return;
+    try {
+      await excluirPessoa(pessoa.id);
+      toastSuccess(`${pessoa.nome} foi excluído(a) permanentemente.`);
+      router.push('/pessoas');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao excluir. Tente novamente.');
+    }
   }
 
   if (carregando) {
@@ -109,10 +123,43 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
         title={pessoa.nome}
         subtitle="Cadastro central de pessoas"
         actions={
-          <Button variant="secondary" icon={Archive} onClick={handleArquivar}>
-            Arquivar
-          </Button>
+          <div className="relative">
+            <Button variant="secondary" icon={MoreVertical} onClick={() => setMenuAberto((v) => !v)} />
+            {menuAberto && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setMenuAberto(false)} />
+                <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded-md border border-border bg-bg-card py-1 shadow-hover">
+                  <button
+                    onClick={handleArquivar}
+                    className="block w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-page"
+                  >
+                    Arquivar
+                  </button>
+                  {usuario?.perfil === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setMenuAberto(false);
+                        setModalExcluir(true);
+                      }}
+                      className="block w-full px-3 py-2 text-left text-sm text-danger hover:bg-danger-light"
+                    >
+                      Excluir permanentemente
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         }
+      />
+
+      <ConfirmModal
+        open={modalExcluir}
+        onClose={() => setModalExcluir(false)}
+        onConfirm={handleExcluir}
+        title="Excluir pessoa"
+        description={`Esta pessoa está vinculada a ${retiros.length} retiro(s) e ${ministeriosDaPessoa.length} ministério(s). Excluir irá remover todos os vínculos permanentemente. Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir permanentemente"
       />
 
       {/* Header info */}

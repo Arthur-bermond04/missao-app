@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Heart, Sprout, AlertTriangle, ShieldAlert, Users, Lock, ChevronRight } from 'lucide-react';
+import { Heart, Sprout, AlertTriangle, ShieldAlert, Users, Lock, ChevronRight, Sparkles, CalendarClock } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -15,7 +15,7 @@ import { NovaOvelhaModal } from '@/components/pastoral/NovaOvelhaModal';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { buscarPessoasParaCombobox } from '@/lib/pessoas';
-import { avaliarOvelha, listarOvelhas } from '@/lib/pastoral';
+import { avaliarOvelha, contarFrutosPorOvelha, listarOvelhas } from '@/lib/pastoral';
 import { useTerminologia } from '@/lib/terminologia';
 import type { Comunidade, Pessoa, PastoralEncontro, PastoralOvelha, PastoralPresenca, Usuario } from '@/types/database';
 
@@ -35,6 +35,7 @@ export default function PastoralPage() {
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
   const [presencas, setPresencas] = useState<PastoralPresenca[]>([]);
+  const [frutosPorOvelha, setFrutosPorOvelha] = useState<Record<string, number>>({});
   const [modalNova, setModalNova] = useState(false);
   const [modalUpgrade, setModalUpgrade] = useState(false);
   const [prefill, setPrefill] = useState<{ nome?: string; telefone?: string; pessoaId?: string } | null>(null);
@@ -50,14 +51,17 @@ export default function PastoralPage() {
       if (ids.length === 0) {
         setEncontros([]);
         setPresencas([]);
+        setFrutosPorOvelha({});
         return;
       }
-      const [{ data: enc }, { data: pres }] = await Promise.all([
+      const [{ data: enc }, { data: pres }, frutos] = await Promise.all([
         supabase.from('pastoral_encontros').select('*').in('ovelha_id', ids),
         supabase.from('pastoral_presencas').select('*').in('ovelha_id', ids),
+        contarFrutosPorOvelha(ids),
       ]);
       setEncontros((enc as PastoralEncontro[]) ?? []);
       setPresencas((pres as PastoralPresenca[]) ?? []);
+      setFrutosPorOvelha(frutos);
     });
   }, [comunidadeId]);
 
@@ -260,28 +264,55 @@ export default function PastoralPage() {
           />
         ) : (
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {ativas.map((o) => (
-              <Link
-                key={o.id}
-                href={`/pastoral/${o.id}`}
-                className="flex items-center justify-between rounded-md border border-border px-3 py-3 hover:bg-bg-page"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
-                    {o.nome.slice(0, 2).toUpperCase()}
+            {ativas.map((o) => {
+              const encontrosOvelha = encontrosPorOvelha.get(o.id) ?? [];
+              const ultimoEncontro = [...encontrosOvelha].sort((a, b) => b.data.localeCompare(a.data))[0];
+              const totalFrutos = frutosPorOvelha[o.id] ?? 0;
+              return (
+                <Link
+                  key={o.id}
+                  href={`/pastoral/${o.id}`}
+                  className="flex items-center justify-between rounded-md border border-border px-3 py-3 hover:bg-bg-page"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                      {o.nome.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">{o.nome}</p>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-secondary">
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarClock size={11} />
+                          {ultimoEncontro
+                            ? `Último: ${new Date(ultimoEncontro.data).toLocaleDateString('pt-BR')}`
+                            : 'Sem encontros'}
+                        </span>
+                        <span>·</span>
+                        <span>{encontrosOvelha.length} encontro(s)</span>
+                        <span>·</span>
+                        <span>
+                          {o.proxima_reuniao
+                            ? `Próxima: ${new Date(o.proxima_reuniao).toLocaleDateString('pt-BR')}`
+                            : 'Sem reunião agendada'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">{o.nome}</p>
-                    <p className="text-xs text-text-secondary">
-                      {o.proxima_reuniao
-                        ? `Próxima: ${new Date(o.proxima_reuniao).toLocaleDateString('pt-BR')}`
-                        : 'Sem reunião agendada'}
-                    </p>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {totalFrutos > 0 && (
+                      <span
+                        title={`${totalFrutos} fruto(s) registrado(s)`}
+                        className="inline-flex items-center gap-1 rounded-full bg-accent-light px-2 py-0.5 text-xs font-semibold text-accent"
+                      >
+                        <Sparkles size={11} />
+                        {totalFrutos}
+                      </span>
+                    )}
+                    <EstadoEspiritualBadge estado={o.estado_espiritual} />
                   </div>
-                </div>
-                <EstadoEspiritualBadge estado={o.estado_espiritual} />
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

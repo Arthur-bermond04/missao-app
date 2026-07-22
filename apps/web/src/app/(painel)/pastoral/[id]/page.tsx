@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowRightLeft,
@@ -9,16 +10,19 @@ import {
   CheckCircle2,
   FileDown,
   Lock,
+  MoreVertical,
   Pencil,
   ShieldAlert,
   AlertTriangle,
   Info,
+  Trash2,
 } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Ornamento } from '@/components/ui/Ornamento';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { EstadoEspiritualBadge, EtapaBadge, EstadoEncontroBadge } from '@/components/pastoral/badges';
 import { EstadoTimeline } from '@/components/pastoral/EstadoTimeline';
 import { JornadaTimeline } from '@/components/pastoral/JornadaTimeline';
@@ -26,20 +30,28 @@ import { ObjetivosSecao } from '@/components/pastoral/ObjetivosSecao';
 import { TransferirOvelhaModal } from '@/components/pastoral/TransferirOvelhaModal';
 import { RegistrarEncontroPastoralModal } from '@/components/pastoral/RegistrarEncontroPastoralModal';
 import { RegistrarPresencaModal } from '@/components/pastoral/RegistrarPresencaModal';
+import { FrutosSecao } from '@/components/pastoral/FrutosSecao';
 import {
+  arquivarOvelha,
   avaliarOvelha,
   buscarOvelha,
+  excluirEncontroPastoral,
+  excluirOvelha,
   listarEncontrosPastorais,
+  listarFrutos,
   listarObjetivos,
   listarPresencasOvelha,
   scoreEstadoEncontro,
 } from '@/lib/pastoral';
+import { useTerminologia } from '@/lib/terminologia';
 import { listarRetirosDaPessoa } from '@/lib/pessoas';
 import { registrarAcessoRecente } from '@/lib/recentes';
+import { toastError, toastSuccess } from '@/lib/toast';
 import {
   FREQUENCIAS_ACOMPANHAMENTO,
   TEMAS_PASTORAL,
   type PastoralEncontro,
+  type PastoralFruto,
   type PastoralObjetivo,
   type PastoralOvelha,
   type PastoralPresenca,
@@ -70,14 +82,20 @@ function Indicador({
 export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { usuario } = usePainelSession();
+  const router = useRouter();
+  const terminologia = useTerminologia();
 
   const [ovelha, setOvelha] = useState<PastoralOvelha | null>(null);
   const [encontros, setEncontros] = useState<PastoralEncontro[]>([]);
   const [presencas, setPresencas] = useState<PastoralPresenca[]>([]);
   const [objetivos, setObjetivos] = useState<PastoralObjetivo[]>([]);
+  const [frutos, setFrutos] = useState<PastoralFruto[]>([]);
   const [retirosDaPessoa, setRetirosDaPessoa] = useState<PessoaRetiro[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [modalExcluirOvelha, setModalExcluirOvelha] = useState(false);
+  const [encontroParaExcluir, setEncontroParaExcluir] = useState<PastoralEncontro | null>(null);
   const [modalEncontro, setModalEncontro] = useState(false);
   const [modalPresenca, setModalPresenca] = useState(false);
   const [modalTransferir, setModalTransferir] = useState(false);
@@ -86,12 +104,19 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
 
   const carregar = useCallback(() => {
     setCarregando(true);
-    Promise.all([buscarOvelha(id), listarEncontrosPastorais(id), listarPresencasOvelha(id), listarObjetivos(id)])
-      .then(([o, e, p, obj]) => {
+    Promise.all([
+      buscarOvelha(id),
+      listarEncontrosPastorais(id),
+      listarPresencasOvelha(id),
+      listarObjetivos(id),
+      listarFrutos(id),
+    ])
+      .then(([o, e, p, obj, fr]) => {
         setOvelha(o);
         setEncontros(e);
         setPresencas(p);
         setObjetivos(obj);
+        setFrutos(fr);
         if (o) {
           registrarAcessoRecente({ tipo: 'ovelha', id: o.id, titulo: o.nome, href: `/pastoral/${o.id}` });
           if (o.pessoa_id) listarRetirosDaPessoa(o.pessoa_id).then(setRetirosDaPessoa);
@@ -148,6 +173,31 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       ? Math.round((indicadores.encontrosRealizados / indicadores.encontrosPrevistos) * 100)
       : 0;
 
+  async function handleArquivar() {
+    setMenuAberto(false);
+    try {
+      await arquivarOvelha(id);
+      toastSuccess(`${ovelha!.nome} foi arquivado(a). O histórico continua disponível.`);
+      router.push('/pastoral');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao arquivar.');
+    }
+  }
+
+  async function handleExcluirOvelha() {
+    await excluirOvelha(id);
+    toastSuccess(`${ovelha!.nome} foi excluído(a) permanentemente.`);
+    router.push('/pastoral');
+  }
+
+  async function handleExcluirEncontro() {
+    if (!encontroParaExcluir) return;
+    await excluirEncontroPastoral(encontroParaExcluir.id);
+    setEncontroParaExcluir(null);
+    toastSuccess('Encontro excluído.');
+    carregar();
+  }
+
   async function exportarRelatorioPdf() {
     if (!ovelha) return;
     const { default: pdfMake } = await import('pdfmake/build/pdfmake');
@@ -184,6 +234,14 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
                     `${o.objetivo}${o.data_fim ? ` (concluído em ${new Date(o.data_fim).toLocaleDateString('pt-BR')})` : ' (em andamento)'}`
                 ),
               },
+          { text: 'Frutos', style: 'secao' },
+          frutos.length === 0
+            ? { text: 'Nenhum fruto registrado.' }
+            : {
+                ul: [...frutos]
+                  .sort((a, b) => a.data.localeCompare(b.data))
+                  .map((f) => `${new Date(f.data).toLocaleDateString('pt-BR')} — ${f.titulo}`),
+              },
         ],
         styles: {
           titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 6] },
@@ -218,8 +276,44 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
             <Button icon={CalendarPlus} onClick={() => { setEditando(null); setModalEncontro(true); }}>
               + Encontro
             </Button>
+            <div className="relative">
+              <Button variant="secondary" icon={MoreVertical} onClick={() => setMenuAberto((v) => !v)} />
+              {menuAberto && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setMenuAberto(false)} />
+                  <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded-md border border-border bg-bg-card py-1 shadow-hover">
+                    <button
+                      onClick={handleArquivar}
+                      className="block w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-page"
+                    >
+                      Arquivar
+                    </button>
+                    {usuario?.perfil === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setMenuAberto(false);
+                          setModalExcluirOvelha(true);
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm text-danger hover:bg-danger-light"
+                      >
+                        Excluir permanentemente
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         }
+      />
+
+      <ConfirmModal
+        open={modalExcluirOvelha}
+        onClose={() => setModalExcluirOvelha(false)}
+        onConfirm={handleExcluirOvelha}
+        title={`Excluir ${terminologia.nome_ovelha.toLowerCase()}`}
+        description={`Tem certeza? Todos os encontros e histórico de ${ovelha.nome} serão perdidos permanentemente. Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir permanentemente"
       />
 
       <RegistrarEncontroPastoralModal
@@ -234,6 +328,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         open={modalPresenca}
         onClose={() => setModalPresenca(false)}
         ovelhaId={ovelha.id}
+        comunidadeId={usuario?.comunidade_id ?? ''}
         onRegistrado={carregar}
       />
       <TransferirOvelhaModal
@@ -282,6 +377,11 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
           historico={objetivos}
           onAtualizado={carregar}
         />
+      </div>
+
+      {/* Frutos */}
+      <div className="mt-6">
+        <FrutosSecao ovelhaId={ovelha.id} pastorId={usuario?.id ?? ''} frutos={frutos} onRefresh={carregar} />
       </div>
 
       {/* Alertas */}
@@ -370,12 +470,20 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
                       </span>
                       <EstadoEncontroBadge estado={e.estado_ovelha} />
                     </div>
-                    <button
-                      onClick={() => { setEditando(e); setModalEncontro(true); }}
-                      className="inline-flex items-center gap-1 text-xs text-primary"
-                    >
-                      <Pencil size={12} /> Editar
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => { setEditando(e); setModalEncontro(true); }}
+                        className="inline-flex items-center gap-1 text-xs text-primary"
+                      >
+                        <Pencil size={12} /> Editar
+                      </button>
+                      <button
+                        onClick={() => setEncontroParaExcluir(e)}
+                        className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-danger"
+                      >
+                        <Trash2 size={12} /> Excluir
+                      </button>
+                    </div>
                   </div>
 
                   {!!e.temas_abordados?.length && (
@@ -408,6 +516,15 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={!!encontroParaExcluir}
+        onClose={() => setEncontroParaExcluir(null)}
+        onConfirm={handleExcluirEncontro}
+        title="Excluir este encontro?"
+        description="Ação irreversível."
+        confirmLabel="Excluir"
+      />
     </div>
   );
 }

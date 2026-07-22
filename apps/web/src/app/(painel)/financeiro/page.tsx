@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Wallet, TrendingUp, TrendingDown, Scale } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Scale, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { exportarExcel as exportarExcelLib, exportarPDF as exportarPDFLib } from '@/lib/exportacao';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -15,7 +16,7 @@ import { MetricCard } from '@/components/ui/MetricCard';
 import { DespesasPieChart } from '@/components/financeiro/DespesasPieChart';
 import { EvolucaoFinanceiraChart } from '@/components/financeiro/EvolucaoFinanceiraChart';
 import { LancamentoModal } from '@/components/financeiro/LancamentoModal';
-import { lancarFinanceiro, listarFinanceiro } from '@/lib/financeiro';
+import { excluirFinanceiro, lancarFinanceiro, listarFinanceiro } from '@/lib/financeiro';
 import { buscarComunidade } from '@/lib/comunidades';
 import { listarRetiros } from '@/lib/retiros';
 import { listarMinisterios, type MinisterioComContagem } from '@/lib/ministerios';
@@ -47,6 +48,19 @@ export default function FinanceiroPage() {
   const [filtroFim, setFiltroFim] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [modalAberto, setModalAberto] = useState(false);
+  const [paraExcluir, setParaExcluir] = useState<Financeiro | null>(null);
+
+  async function handleExcluir() {
+    if (!paraExcluir) return;
+    try {
+      await excluirFinanceiro(paraExcluir.id);
+      setLancamentos((atual) => atual.filter((l) => l.id !== paraExcluir.id));
+      toastSuccess('Lançamento excluído.');
+      setParaExcluir(null);
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao excluir. Tente novamente.');
+    }
+  }
 
   function abrirModal(tipoInicial: TipoFinanceiro) {
     setTipo(tipoInicial);
@@ -327,6 +341,15 @@ export default function FinanceiroPage() {
               { key: 'valor', header: 'Valor', render: (l) => `R$ ${l.valor.toFixed(2)}` },
               { key: 'data', header: 'Data', render: (l) => new Date(l.data).toLocaleDateString('pt-BR') },
             ]}
+            rowActions={(l) => (
+              <button
+                onClick={() => setParaExcluir(l)}
+                className="rounded-md p-1.5 text-text-secondary hover:bg-danger-light hover:text-danger"
+                title="Excluir lançamento"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
             emptyState={
               <EmptyState
                 icon={Wallet}
@@ -334,6 +357,21 @@ export default function FinanceiroPage() {
                 description="Registre a primeira receita ou despesa da sua comunidade."
               />
             }
+          />
+
+          <ConfirmModal
+            open={!!paraExcluir}
+            onClose={() => setParaExcluir(null)}
+            onConfirm={handleExcluir}
+            title="Excluir lançamento"
+            description={
+              paraExcluir
+                ? `${paraExcluir.tipo === 'receita' ? 'Receita' : 'Despesa'} de R$ ${paraExcluir.valor.toFixed(2)}${
+                    paraExcluir.descricao ? ` — ${paraExcluir.descricao}` : ''
+                  }. Esta ação não pode ser desfeita.`
+                : ''
+            }
+            confirmLabel="Excluir"
           />
         </div>
       </div>

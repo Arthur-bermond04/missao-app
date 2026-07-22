@@ -36,7 +36,9 @@ create policy "tipos_evento_write" on tipos_evento_comunidade
 -- seed: 5 tipos padrão para toda comunidade já existente (novas comunidades
 -- precisam ser semeadas manualmente ou por um trigger — fora de escopo aqui)
 insert into tipos_evento_comunidade (comunidade_id, nome)
-select id, tipo from comunidades cross join unnest(array['Missa','Célula','Retiro','Ministério','Formação']) as tipo
+select c.id, t.nome_evento
+from comunidades c
+cross join unnest(array['Missa','Célula','Retiro','Ministério','Formação']) as t(nome_evento)
 on conflict (comunidade_id, nome) do nothing;
 
 -- =========================================================

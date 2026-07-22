@@ -295,7 +295,11 @@ export type TemaPastoral =
   | 'missao'
   | 'saude'
   | 'financeiro';
-export type TipoEventoPastoral = 'missa' | 'celula' | 'retiro' | 'ministerio' | 'formacao';
+// Antes era uma union fixa ('missa'|'celula'|...); agora a comunidade pode
+// cadastrar seus próprios tipos em tipos_evento_comunidade, então o valor
+// salvo é texto livre (a coluna no banco sempre foi `text`, nunca um enum
+// de verdade — isso só reflete o que já era true na prática).
+export type TipoEventoPastoral = string;
 
 export interface PastoralOvelha {
   id: string;
