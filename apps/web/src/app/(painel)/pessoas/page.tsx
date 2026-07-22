@@ -18,12 +18,14 @@ import { NovaPessoaModal } from '@/components/pessoas/NovaPessoaModal';
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { filtrarPessoas, listarPessoas, ordenarPorUrgencia, proximoContatoVencido, type FiltrosPessoas } from '@/lib/pessoas';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_JORNADA_PESSOA, ORIGENS_PESSOA, type Comunidade, type Pessoa, type Usuario } from '@/types/database';
 
 export default function PessoasPage() {
   const { usuario } = usePainelSession();
   const comunidadeId = usuario?.comunidade_id ?? null;
   const router = useRouter();
+  const terminologia = useTerminologia();
 
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -119,7 +121,14 @@ export default function PessoasPage() {
       {/* Cards */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <MetricCard icon={Users} iconColor="primary" label="Total de pessoas" value={resumo.total} />
-        <MetricCard icon={CalendarClock} iconColor="danger" label="Contatos vencidos" value={resumo.vencidas} />
+        <div title={resumo.vencidas > 0 ? undefined : 'Tudo em dia!'}>
+          <MetricCard
+            icon={CalendarClock}
+            iconColor={resumo.vencidas > 0 ? 'danger' : 'accent'}
+            label="Contatos vencidos"
+            value={resumo.vencidas}
+          />
+        </div>
         <MetricCard icon={UserPlus} iconColor="accent" label="Novas esta semana" value={resumo.novasSemana} />
       </div>
 
@@ -139,7 +148,10 @@ export default function PessoasPage() {
             label="Etapa da jornada"
             value={filtros.etapa}
             onChange={(e) => setFiltros((f) => ({ ...f, etapa: e.target.value as FiltrosPessoas['etapa'] }))}
-            options={[{ value: '', label: 'Todas' }, ...ETAPAS_JORNADA_PESSOA.map((e) => ({ value: e.valor, label: e.label }))]}
+            options={[
+              { value: '', label: 'Todas' },
+              ...ETAPAS_JORNADA_PESSOA.map((e) => ({ value: e.valor, label: labelEtapaJornadaPessoa(e.valor, terminologia) })),
+            ]}
           />
         </div>
         <div className="w-36">

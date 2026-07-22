@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
+import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_FUNIL, type Contato, type Usuario } from '@/types/database';
 
 export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string }) {
+  const terminologia = useTerminologia();
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [missionarios, setMissionarios] = useState<Usuario[]>([]);
   const [dataInicio, setDataInicio] = useState('');
@@ -40,9 +42,10 @@ export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string 
     () =>
       ETAPAS_FUNIL.map((etapa, index) => ({
         ...etapa,
+        label: labelEtapaJornada(etapa.valor, terminologia),
         total: filtrados.filter((c) => ETAPAS_FUNIL.findIndex((e) => e.valor === c.etapa_jornada) >= index).length,
       })),
-    [filtrados]
+    [filtrados, terminologia]
   );
 
   const porMissionario = useMemo(() => {

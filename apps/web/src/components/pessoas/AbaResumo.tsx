@@ -134,7 +134,14 @@ export function AbaResumo({
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Fato label="Situação na fé" valor={SITUACAO_LABEL[pessoa.situacao_fe] ?? pessoa.situacao_fe} />
-        <Fato label="Origem" valor={ORIGEM_LABEL[pessoa.origem] ?? pessoa.origem} />
+        <Fato
+          label="Origem"
+          valor={
+            pessoa.origem === 'outro' && pessoa.origem_descricao
+              ? `Outro — ${pessoa.origem_descricao}`
+              : ORIGEM_LABEL[pessoa.origem] ?? pessoa.origem
+          }
+        />
         <Fato label="Último contato" valor={pessoa.ultimo_contato ? new Date(pessoa.ultimo_contato).toLocaleDateString('pt-BR') : '—'} />
         <Fato label="Cadastrado em" valor={new Date(pessoa.criado_em).toLocaleDateString('pt-BR')} />
       </div>

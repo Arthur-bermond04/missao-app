@@ -7,9 +7,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { EstadoEspiritualBadge } from '@/components/pastoral/badges';
 import { listarOvelhas } from '@/lib/pastoral';
 import { supabase } from '@/lib/supabase';
+import { useTerminologia } from '@/lib/terminologia';
 import type { PastoralOvelha, Usuario } from '@/types/database';
 
 export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: string; isAdmin: boolean }) {
+  const terminologia = useTerminologia();
+  const nomeOvelha = terminologia.nome_ovelha.toLowerCase();
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [pastores, setPastores] = useState<Usuario[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -54,7 +57,7 @@ export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: str
       .createPdf({
         content: [
           { text: 'Relatório de Pastoral', style: 'titulo' },
-          { text: `${ovelhas.filter((o) => o.ativo).length} ovelha(s) em acompanhamento ativo`, margin: [0, 0, 0, 10] },
+          { text: `${ovelhas.filter((o) => o.ativo).length} ${nomeOvelha}(s) em acompanhamento ativo`, margin: [0, 0, 0, 10] },
           ...porPastor.flatMap((grupo) => [
             { text: `${grupo.pastor} (${grupo.ovelhas.length})`, style: 'secao' },
             {
@@ -79,7 +82,7 @@ export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: str
       <EmptyState
         icon={ShieldAlert}
         title="Acesso restrito"
-        description="Este relatório consolida dados de todos os pastores e está disponível apenas para o perfil Admin."
+        description={`Este relatório consolida dados de todos os ${terminologia.nome_pastor.toLowerCase()}s e está disponível apenas para o perfil Admin.`}
       />
     );
   }
@@ -95,7 +98,7 @@ export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: str
       </div>
 
       {porPastor.length === 0 ? (
-        <EmptyState icon={ShieldAlert} title="Nenhuma ovelha em acompanhamento" />
+        <EmptyState icon={ShieldAlert} title={`Nenhum(a) ${nomeOvelha} em acompanhamento`} />
       ) : (
         <div className="space-y-6">
           {porPastor.map((grupo) => (

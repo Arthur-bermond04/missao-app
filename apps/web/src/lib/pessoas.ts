@@ -116,6 +116,7 @@ export interface NovaPessoaDados {
   bairro?: string;
   situacao_fe?: string;
   origem?: OrigemPessoa;
+  origem_descricao?: string;
   local_primeiro_contato?: string;
   data_primeiro_contato?: string;
   etapa_jornada?: EtapaJornadaPessoa;
@@ -145,6 +146,7 @@ export async function criarPessoa(dados: NovaPessoaDados): Promise<Pessoa> {
       bairro: dados.bairro || null,
       situacao_fe: dados.situacao_fe || 'nao_informado',
       origem: dados.origem || 'evangelizacao',
+      origem_descricao: dados.origem_descricao || null,
       local_primeiro_contato: dados.local_primeiro_contato || null,
       data_primeiro_contato: dados.data_primeiro_contato || new Date().toISOString().slice(0, 10),
       etapa_jornada: dados.etapa_jornada || 'contato_inicial',

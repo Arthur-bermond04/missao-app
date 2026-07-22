@@ -16,6 +16,7 @@ import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal'
 import { buscarComunidade } from '@/lib/comunidades';
 import { buscarPessoasParaCombobox } from '@/lib/pessoas';
 import { avaliarOvelha, listarOvelhas } from '@/lib/pastoral';
+import { useTerminologia } from '@/lib/terminologia';
 import type { Comunidade, Pessoa, PastoralEncontro, PastoralOvelha, PastoralPresenca, Usuario } from '@/types/database';
 
 const LIMITE_OVELHAS_SEMENTE = 5;
@@ -24,6 +25,9 @@ export default function PastoralPage() {
   const { usuario } = usePainelSession();
   const comunidadeId = usuario?.comunidade_id ?? null;
   const searchParams = useSearchParams();
+  const terminologia = useTerminologia();
+  const nomeOvelha = terminologia.nome_ovelha;
+  const nomeOvelhaPlural = `${nomeOvelha}s`;
 
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -144,7 +148,7 @@ export default function PastoralPage() {
       <PageHeader
         icon={Heart}
         title="Acompanhamento Pastoral"
-        subtitle="Suas ovelhas · registros confidenciais"
+        subtitle={`Suas ${nomeOvelhaPlural.toLowerCase()} · registros confidenciais`}
         actions={
           <Button onClick={handleNova} title="Adicionar uma pessoa ao seu acompanhamento pastoral">
             + Adicionar pessoa
@@ -171,7 +175,7 @@ export default function PastoralPage() {
 
       {/* Cards */}
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MetricCard icon={Users} iconColor="primary" label="Ovelhas ativas" value={contagem.total} />
+        <MetricCard icon={Users} iconColor="primary" label={`${nomeOvelhaPlural} ativas`} value={contagem.total} />
         <MetricCard icon={Sprout} iconColor="accent" label="Crescendo" value={contagem.crescendo} />
         <MetricCard icon={AlertTriangle} iconColor="warning" label="Em atenção" value={contagem.atencao} />
         <MetricCard icon={ShieldAlert} iconColor="danger" label="Em risco" value={contagem.risco} />
@@ -218,7 +222,7 @@ export default function PastoralPage() {
               </Button>
             </div>
           ) : gargalos.length === 0 ? (
-            <p className="mt-3 text-sm text-text-secondary">Tudo em dia — nenhuma ovelha em alerta. 🎉</p>
+            <p className="mt-3 text-sm text-text-secondary">Tudo em dia — nenhum(a) {nomeOvelha.toLowerCase()} em alerta. 🎉</p>
           ) : (
             <div className="mt-3 space-y-2">
               {gargalos.map(({ ovelha, indicadores }) => (
@@ -246,11 +250,11 @@ export default function PastoralPage() {
 
       {/* Lista de todas as ovelhas */}
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Todas as ovelhas</h2>
+        <h2 className="text-sm font-bold text-text-primary">Todos(as) {nomeOvelhaPlural.toLowerCase()}</h2>
         {ativas.length === 0 ? (
           <EmptyState
             icon={Heart}
-            title="Nenhuma ovelha ainda"
+            title={`Nenhum(a) ${nomeOvelha.toLowerCase()} ainda`}
             description="Comece registrando as pessoas que você acompanha pastoralmente."
             action={{ label: '+ Adicionar pessoa', onClick: handleNova }}
           />

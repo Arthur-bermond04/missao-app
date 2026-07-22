@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, CalendarPlus, ArrowRight, IdCard } from 'lucide-react';
+import { Plus, CalendarPlus, ArrowRight, IdCard, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Combobox } from '@/components/ui/Combobox';
@@ -65,6 +65,17 @@ export function AbaMembros({
   const [novoCargo, setNovoCargo] = useState<CargoMinisterio>('membro');
   const [adicionando, setAdicionando] = useState(false);
   const [modalEncontro, setModalEncontro] = useState(false);
+  const [encontroEditando, setEncontroEditando] = useState<MinisterioEncontro | null>(null);
+
+  function abrirNovoEncontro() {
+    setEncontroEditando(null);
+    setModalEncontro(true);
+  }
+
+  function abrirEncontroExistente(e: MinisterioEncontro) {
+    setEncontroEditando(e);
+    setModalEncontro(true);
+  }
 
   const frequencia = useMemo(() => calcularFrequencia(encontros, presencas, 90), [encontros, presencas]);
 
@@ -121,11 +132,16 @@ export function AbaMembros({
     <div className="space-y-6">
       <RegistrarEncontroModal
         open={modalEncontro}
-        onClose={() => setModalEncontro(false)}
+        onClose={() => {
+          setModalEncontro(false);
+          setEncontroEditando(null);
+        }}
         ministerioId={ministerio.id}
         membros={membros}
         membrosPessoa={membrosPessoa}
         onRegistrado={onRefresh}
+        encontroExistente={encontroEditando}
+        presencasExistentes={encontroEditando ? presencas.filter((p) => p.encontro_id === encontroEditando.id) : []}
       />
 
       {/* Adicionar membro */}
@@ -194,7 +210,7 @@ export function AbaMembros({
           >
             Adicionar
           </Button>
-          <Button variant="secondary" icon={CalendarPlus} onClick={() => setModalEncontro(true)}>
+          <Button variant="secondary" icon={CalendarPlus} onClick={abrirNovoEncontro}>
             Registrar encontro
           </Button>
         </div>
@@ -314,16 +330,26 @@ export function AbaMembros({
             {encontros.map((e) => {
               const p = presencaPorEncontro.get(e.id);
               const taxa = p && p.total > 0 ? Math.round((p.presentes / p.total) * 100) : 0;
+              const semPresencaAinda = !p || p.total === 0;
               return (
-                <div
-                  key={e.id}
-                  className="flex items-center justify-between rounded-md border border-border px-3 py-2"
-                >
+                <div key={e.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
                   <div>
-                    <p className="text-sm font-semibold text-text-primary">{e.titulo}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-text-primary">{e.titulo}</p>
+                      <Badge variant={e.status === 'agendado' ? 'pendente' : e.status === 'cancelado' ? 'inativo' : 'realizado'}>
+                        {e.status === 'agendado' ? 'Agendado' : e.status === 'cancelado' ? 'Cancelado' : 'Realizado'}
+                      </Badge>
+                    </div>
                     <p className="text-xs text-text-secondary">{new Date(e.data).toLocaleDateString('pt-BR')}</p>
                   </div>
-                  <span className="text-sm text-text-secondary">{taxa}% presença</span>
+                  <div className="flex items-center gap-3">
+                    {!semPresencaAinda && <span className="text-sm text-text-secondary">{taxa}% presença</span>}
+                    {e.status !== 'cancelado' && (
+                      <Button size="sm" variant="secondary" icon={semPresencaAinda ? CalendarPlus : Pencil} onClick={() => abrirEncontroExistente(e)}>
+                        {semPresencaAinda ? 'Tomar presença' : 'Editar'}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               );
             })}

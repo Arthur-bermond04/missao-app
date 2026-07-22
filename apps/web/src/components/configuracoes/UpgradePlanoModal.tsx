@@ -4,18 +4,20 @@ import { Check, Mail } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { CardOrnamental } from '@/components/ui/Ornamento';
+import { useTerminologia } from '@/lib/terminologia';
 import type { Plano } from '@/types/database';
 
 // TODO: trocar pelo e-mail real da equipe.
 const EMAIL_UPGRADE = 'contato@missaoapp.com.br';
 
-const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[] = [
-  {
-    valor: 'semente',
-    nome: 'Semente',
-    preco: 'Grátis',
-    recursos: ['Até 50 contatos', '1 retiro ativo', 'Até 2 ministérios', 'Até 5 ovelhas na pastoral', 'Avisos simplificados'],
-  },
+function montarPlanos(nomeOvelhaPlural: string): { valor: Plano; nome: string; preco: string; recursos: string[] }[] {
+  return [
+    {
+      valor: 'semente',
+      nome: 'Semente',
+      preco: 'Grátis',
+      recursos: ['Até 50 contatos', '1 retiro ativo', 'Até 2 ministérios', `Até 5 ${nomeOvelhaPlural.toLowerCase()} na pastoral`, 'Avisos simplificados'],
+    },
   {
     valor: 'missao',
     nome: 'Missão',
@@ -29,9 +31,13 @@ const PLANOS: { valor: Plano; nome: string; preco: string; recursos: string[] }[
       'Exportação Excel/PDF e IA',
     ],
   },
-];
+  ];
+}
 
 export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean; onClose: () => void; planoAtual: Plano }) {
+  const terminologia = useTerminologia();
+  const planos = montarPlanos(`${terminologia.nome_ovelha}s`);
+
   function abrirEmail(nomePlano: string) {
     const assunto = encodeURIComponent(`Upgrade do MissãoApp para o plano ${nomePlano}`);
     const corpo = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoApp para o plano ${nomePlano}.`);
@@ -41,7 +47,7 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
   return (
     <Modal open={open} onClose={onClose} title="Desbloquear mais recursos" size="lg">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {PLANOS.map((p) => {
+        {planos.map((p) => {
           const conteudo = (
             <>
               <p className="text-sm font-bold text-text-primary">{p.nome}</p>

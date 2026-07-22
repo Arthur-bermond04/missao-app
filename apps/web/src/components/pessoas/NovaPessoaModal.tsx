@@ -10,6 +10,7 @@ import { Combobox } from '@/components/ui/Combobox';
 import { criarPessoa } from '@/lib/pessoas';
 import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import {
   ETAPAS_JORNADA_PESSOA,
   ORIGENS_PESSOA,
@@ -49,6 +50,7 @@ export function NovaPessoaModal({
   prefill,
   onCriada,
 }: NovaPessoaModalProps) {
+  const terminologia = useTerminologia();
   // Seção 1 — Dados pessoais
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -62,6 +64,7 @@ export function NovaPessoaModal({
   // Seção 2 — Situação na fé e jornada
   const [situacaoFe, setSituacaoFe] = useState<SituacaoFe>('nao_informado');
   const [origem, setOrigem] = useState<OrigemPessoa>('evangelizacao');
+  const [origemDescricao, setOrigemDescricao] = useState('');
   const [localPrimeiroContato, setLocalPrimeiroContato] = useState('');
   const [etapaJornada, setEtapaJornada] = useState<EtapaJornadaPessoa>('contato_inicial');
   const [nivelInteresse, setNivelInteresse] = useState<NivelInteresse>('morno');
@@ -100,6 +103,7 @@ export function NovaPessoaModal({
     setBairro('');
     setSituacaoFe('nao_informado');
     setOrigem('evangelizacao');
+    setOrigemDescricao('');
     setLocalPrimeiroContato('');
     setEtapaJornada('contato_inicial');
     setNivelInteresse('morno');
@@ -112,6 +116,10 @@ export function NovaPessoaModal({
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
+    if (origem === 'outro' && !origemDescricao.trim()) {
+      toastError('Conte qual foi a origem.');
+      return;
+    }
     setSalvando(true);
     try {
       const pessoa = await criarPessoa({
@@ -127,6 +135,7 @@ export function NovaPessoaModal({
         bairro: bairro.trim() || undefined,
         situacao_fe: situacaoFe,
         origem,
+        origem_descricao: origem === 'outro' ? origemDescricao.trim() : undefined,
         local_primeiro_contato: localPrimeiroContato.trim() || undefined,
         etapa_jornada: etapaJornada,
         nivel_interesse: nivelInteresse,
@@ -202,6 +211,15 @@ export function NovaPessoaModal({
                 options={ORIGENS_PESSOA.map((o) => ({ value: o.valor, label: o.label }))}
               />
             </div>
+            {origem === 'outro' && (
+              <Input
+                label="Qual a origem?"
+                value={origemDescricao}
+                onChange={(e) => setOrigemDescricao(e.target.value)}
+                placeholder="Ex: Programa de rádio, amigo da família..."
+                required
+              />
+            )}
             <Input
               label="Local do primeiro contato (opcional)"
               value={localPrimeiroContato}
@@ -213,7 +231,7 @@ export function NovaPessoaModal({
                 label="Etapa da jornada"
                 value={etapaJornada}
                 onChange={(e) => setEtapaJornada(e.target.value as EtapaJornadaPessoa)}
-                options={ETAPAS_JORNADA_PESSOA.map((e) => ({ value: e.valor, label: e.label }))}
+                options={ETAPAS_JORNADA_PESSOA.map((e) => ({ value: e.valor, label: labelEtapaJornadaPessoa(e.valor, terminologia) }))}
               />
               <Select
                 label="Nível de interesse"

@@ -1,7 +1,7 @@
 import { Sprout, Minus, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { labelEtapaFormacao, useTerminologia } from '@/lib/terminologia';
 import {
   ESTADOS_OVELHA_ENCONTRO,
-  ETAPAS_FORMACAO,
   type EstadoEspiritual,
   type EstadoOvelhaEncontro,
   type EtapaFormacao,
@@ -26,10 +26,10 @@ export function EstadoEspiritualBadge({ estado }: { estado: EstadoEspiritual }) 
 }
 
 export function EtapaBadge({ etapa }: { etapa: EtapaFormacao }) {
-  const label = ETAPAS_FORMACAO.find((e) => e.valor === etapa)?.label ?? etapa;
+  const terminologia = useTerminologia();
   return (
     <span className="inline-flex items-center rounded-full bg-primary-xlight px-2 py-1 text-xs font-medium text-primary">
-      {label}
+      {labelEtapaFormacao(etapa, terminologia)}
     </span>
   );
 }

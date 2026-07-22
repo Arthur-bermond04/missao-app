@@ -224,6 +224,7 @@ export default function FinanceiroPage() {
           iconColor={saldoTopo >= 0 ? 'accent' : 'danger'}
           label="Saldo"
           value={`R$ ${saldoTopo.toFixed(2)}`}
+          valorClassName={saldoTopo > 0 ? 'text-[#16A34A]' : saldoTopo < 0 ? 'text-danger' : 'text-text-secondary'}
         />
       </div>
 

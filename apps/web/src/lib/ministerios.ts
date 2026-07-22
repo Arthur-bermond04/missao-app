@@ -298,6 +298,49 @@ export async function criarEncontroComPresencas(
   return encontro;
 }
 
+// Completa um encontro que já existe (normalmente um "agendado" cuja data
+// chegou) com título/local/descrição atualizados e a lista de presença —
+// ao contrário de criarEncontroComPresencas, NÃO cria uma linha nova em
+// ministerio_encontros. Isso corrige o bug em que "Registrar encontro"
+// sempre criava um encontro duplicado em vez de completar o agendado.
+// As presenças são substituídas por completo (delete + insert) em vez de
+// upsert, porque ministerio_presencas tem duas constraints únicas parciais
+// diferentes (uma por usuario_id, outra por pessoa_id) e não dá pra
+// apontar as duas ao mesmo tempo num único onConflict.
+export async function atualizarEncontroComPresencas(
+  encontroId: string,
+  dados: { titulo: string; descricao?: string; data: string; local?: string },
+  presencas: { usuario_id?: string; pessoa_id?: string; presente: boolean; justificativa?: string }[]
+): Promise<void> {
+  const { error: erroEncontro } = await supabase
+    .from('ministerio_encontros')
+    .update({
+      titulo: dados.titulo,
+      descricao: dados.descricao || null,
+      data: dados.data,
+      local: dados.local || null,
+      status: 'realizado',
+    })
+    .eq('id', encontroId);
+  if (erroEncontro) throw erroEncontro;
+
+  const { error: erroDelete } = await supabase.from('ministerio_presencas').delete().eq('encontro_id', encontroId);
+  if (erroDelete) throw erroDelete;
+
+  if (presencas.length > 0) {
+    const { error: erroInsert } = await supabase.from('ministerio_presencas').insert(
+      presencas.map((p) => ({
+        encontro_id: encontroId,
+        usuario_id: p.usuario_id || null,
+        pessoa_id: p.pessoa_id || null,
+        presente: p.presente,
+        justificativa: p.justificativa || null,
+      }))
+    );
+    if (erroInsert) throw erroInsert;
+  }
+}
+
 // Agenda um encontro futuro sem presença ainda — quando o encontro de fato
 // acontecer, use "Registrar encontro" (criarEncontroComPresencas) normalmente.
 export async function agendarEncontro(dados: {

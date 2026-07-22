@@ -27,6 +27,20 @@ export interface HorarioMissa {
   local: string;
 }
 
+export interface Terminologia {
+  etapa_cv: string;
+  etapa_cal: string;
+  nome_ovelha: string;
+  nome_pastor: string;
+}
+
+export const TERMINOLOGIA_PADRAO: Terminologia = {
+  etapa_cv: 'CV',
+  etapa_cal: 'CAL',
+  nome_ovelha: 'Ovelha',
+  nome_pastor: 'Pastor',
+};
+
 export interface Comunidade {
   id: string;
   nome: string;
@@ -42,6 +56,7 @@ export interface Comunidade {
   conta: string | null;
   google_calendar_url: string | null;
   horarios_missa: HorarioMissa[];
+  terminologia: Terminologia;
   criado_em: string;
 }
 
@@ -419,6 +434,7 @@ export interface Pessoa {
   bairro: string | null;
   situacao_fe: SituacaoFe;
   origem: OrigemPessoa;
+  origem_descricao: string | null;
   local_primeiro_contato: string | null;
   data_primeiro_contato: string;
   etapa_jornada: EtapaJornadaPessoa;
@@ -521,3 +537,81 @@ export const TAGS_PESSOA = [
   'Em crise',
   'Recém-chegado',
 ] as const;
+
+// =========================================================
+// TIPOS DE EVENTO PERSONALIZÁVEIS (pastoral/ministérios)
+// =========================================================
+
+export interface TipoEventoComunidade {
+  id: string;
+  comunidade_id: string;
+  nome: string;
+  ativo: boolean;
+  criado_em: string;
+}
+
+// =========================================================
+// FRUTOS DO ACOMPANHAMENTO PASTORAL
+// =========================================================
+
+export type TipoFrutoPastoral = 'conquista' | 'sacramento' | 'missao' | 'cura' | 'conversao' | 'outro';
+
+export const TIPOS_FRUTO_PASTORAL: { valor: TipoFrutoPastoral; label: string }[] = [
+  { valor: 'conquista', label: 'Conquista espiritual' },
+  { valor: 'sacramento', label: 'Sacramento' },
+  { valor: 'missao', label: 'Entrou na missão' },
+  { valor: 'cura', label: 'Cura' },
+  { valor: 'conversao', label: 'Conversão' },
+  { valor: 'outro', label: 'Outro' },
+];
+
+export interface PastoralFruto {
+  id: string;
+  ovelha_id: string;
+  pastor_id: string;
+  data: string;
+  tipo: TipoFrutoPastoral;
+  titulo: string;
+  descricao: string | null;
+  criado_em: string;
+}
+
+// =========================================================
+// EQUIPE — estrutura e cargos da comunidade (com ou sem login)
+// =========================================================
+
+export type NivelEquipe = 'lideranca' | 'formacao' | 'servico' | 'membro';
+
+export const NIVEIS_EQUIPE: { valor: NivelEquipe; label: string }[] = [
+  { valor: 'lideranca', label: 'Liderança' },
+  { valor: 'formacao', label: 'Formação' },
+  { valor: 'servico', label: 'Serviço' },
+  { valor: 'membro', label: 'Membro' },
+];
+
+export const CARGOS_EQUIPE_SUGERIDOS = [
+  'Coordenador geral',
+  'Coordenador de célula',
+  'Coordenador de pastoral',
+  'Formador',
+  'Catequista',
+  'Líder de louvor',
+  'Tesoureiro',
+  'Secretário',
+] as const;
+
+export interface EquipeCargo {
+  id: string;
+  comunidade_id: string;
+  pessoa_id: string | null;
+  usuario_id: string | null;
+  cargo: string;
+  cargo_descricao: string | null;
+  nivel: NivelEquipe;
+  celula_id: string | null;
+  data_inicio: string | null;
+  data_fim: string | null;
+  ativo: boolean;
+  notas: string | null;
+  criado_em: string;
+}

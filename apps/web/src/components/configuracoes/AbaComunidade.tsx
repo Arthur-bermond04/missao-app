@@ -7,7 +7,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { atualizarComunidade } from '@/lib/comunidades';
 import { toastError, toastSuccess } from '@/lib/toast';
-import type { Comunidade, HorarioMissa } from '@/types/database';
+import { TERMINOLOGIA_PADRAO, type Comunidade, type HorarioMissa, type Terminologia } from '@/types/database';
 
 const OPCOES_TIPO = [
   { value: 'paróquia', label: 'Paróquia' },
@@ -33,6 +33,10 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
   const [novoDia, setNovoDia] = useState(DIAS_SEMANA[0]);
   const [novoHorario, setNovoHorario] = useState('');
   const [novoLocal, setNovoLocal] = useState('');
+  const [terminologia, setTerminologia] = useState<Terminologia>({
+    ...TERMINOLOGIA_PADRAO,
+    ...comunidade.terminologia,
+  });
   const [salvando, setSalvando] = useState(false);
 
   function adicionarMissa() {
@@ -46,7 +50,13 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
     e.preventDefault();
     setSalvando(true);
     try {
-      const campos = { nome: nome.trim(), tipo, telefone: telefone.trim() || null, horarios_missa: horariosMissa };
+      const campos = {
+        nome: nome.trim(),
+        tipo,
+        telefone: telefone.trim() || null,
+        horarios_missa: horariosMissa,
+        terminologia,
+      };
       await atualizarComunidade(comunidade.id, campos);
       onAtualizada({ ...comunidade, ...campos });
       toastSuccess('Dados da comunidade atualizados.');
@@ -97,6 +107,40 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
           <Button type="button" variant="secondary" size="md" icon={Plus} onClick={adicionarMissa}>
             Adicionar
           </Button>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold text-text-secondary">Terminologia</p>
+        <p className="mt-0.5 text-xs text-text-secondary">
+          Sua comunidade pode usar nomes diferentes dos padrões da Shalom — os valores abaixo trocam os rótulos em
+          todo o app (o que é salvo no banco não muda, só como aparece na tela).
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          <Input
+            label='Nome da etapa "CV"'
+            value={terminologia.etapa_cv}
+            onChange={(e) => setTerminologia((t) => ({ ...t, etapa_cv: e.target.value || TERMINOLOGIA_PADRAO.etapa_cv }))}
+            placeholder="Ex: Formação, Catecúmeno"
+          />
+          <Input
+            label='Nome da etapa "CAL"'
+            value={terminologia.etapa_cal}
+            onChange={(e) => setTerminologia((t) => ({ ...t, etapa_cal: e.target.value || TERMINOLOGIA_PADRAO.etapa_cal }))}
+            placeholder="Ex: Aliança, Batismo"
+          />
+          <Input
+            label="Nome do acompanhamento pastoral"
+            value={terminologia.nome_ovelha}
+            onChange={(e) => setTerminologia((t) => ({ ...t, nome_ovelha: e.target.value || TERMINOLOGIA_PADRAO.nome_ovelha }))}
+            placeholder="Ex: Discípulo, Acompanhado, Membro"
+          />
+          <Input
+            label="Nome do responsável pastoral"
+            value={terminologia.nome_pastor}
+            onChange={(e) => setTerminologia((t) => ({ ...t, nome_pastor: e.target.value || TERMINOLOGIA_PADRAO.nome_pastor }))}
+            placeholder="Ex: Formador, Líder, Discipulador"
+          />
         </div>
       </div>
 

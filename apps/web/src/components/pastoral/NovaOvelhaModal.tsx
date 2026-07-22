@@ -11,6 +11,7 @@ import { Combobox } from '@/components/ui/Combobox';
 import { criarOvelha } from '@/lib/pastoral';
 import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { labelEtapaFormacao, useTerminologia } from '@/lib/terminologia';
 import {
   ETAPAS_FORMACAO,
   FREQUENCIAS_ACOMPANHAMENTO,
@@ -41,6 +42,7 @@ export function NovaOvelhaModal({
   prefill,
   onCriada,
 }: NovaOvelhaModalProps) {
+  const terminologia = useTerminologia();
   const [usuarioId, setUsuarioId] = useState('');
   const [pessoaId, setPessoaId] = useState('');
   const [nome, setNome] = useState('');
@@ -114,7 +116,7 @@ export function NovaOvelhaModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nova pessoa — Acompanhamento Pastoral">
+    <Modal open={open} onClose={onClose} title={`Nova ${terminologia.nome_ovelha.toLowerCase()} — Acompanhamento Pastoral`}>
       <p className="mb-4 flex items-start gap-2 rounded-md bg-primary-xlight p-3 text-xs text-primary">
         <Lock size={14} className="mt-0.5 shrink-0" />
         Registre alguém que você acompanha pastoralmente. Os registros são confidenciais e visíveis apenas por você.
@@ -151,7 +153,7 @@ export function NovaOvelhaModal({
               label="Etapa de formação"
               value={etapa}
               onChange={(e) => setEtapa(e.target.value as EtapaFormacao)}
-              options={ETAPAS_FORMACAO.map((et) => ({ value: et.valor, label: et.label }))}
+              options={ETAPAS_FORMACAO.map((et) => ({ value: et.valor, label: labelEtapaFormacao(et.valor, terminologia) }))}
             />
           </div>
           <div className="w-1/2">

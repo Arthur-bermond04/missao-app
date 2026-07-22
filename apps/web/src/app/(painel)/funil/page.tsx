@@ -15,12 +15,14 @@ import { FunilVisual } from '@/components/funil/FunilVisual';
 import { PainelContato } from '@/components/funil/PainelContato';
 import { promoverContatoParaPessoa } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_FUNIL, type Contato, type Usuario } from '@/types/database';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export default function FunilPage() {
   const { usuario } = usePainelSession();
+  const terminologia = useTerminologia();
 
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [missionarios, setMissionarios] = useState<Usuario[]>([]);
@@ -71,9 +73,9 @@ export default function FunilPage() {
         const indiceContato = ETAPAS_FUNIL.findIndex((e) => e.valor === c.etapa_jornada);
         return indiceContato >= index;
       }).length;
-      return { ...etapa, total };
+      return { ...etapa, label: labelEtapaJornada(etapa.valor, terminologia), total };
     });
-  }, [contatosFiltrados]);
+  }, [contatosFiltrados, terminologia]);
 
   const travados = useMemo(() => {
     const agora = Date.now();
