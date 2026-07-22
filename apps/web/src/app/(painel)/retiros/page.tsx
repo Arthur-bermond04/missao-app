@@ -16,8 +16,10 @@ import { NovoRetiroModal } from '@/components/retiros/NovoRetiroModal';
 import { QrCodeInscricao } from '@/components/retiros/QrCodeInscricao';
 import { ProgressBar } from '@/components/retiros/ProgressBar';
 import { LembreteModal } from '@/components/retiros/LembreteModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import {
   atualizarInscricao,
+  atualizarStatusRetiro,
   contarInscritosPorRetiro,
   criarRetiro,
   listarInscritos,
@@ -27,7 +29,7 @@ import {
 import { promoverInscricaoParaPessoa } from '@/lib/pessoas';
 import { buscarStatusIntegracoes, type StatusIntegracoes } from '@/lib/integracoes';
 import { toastSuccess, toastError } from '@/lib/toast';
-import type { InscricaoRetiro, Retiro } from '@/types/database';
+import type { InscricaoRetiro, Retiro, StatusRetiro } from '@/types/database';
 
 export default function RetirosPage() {
   const { usuario } = usePainelSession();
@@ -39,6 +41,9 @@ export default function RetirosPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [criandoRetiro, setCriandoRetiro] = useState(false);
   const [numGrupos, setNumGrupos] = useState('4');
+  const [modalDividirAberto, setModalDividirAberto] = useState(false);
+  const [somenteSemGrupo, setSomenteSemGrupo] = useState(false);
+  const [statusAlvo, setStatusAlvo] = useState<StatusRetiro | null>(null);
   const [buscaCheckIn, setBuscaCheckIn] = useState('');
   const [statusIntegracoes, setStatusIntegracoes] = useState<StatusIntegracoes | null>(null);
   const [pessoasAcompanhadas, setPessoasAcompanhadas] = useState<Set<string>>(new Set());
@@ -127,15 +132,33 @@ export default function RetirosPage() {
     }
   }
 
+  async function handleMudarStatus() {
+    if (!retiroSelecionadoId || !statusAlvo) return;
+    await atualizarStatusRetiro(retiroSelecionadoId, statusAlvo);
+    setRetiros((atual) => atual.map((r) => (r.id === retiroSelecionadoId ? { ...r, status: statusAlvo } : r)));
+    toastSuccess(
+      statusAlvo === 'encerrado' ? 'Inscrições encerradas.' : 'Retiro marcado como realizado.'
+    );
+  }
+
   function dividirGrupos() {
     const n = Math.max(1, Number(numGrupos) || 1);
-    const atualizados = inscritos.map((inscrito, index) => ({
-      ...inscrito,
-      grupo: `Grupo ${(index % n) + 1}`,
-    }));
+    let indice = 0;
+    const alterados: InscricaoRetiro[] = [];
+    const atualizados = inscritos.map((inscrito) => {
+      if (somenteSemGrupo && inscrito.grupo) return inscrito;
+      const novo = { ...inscrito, grupo: `Grupo ${(indice % n) + 1}` };
+      indice += 1;
+      alterados.push(novo);
+      return novo;
+    });
     setInscritos(atualizados);
-    atualizados.forEach((i) => atualizarInscricao(i.id, { grupo: i.grupo }));
-    toastSuccess(`Inscritos divididos em ${n} grupos.`);
+    alterados.forEach((i) => atualizarInscricao(i.id, { grupo: i.grupo }));
+    toastSuccess(
+      somenteSemGrupo
+        ? `${alterados.length} inscrito(s) sem grupo distribuído(s) em ${n} grupos.`
+        : `Inscritos divididos em ${n} grupos.`
+    );
   }
 
   function exportarExcel() {
@@ -259,7 +282,17 @@ export default function RetirosPage() {
                     {retiroSelecionado.local ?? 'local não informado'}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {retiroSelecionado.status === 'aberto' && (
+                    <Button variant="secondary" size="sm" onClick={() => setStatusAlvo('encerrado')}>
+                      Encerrar inscrições
+                    </Button>
+                  )}
+                  {retiroSelecionado.status === 'encerrado' && (
+                    <Button variant="secondary" size="sm" onClick={() => setStatusAlvo('realizado')}>
+                      Marcar como realizado
+                    </Button>
+                  )}
                   <Button variant="secondary" size="sm" icon={BellRing} onClick={() => setModalLembrete(true)}>
                     Enviar lembrete
                   </Button>
@@ -271,6 +304,20 @@ export default function RetirosPage() {
                   </Button>
                 </div>
               </div>
+
+              <ConfirmModal
+                open={!!statusAlvo}
+                onClose={() => setStatusAlvo(null)}
+                onConfirm={handleMudarStatus}
+                title={statusAlvo === 'realizado' ? 'Marcar retiro como realizado' : 'Encerrar inscrições'}
+                description={
+                  statusAlvo === 'realizado'
+                    ? 'Isso libera o relatório pós-retiro (taxa de presença, arrecadação vs. meta). Deseja continuar?'
+                    : 'Novas inscrições e edições de check-in continuam possíveis, mas o retiro deixa de aparecer como "aberto". Deseja continuar?'
+                }
+                confirmLabel={statusAlvo === 'realizado' ? 'Marcar como realizado' : 'Encerrar'}
+                variant="primary"
+              />
 
               {usuario?.comunidade_id && (
                 <LembreteModal
@@ -373,10 +420,29 @@ export default function RetirosPage() {
                   className="w-16 rounded-md border border-border px-2 py-1 text-sm"
                 />
                 <span className="text-xs text-text-secondary">grupos (automático)</span>
-                <Button size="sm" onClick={dividirGrupos}>
+                <Button size="sm" onClick={() => setModalDividirAberto(true)}>
                   Dividir grupos
                 </Button>
               </div>
+
+              <ConfirmModal
+                open={modalDividirAberto}
+                onClose={() => setModalDividirAberto(false)}
+                onConfirm={dividirGrupos}
+                title="Dividir em grupos"
+                description="Isso substitui os grupos definidos manualmente para os inscritos afetados. Deseja continuar?"
+                confirmLabel="Dividir"
+                variant="primary"
+              >
+                <label className="flex items-center gap-2 text-sm text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={somenteSemGrupo}
+                    onChange={(e) => setSomenteSemGrupo(e.target.checked)}
+                  />
+                  Apenas para inscritos sem grupo definido
+                </label>
+              </ConfirmModal>
 
               {grupos.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

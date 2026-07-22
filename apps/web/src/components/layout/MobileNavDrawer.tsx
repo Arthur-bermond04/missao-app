@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, X } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { Logo } from '@/components/ui/Logo';
-import { NAV, PERFIL_LABEL_SIDEBAR, iniciais } from './Sidebar';
+import { NAV, PERFIL_LABEL_SIDEBAR, iniciais, podeVerItem } from './Sidebar';
 
 export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
@@ -32,7 +32,7 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
         </div>
 
         <nav className="mt-2 flex-1 space-y-1 px-3">
-          {NAV.map((item) => {
+          {NAV.filter((item) => podeVerItem(item, usuario?.perfil)).map((item) => {
             const ativo = pathname === item.href;
             const Icon = item.icon;
             return (

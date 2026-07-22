@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Settings } from 'lucide-react';
+import { Lock, Settings } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { AbaComunidade } from '@/components/configuracoes/AbaComunidade';
@@ -23,6 +23,10 @@ const ABAS: { valor: Aba; label: string }[] = [
   { valor: 'notificacoes', label: 'Notificações' },
   { valor: 'seguranca', label: 'Segurança' },
 ];
+
+// Abas que editam dados da comunidade (comunidades) — a RLS só permite
+// UPDATE por admin, então avisamos quem não é admin antes de tentar salvar.
+const ABAS_SOMENTE_ADMIN_EDITA: Aba[] = ['comunidade', 'financeiro', 'integracoes'];
 
 export default function ConfiguracoesPage() {
   const { usuario } = usePainelSession();
@@ -56,6 +60,13 @@ export default function ConfiguracoesPage() {
           </button>
         ))}
       </div>
+
+      {ABAS_SOMENTE_ADMIN_EDITA.includes(aba) && usuario?.perfil !== 'admin' && (
+        <div className="mt-6 flex items-center gap-2 rounded-md bg-warning-light px-3 py-2 text-sm text-warning">
+          <Lock size={14} />
+          Você pode visualizar, mas só o admin da comunidade pode salvar alterações nesta aba.
+        </div>
+      )}
 
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
         {aba === 'comunidade' && (comunidade ? <AbaComunidade comunidade={comunidade} onAtualizada={setComunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}

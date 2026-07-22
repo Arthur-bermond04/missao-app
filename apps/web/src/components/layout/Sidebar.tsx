@@ -30,11 +30,14 @@ interface NavLink {
   href: string;
   label: string;
   icon: LucideIcon;
+  requerPerfil?: Perfil[];
 }
 interface NavGrupo {
   titulo: string;
   itens: NavLink[];
 }
+
+const PERFIS_GESTAO_FINANCEIRA: Perfil[] = ['coordenador', 'admin'];
 
 // Estrutura enxuta: cada rota aparece uma única vez, sem submenu — Pessoas,
 // Pastoral e Ministérios já são cadastros de gente, não precisam de duas
@@ -65,8 +68,8 @@ export const NAV_GRUPOS: NavGrupo[] = [
     titulo: 'Gestão',
     itens: [
       { href: '/mensagens', label: 'Comunicação', icon: MessageCircle },
-      { href: '/financeiro', label: 'Financeiro', icon: Wallet },
-      { href: '/relatorios', label: 'Relatórios', icon: BarChart3 },
+      { href: '/financeiro', label: 'Financeiro', icon: Wallet, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
+      { href: '/relatorios', label: 'Relatórios', icon: BarChart3, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
     ],
   },
   {
@@ -85,6 +88,10 @@ export const PERFIL_LABEL_SIDEBAR: Record<Perfil, string> = {
   padre: 'Padre',
   admin: 'Admin',
 };
+
+export function podeVerItem(item: NavLink, perfil: Perfil | undefined): boolean {
+  return !item.requerPerfil || (!!perfil && item.requerPerfil.includes(perfil));
+}
 
 export function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);
@@ -135,6 +142,14 @@ export function Sidebar() {
     router.replace('/login');
   }
 
+  // Esconde da navegação os itens que o perfil logado não pode acessar
+  // (Financeiro/Relatórios são coordenador/admin) — grupos que ficam
+  // vazios depois do filtro simplesmente não aparecem.
+  const gruposVisiveis = NAV_GRUPOS.map((grupo) => ({
+    ...grupo,
+    itens: grupo.itens.filter((item) => podeVerItem(item, usuario?.perfil)),
+  })).filter((grupo) => grupo.itens.length > 0);
+
   return (
     <aside
       className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-white md:flex lg:w-[240px]"
@@ -181,7 +196,7 @@ export function Sidebar() {
       </div>
 
       <nav className="mt-1 flex-1 space-y-1 px-2 pb-3">
-        {NAV_GRUPOS.map((grupo, indiceGrupo) => (
+        {gruposVisiveis.map((grupo, indiceGrupo) => (
           <div key={grupo.titulo}>
             {indiceGrupo > 0 && (
               <div style={{ height: '0.5px', background: '#F3F4F6', margin: '4px 12px' }} />

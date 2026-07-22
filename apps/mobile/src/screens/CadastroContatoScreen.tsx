@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import { colors } from '../theme/colors';
 import { useContatos } from '../lib/useContatos';
+import { buscarComunidade } from '../lib/comunidades';
 import { hapticoSucesso, hapticoErro } from '../lib/haptics';
 import { TAGS_INTERESSE } from '../types/database';
 import type { NivelInteresse } from '../types/database';
@@ -31,7 +32,12 @@ export function CadastroContatoScreen({
   missionarioId: string;
 }) {
   const navigation = useNavigation<any>();
-  const { novoContato } = useContatos(comunidadeId, missionarioId);
+  const { contatos, novoContato } = useContatos(comunidadeId, missionarioId);
+  const [maxContatos, setMaxContatos] = useState<number | null>(null);
+
+  useEffect(() => {
+    buscarComunidade(comunidadeId).then((c) => setMaxContatos(c?.max_contatos ?? null));
+  }, [comunidadeId]);
 
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -73,6 +79,13 @@ export function CadastroContatoScreen({
   async function salvar() {
     if (!nome.trim()) {
       Alert.alert('Atenção', 'Informe o nome da pessoa.');
+      return;
+    }
+    if (maxContatos != null && contatos.length >= maxContatos) {
+      Alert.alert(
+        'Limite do plano atingido',
+        `Sua comunidade já usou os ${maxContatos} contatos do plano Semente. Fale com a equipe para fazer upgrade e continuar cadastrando.`
+      );
       return;
     }
     setSalvando(true);

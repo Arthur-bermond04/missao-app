@@ -61,7 +61,10 @@ export async function POST(req: Request) {
   });
 
   if (erroInserirUsuario) {
-    return NextResponse.json({ erro: 'Conta criada, mas houve um erro ao vincular o membro à comunidade.' }, { status: 500 });
+    // Compensa a criação no Auth pra não deixar um usuário órfão (existe no
+    // Auth mas sem linha em `usuarios`, e portanto sem comunidade/perfil).
+    await supabaseAdmin.auth.admin.deleteUser(novoAuthUser.user.id).catch(() => {});
+    return NextResponse.json({ erro: 'Não foi possível vincular o membro à comunidade. Tente novamente.' }, { status: 500 });
   }
 
   return NextResponse.json({ senhaTemporaria, userId: novoAuthUser.user.id });

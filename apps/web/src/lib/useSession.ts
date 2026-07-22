@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { obterDispositivoId } from './dispositivo';
 import type { Usuario } from '../types/database';
 
 export function useSession() {
@@ -43,6 +44,15 @@ export function useSession() {
         setUsuario((data as Usuario) ?? null);
         setCarregando(false);
       });
+
+    // Registra o acesso — não bloqueia a UI nem impede o login se falhar.
+    // Reaproveita o mesmo dispositivo_id enquanto o usuário não trocar de
+    // navegador nem clicar em "Redefinir dispositivo" em Configurações.
+    supabase
+      .from('usuarios')
+      .update({ ultimo_acesso: new Date().toISOString(), dispositivo_id: obterDispositivoId() })
+      .eq('id', session.user.id)
+      .then(() => {});
   }, [session, sessaoVerificada]);
 
   async function entrar(email: string, senha: string) {

@@ -111,7 +111,19 @@ export default function FinanceiroPage() {
       despesaMes: doMes.filter((l) => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0),
     };
   }, [lancamentos]);
-  const saldoMes = receitaMes - despesaMes;
+
+  // Cards do topo acompanham o mesmo período/categoria filtrados na tabela
+  // abaixo — sem filtro nenhum, caem de volta pro mês corrente (evita a
+  // tela mostrar dois números de "receita" diferentes ao mesmo tempo).
+  const semFiltros = !filtroInicio && !filtroFim && !filtroCategoria;
+  const receitaTopo = semFiltros ? receitaMes : totalReceitas;
+  const despesaTopo = semFiltros ? despesaMes : totalDespesas;
+  const saldoTopo = receitaTopo - despesaTopo;
+  const labelPeriodo = semFiltros
+    ? `Mês atual · ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
+    : `${filtroInicio ? new Date(filtroInicio).toLocaleDateString('pt-BR') : 'início'} a ${
+        filtroFim ? new Date(filtroFim).toLocaleDateString('pt-BR') : 'hoje'
+      }${filtroCategoria ? ` · ${filtroCategoria}` : ''}`;
 
   const despesasPorCategoria = useMemo(() => {
     const mapa = new Map<string, number>();
@@ -210,14 +222,15 @@ export default function FinanceiroPage() {
         salvando={salvando}
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard icon={TrendingUp} iconColor="accent" label="Receita do mês" value={`R$ ${receitaMes.toFixed(2)}`} />
-        <MetricCard icon={TrendingDown} iconColor="danger" label="Despesa do mês" value={`R$ ${despesaMes.toFixed(2)}`} />
+      <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-text-secondary">{labelPeriodo}</p>
+      <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard icon={TrendingUp} iconColor="accent" label="Receita" value={`R$ ${receitaTopo.toFixed(2)}`} />
+        <MetricCard icon={TrendingDown} iconColor="danger" label="Despesa" value={`R$ ${despesaTopo.toFixed(2)}`} />
         <MetricCard
           icon={Scale}
-          iconColor={saldoMes >= 0 ? 'accent' : 'danger'}
-          label="Saldo do mês"
-          value={`R$ ${saldoMes.toFixed(2)}`}
+          iconColor={saldoTopo >= 0 ? 'accent' : 'danger'}
+          label="Saldo"
+          value={`R$ ${saldoTopo.toFixed(2)}`}
         />
       </div>
 
@@ -256,15 +269,6 @@ export default function FinanceiroPage() {
         <div className="rounded-lg bg-bg-card p-6 shadow-card">
           <EvolucaoFinanceiraChart lancamentos={lancamentos} />
         </div>
-      </div>
-
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Resumo do período filtrado</h2>
-        <div className="mt-3 flex justify-between text-sm">
-          <span className="text-accent font-semibold">Receitas: R$ {totalReceitas.toFixed(2)}</span>
-          <span className="text-danger font-semibold">Despesas: R$ {totalDespesas.toFixed(2)}</span>
-        </div>
-        <p className="mt-1 text-xs text-text-secondary">Saldo: R$ {(totalReceitas - totalDespesas).toFixed(2)}</p>
       </div>
 
       <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">

@@ -15,8 +15,10 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { EtapaJornadaBadge } from '@/components/pessoas/EtapaJornadaBadge';
 import { NovaPessoaModal } from '@/components/pessoas/NovaPessoaModal';
+import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
+import { buscarComunidade } from '@/lib/comunidades';
 import { filtrarPessoas, listarPessoas, ordenarPorUrgencia, proximoContatoVencido, type FiltrosPessoas } from '@/lib/pessoas';
-import { ETAPAS_JORNADA_PESSOA, ORIGENS_PESSOA, type Pessoa, type Usuario } from '@/types/database';
+import { ETAPAS_JORNADA_PESSOA, ORIGENS_PESSOA, type Comunidade, type Pessoa, type Usuario } from '@/types/database';
 
 export default function PessoasPage() {
   const { usuario } = usePainelSession();
@@ -25,8 +27,10 @@ export default function PessoasPage() {
 
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [modalNova, setModalNova] = useState(false);
+  const [modalUpgrade, setModalUpgrade] = useState(false);
 
   const [filtros, setFiltros] = useState<FiltrosPessoas>({
     busca: '',
@@ -54,8 +58,19 @@ export default function PessoasPage() {
       .eq('comunidade_id', comunidadeId)
       .order('nome', { ascending: true })
       .then(({ data }) => setUsuarios((data as Usuario[]) ?? []));
+    buscarComunidade(comunidadeId).then(setComunidade).catch(() => setComunidade(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comunidadeId]);
+
+  const limiteAtingido = !!comunidade?.max_contatos && pessoas.length >= comunidade.max_contatos;
+
+  function handleNovaPessoa() {
+    if (limiteAtingido) {
+      setModalUpgrade(true);
+      return;
+    }
+    setModalNova(true);
+  }
 
   const filtradas = useMemo(() => ordenarPorUrgencia(filtrarPessoas(pessoas, filtros)), [pessoas, filtros]);
 
@@ -81,7 +96,7 @@ export default function PessoasPage() {
         icon={IdCard}
         title="Pessoas"
         subtitle="Cadastro central da comunidade"
-        actions={<Button icon={UserPlus} onClick={() => setModalNova(true)}>Nova pessoa</Button>}
+        actions={<Button icon={UserPlus} onClick={handleNovaPessoa}>Nova pessoa</Button>}
       />
 
       {comunidadeId && usuario && (
@@ -96,6 +111,9 @@ export default function PessoasPage() {
             router.push(`/pessoas/${pessoaId}`);
           }}
         />
+      )}
+      {!!comunidade && (
+        <UpgradePlanoModal open={modalUpgrade} onClose={() => setModalUpgrade(false)} planoAtual={comunidade.plano} />
       )}
 
       {/* Cards */}
@@ -179,7 +197,7 @@ export default function PessoasPage() {
                 ? 'Comece cadastrando as pessoas que você acompanha na missão.'
                 : 'Tente ajustar os filtros de busca.'
             }
-            action={pessoas.length === 0 ? { label: 'Nova pessoa', onClick: () => setModalNova(true) } : undefined}
+            action={pessoas.length === 0 ? { label: 'Nova pessoa', onClick: handleNovaPessoa } : undefined}
           />
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

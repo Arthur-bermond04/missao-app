@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ConvidarMembroModal } from '@/components/membros/ConvidarMembroModal';
 import { EditarMembroModal } from '@/components/membros/EditarMembroModal';
 import { PainelMembro } from '@/components/membros/PainelMembro';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { desativarMembro, listarMembros, reativarMembro, PERFIL_LABEL, type MembroComContagem } from '@/lib/usuarios';
 import { listarMinisterios, type MinisterioComContagem } from '@/lib/ministerios';
 import { toastError, toastSuccess } from '@/lib/toast';
@@ -39,6 +40,7 @@ export default function MembrosPage() {
   const [modalConvidarAberto, setModalConvidarAberto] = useState(false);
   const [membroEditando, setMembroEditando] = useState<Usuario | null>(null);
   const [membroSelecionado, setMembroSelecionado] = useState<MembroComContagem | null>(null);
+  const [membroParaDesativar, setMembroParaDesativar] = useState<Usuario | null>(null);
 
   function carregar() {
     if (!usuario?.comunidade_id) return;
@@ -93,7 +95,9 @@ export default function MembrosPage() {
     XLSX.writeFile(livro, 'membros.xlsx');
   }
 
-  async function handleDesativar(m: Usuario) {
+  // Reativar não é destrutivo — executa direto. Desativar pede confirmação
+  // (ver membroParaDesativar/ConfirmModal abaixo).
+  async function handleAlternarAtivo(m: Usuario) {
     try {
       if (m.ativo) {
         await desativarMembro(m.id);
@@ -105,6 +109,14 @@ export default function MembrosPage() {
       setMembros((atual) => atual.map((x) => (x.id === m.id ? { ...x, ativo: !m.ativo } : x)));
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao atualizar membro.');
+    }
+  }
+
+  function handleDesativar(m: Usuario) {
+    if (m.ativo) {
+      setMembroParaDesativar(m);
+    } else {
+      handleAlternarAtivo(m);
     }
   }
 
@@ -147,6 +159,16 @@ export default function MembrosPage() {
           handleDesativar(m);
           setMembroSelecionado(null);
         }}
+      />
+      <ConfirmModal
+        open={!!membroParaDesativar}
+        onClose={() => setMembroParaDesativar(null)}
+        onConfirm={async () => {
+          if (membroParaDesativar) await handleAlternarAtivo(membroParaDesativar);
+        }}
+        title="Desativar membro"
+        description={`Tem certeza? ${membroParaDesativar?.nome ?? 'Este membro'} perderá acesso ao app.`}
+        confirmLabel="Desativar"
       />
 
       <div className="mt-6 flex flex-wrap gap-3 rounded-lg bg-bg-card p-4 shadow-card">

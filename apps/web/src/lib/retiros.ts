@@ -29,6 +29,11 @@ export async function criarRetiro(dados: {
   return data as Retiro;
 }
 
+export async function atualizarStatusRetiro(id: string, status: StatusRetiro) {
+  const { error } = await supabase.from('retiros').update({ status }).eq('id', id);
+  if (error) throw error;
+}
+
 export async function contarInscritosPorRetiro(retiroIds: string[]): Promise<Record<string, number>> {
   if (retiroIds.length === 0) return {};
   const { data, error } = await supabase.from('inscricoes_retiro').select('retiro_id').in('retiro_id', retiroIds);

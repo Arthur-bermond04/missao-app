@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Smartphone } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { supabase } from '@/lib/supabase';
 import { atualizarMembro } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
@@ -12,7 +13,7 @@ import type { Usuario } from '@/types/database';
 export function AbaSeguranca({ usuario, onAtualizado }: { usuario: Usuario; onAtualizado: (campos: Partial<Usuario>) => void }) {
   const [novaSenha, setNovaSenha] = useState('');
   const [alterandoSenha, setAlterandoSenha] = useState(false);
-  const [redefinindoDispositivo, setRedefinindoDispositivo] = useState(false);
+  const [modalConfirmarAberto, setModalConfirmarAberto] = useState(false);
 
   async function handleAlterarSenha(e: React.FormEvent) {
     e.preventDefault();
@@ -34,15 +35,12 @@ export function AbaSeguranca({ usuario, onAtualizado }: { usuario: Usuario; onAt
   }
 
   async function handleRedefinirDispositivo() {
-    setRedefinindoDispositivo(true);
     try {
       await atualizarMembro(usuario.id, { dispositivo_id: null });
       onAtualizado({ dispositivo_id: null });
       toastSuccess('Dispositivo redefinido. Você poderá logar em um novo aparelho.');
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao redefinir dispositivo.');
-    } finally {
-      setRedefinindoDispositivo(false);
     }
   }
 
@@ -82,11 +80,20 @@ export function AbaSeguranca({ usuario, onAtualizado }: { usuario: Usuario; onAt
           </div>
         </div>
         {!!usuario.dispositivo_id && (
-          <Button variant="secondary" size="sm" className="mt-2" loading={redefinindoDispositivo} onClick={handleRedefinirDispositivo}>
+          <Button variant="secondary" size="sm" className="mt-2" onClick={() => setModalConfirmarAberto(true)}>
             Redefinir dispositivo
           </Button>
         )}
       </div>
+
+      <ConfirmModal
+        open={modalConfirmarAberto}
+        onClose={() => setModalConfirmarAberto(false)}
+        onConfirm={handleRedefinirDispositivo}
+        title="Redefinir dispositivo"
+        description="Isso deslogará o dispositivo atual. Você vai precisar entrar de novo no próximo acesso."
+        confirmLabel="Redefinir"
+      />
     </div>
   );
 }
