@@ -11,17 +11,24 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
   const secaoAtual = NAV.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   return (
-    <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-bg-card px-4 py-2.5 md:ml-[72px] md:px-6 lg:ml-[240px]">
+    <div
+      className="sticky top-0 z-20 flex h-12 items-center gap-3 bg-bg-card px-4 md:ml-[72px] md:px-6 lg:ml-[240px]"
+      style={{ borderBottom: '0.5px solid #E5E7EB' }}
+    >
       <button onClick={onAbrirDrawer} className="rounded-md p-1.5 text-text-primary hover:bg-bg-page md:hidden">
         <Menu size={20} />
       </button>
 
-      <div className="flex items-center gap-1 text-sm text-text-secondary">
-        <span className="hidden md:inline">MissãoApp</span>
+      <div className="flex items-center gap-1 text-sm">
+        <span className="hidden md:inline" style={{ color: '#6B7280' }}>
+          MissãoApp
+        </span>
         {!!secaoAtual && (
           <>
-            <ChevronRight size={14} className="hidden md:inline" />
-            <span className="font-semibold text-text-primary">{secaoAtual.label}</span>
+            <ChevronRight size={14} className="hidden md:inline" color="#9CA3AF" />
+            <span className="font-medium" style={{ color: '#111827' }}>
+              {secaoAtual.label}
+            </span>
           </>
         )}
       </div>

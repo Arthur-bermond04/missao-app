@@ -1,41 +1,52 @@
 export const colors = {
-  // Tema Vaticano — preto nobre + dourado papal
-  primary: '#1A1208',
-  primaryDark: '#2C2008', // tom escuro quente — usado em hover/pressed
-  primaryLight: '#F5E6C8', // marfim claro — fundo suave (avatares, badges, etc.)
+  // Verde Missionário — verde missão + acento vibrante
+  primary: '#1A7A4A',
+  primaryDark: '#0F5233', // hover/pressed
+  primaryLight: '#E8F5EE', // fundo suave (avatares, badges, etc.)
 
-  // Dourado papal — cor de destaque principal
-  gold: '#C9A84C',
-  goldLight: '#E8C96A',
-  goldDark: '#8B6A2A',
-  goldBg: '#FBF3E0',
+  // Verde vibrante — acento e destaques (substitui o antigo dourado papal)
+  gold: '#1A7A4A',
+  goldLight: '#86EFAC',
+  goldDark: '#0F5233',
+  goldBg: '#E8F5EE',
 
-  // Cores de apoio arquitetônicas
-  stone: '#8B7355', // travertino — bordas e divisores
-  stoneLight: '#F7F4EE', // pedra clara — fundo de páginas
+  // Cores de apoio neutras (substituem o antigo travertino)
+  stone: '#6B7280', // cinza médio — bordas e divisores
+  stoneLight: '#F9FAFB', // cinza levíssimo — fundo de páginas
 
-  success: '#1E9E5A',
-  successLight: '#E3F7EC',
-  warning: '#F5A524',
-  warningLight: '#FEF3DD',
-  quente: '#E4572E',
-  morno: '#F5A524',
-  frio: '#3B82C4',
-  background: '#F7F4EE',
-  card: '#FAFAF8',
-  text: '#1A1208',
-  textMuted: '#6B6357',
-  border: '#E2D9C8',
-  danger: '#8B2B1A',
+  success: '#16A34A',
+  successLight: '#DCFCE7',
+  warning: '#D97706',
+  warningLight: '#FEF3C7',
+  quente: '#D97706',
+  morno: '#2563EB',
+  frio: '#6B7280',
+  background: '#F9FAFB',
+  card: '#FFFFFF',
+  text: '#111827',
+  textMuted: '#6B7280',
+  border: '#E5E7EB',
+  danger: '#DC2626',
 
-  // Tokens alinhados ao design system do painel web (adicionados para as telas novas;
-  // não altere/remova os acima para não mexer nas telas já existentes).
-  accent: '#0F6E56',
-  accentLight: '#E1F5EE',
-  amber: '#8B2B1A',
-  amberLight: '#FAECE7',
-  dangerText: '#8B2B1A',
-  dangerLight: '#FAECE7',
-  info: '#1C3A5C',
-  infoLight: '#E6F1FB',
+  // Tokens alinhados ao design system do painel web
+  accent: '#22C55E',
+  accentLight: '#DCFCE7',
+  amber: '#D97706',
+  amberLight: '#FEF3C7',
+  dangerText: '#DC2626',
+  dangerLight: '#FEE2E2',
+  info: '#2563EB',
+  infoLight: '#DBEAFE',
+
+  // Nomes da identidade "Verde Missionário" (para código novo)
+  primaryXLight: '#E8F5EE',
+  accentGreen: '#22C55E',
+  accentGreenLight: '#86EFAC',
+  accentGreenBg: '#F0FDF4',
+  textPrimary: '#111827',
+  textSecondary: '#6B7280',
+  textMutedGreen: '#9CA3AF',
+  bgPage: '#F9FAFB',
+  bgCard: '#FFFFFF',
+  borderGreen: '#BBF7D0',
 };

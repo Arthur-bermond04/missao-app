@@ -32,28 +32,33 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Coluna esquerda — identidade */}
-      <div className="hidden w-2/5 flex-col justify-between bg-primary p-10 lg:flex">
+      <div
+        className="hidden w-2/5 flex-col justify-between p-10 lg:flex"
+        style={{ background: 'linear-gradient(135deg, #1A7A4A 0%, #0F5233 100%)' }}
+      >
         <div />
         <div>
-          <Logo size={64} variant="dark" />
-          <h2 className="logo-text mt-6 text-[28px] leading-tight text-gold">Cada pessoa importa na missão.</h2>
-          <p className="mt-3 text-sm text-stone">Acompanhe sua equipe, seus contatos e seus retiros.</p>
+          <Logo size={64} variant="white" showText />
+          <h2 className="mt-6 text-[26px] font-normal leading-tight text-white" style={{ fontFamily: 'Georgia, serif' }}>
+            Cada pessoa importa na missão.
+          </h2>
+          <p className="mt-3 text-sm text-white/75">Acompanhe sua equipe, seus contatos e seus retiros.</p>
 
           {/* Ornamento decorativo */}
           <div className="mt-5 flex items-center gap-3" aria-hidden="true">
-            <div className="h-px flex-1 bg-gold/40" />
-            <span className="text-xs text-gold/70">✝</span>
-            <div className="h-px flex-1 bg-gold/40" />
+            <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.2)' }} />
+            <span className="text-xs text-white/70">✝</span>
+            <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.2)' }} />
           </div>
         </div>
-        <p className="logo-text text-sm text-gold/60">MissãoApp</p>
+        <p className="logo-text text-sm text-white/40">MissãoApp</p>
       </div>
 
       {/* Coluna direita — formulário */}
-      <div className="flex flex-1 items-center justify-center bg-bg-card px-6">
-        <form onSubmit={handleEntrar} className="w-full max-w-sm">
-          <h1 className="logo-text text-[26px] font-normal text-text-primary">Bem-vindo de volta</h1>
-          <p className="mt-1 text-sm text-stone">Painel da liderança</p>
+      <div className="flex flex-1 items-center justify-center bg-bg-page px-6">
+        <form onSubmit={handleEntrar} className="w-full max-w-sm rounded-md bg-bg-card p-8 shadow-card">
+          <h1 className="font-sans text-2xl font-semibold text-text-primary">Bem-vindo de volta</h1>
+          <p className="mt-1 text-sm text-text-secondary">Painel da liderança</p>
 
           <div className="mt-6">
             <Input
@@ -82,8 +87,10 @@ export default function LoginPage() {
             {entrando ? 'Entrando...' : 'Entrar'}
           </Button>
 
-          <p className="mt-4 text-center text-xs text-stone hover:text-gold">
-            <a href="#">Esqueci minha senha</a>
+          <p className="mt-4 text-center text-xs">
+            <a href="#" className="hover:underline" style={{ color: '#1A7A4A' }}>
+              Esqueci minha senha
+            </a>
           </p>
         </form>
       </div>

@@ -140,13 +140,15 @@ export function iniciais(nome: string) {
   return letras.join('').toUpperCase();
 }
 
-// Cores fixas do novo padrão da sidebar (só o logo e o item ativo usam o
-// dourado cheio — o resto usa tons discretos, pra criar hierarquia visual
-// em vez de tudo competir pela mesma cor de destaque).
-const COR_INATIVO = '#A89880';
-const COR_INATIVO_HOVER = '#C4B49A';
-const COR_LABEL_GRUPO = '#6B5E4E';
-const COR_ATIVO = '#C9A84C';
+// Cores fixas da identidade "Verde Missionário" — sidebar branca, acento
+// verde só no item ativo e nos estados de hover/foco.
+const COR_INATIVO_TEXTO = '#374151';
+const COR_INATIVO_ICONE = '#6B7280';
+const COR_HOVER_ICONE = '#1A7A4A';
+const COR_LABEL_GRUPO = '#9CA3AF';
+const COR_ATIVO_BG = '#E8F5EE';
+const COR_ATIVO_TEXTO = '#1A7A4A';
+const COR_ATIVO_ICONE = '#22C55E';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -154,6 +156,7 @@ export function Sidebar() {
   const { usuario, sair } = usePainelSession();
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
+  const [buscaFocada, setBuscaFocada] = useState(false);
   const [submenuAberto, setSubmenuAberto] = useState<string | null>(
     NAV_GRUPOS.flatMap((g) => g.itens).find(
       (item) => item.tipo === 'submenu' && item.itens.some((sub) => pathname === sub.href)
@@ -188,8 +191,8 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto text-white md:flex lg:w-[240px]"
-      style={{ backgroundColor: '#1E1810' }}
+      className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-white md:flex lg:w-[240px]"
+      style={{ boxShadow: '1px 0 0 #E5E7EB' }}
     >
       {usuario?.comunidade_id && (
         <BuscaGlobal open={buscaAberta} onClose={() => setBuscaAberta(false)} comunidadeId={usuario.comunidade_id} />
@@ -197,13 +200,13 @@ export function Sidebar() {
 
       <div className="px-5 pb-4 pt-6">
         <div className="flex items-center justify-center lg:hidden">
-          <Logo size={32} variant="dark" />
+          <Logo size={32} variant="color" />
         </div>
         <div className="hidden lg:flex">
-          <Logo size={36} variant="dark" showText />
+          <Logo size={36} variant="color" showText />
         </div>
         {!!nomeComunidade && (
-          <p className="mt-1 hidden truncate text-xs lg:block" style={{ color: '#6B5E4E' }}>
+          <p className="mt-1 hidden truncate text-xs lg:block" style={{ color: '#6B7280' }}>
             {nomeComunidade}
           </p>
         )}
@@ -214,30 +217,43 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setBuscaAberta(true)}
+          onFocus={() => setBuscaFocada(true)}
+          onBlur={() => setBuscaFocada(false)}
           title="Buscar (Ctrl+K)"
-          className="flex w-full items-center justify-center gap-2 rounded-md border px-2.5 py-2 text-sm transition-colors focus:outline-none lg:justify-start"
-          style={{ backgroundColor: '#2C2416', borderColor: 'transparent', color: '#6B5E4E' }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = '#C9A84C')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'transparent')}
+          className="flex w-full items-center justify-center gap-2 rounded-lg text-sm transition-colors focus:outline-none lg:justify-start"
+          style={{
+            backgroundColor: '#F3F4F6',
+            border: buscaFocada ? '1.5px solid #22C55E' : '1.5px solid transparent',
+            boxShadow: buscaFocada ? '0 0 0 3px rgba(34,197,94,0.1)' : 'none',
+            color: '#9CA3AF',
+            padding: '8px 12px',
+          }}
         >
           <Search size={16} />
           <span className="hidden flex-1 text-left lg:inline">Buscar...</span>
         </button>
       </div>
 
-      <nav className="mt-1 flex-1 space-y-1 px-3 pb-3">
+      <nav className="mt-1 flex-1 space-y-1 px-2 pb-3">
         {NAV_GRUPOS.map((grupo, indiceGrupo) => (
           <div key={grupo.titulo}>
             {indiceGrupo > 0 && (
-              <div className="my-2 mx-0 h-px" style={{ backgroundColor: 'rgba(201,168,76,0.15)' }} />
+              <div style={{ height: '0.5px', background: '#F3F4F6', margin: '4px 12px' }} />
             )}
             <p
-              className="hidden px-3 pb-1 pt-2 text-[10px] font-bold uppercase lg:block"
-              style={{ color: COR_LABEL_GRUPO, letterSpacing: '0.07em' }}
+              className="hidden lg:block"
+              style={{
+                color: COR_LABEL_GRUPO,
+                fontSize: 10,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                padding: '0.6rem 0.75rem 0.2rem',
+              }}
             >
               {grupo.titulo}
             </p>
-            <div className="space-y-0.5">
+            <div>
               {grupo.itens.map((item) => {
                 if (item.tipo === 'link') {
                   const ativo = pathname === item.href;
@@ -247,20 +263,28 @@ export function Sidebar() {
                       key={item.href}
                       href={item.href}
                       title={item.label}
-                      className="group flex items-center justify-center gap-3 rounded-none border-l-[3px] px-3 py-2 text-sm font-medium transition-colors lg:justify-start"
+                      className="group flex items-center justify-center gap-3 rounded-md text-sm transition-colors lg:justify-start"
                       style={{
-                        borderColor: ativo ? COR_ATIVO : 'transparent',
-                        backgroundColor: ativo ? 'rgba(201,168,76,0.12)' : 'transparent',
-                        color: ativo ? COR_ATIVO : COR_INATIVO,
+                        margin: '1px 8px',
+                        padding: '7px 10px',
+                        backgroundColor: ativo ? COR_ATIVO_BG : 'transparent',
+                        color: ativo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
+                        fontWeight: ativo ? 500 : 400,
                       }}
                       onMouseEnter={(e) => {
-                        if (!ativo) e.currentTarget.style.color = COR_INATIVO_HOVER;
+                        if (!ativo) {
+                          e.currentTarget.style.backgroundColor = '#F9FAFB';
+                          e.currentTarget.style.color = '#111827';
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        if (!ativo) e.currentTarget.style.color = COR_INATIVO;
+                        if (!ativo) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = COR_INATIVO_TEXTO;
+                        }
                       }}
                     >
-                      <Icon size={18} />
+                      <Icon size={18} color={ativo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE} className="shrink-0" />
                       <span className="hidden lg:inline">{item.label}</span>
                     </Link>
                   );
@@ -275,41 +299,54 @@ export function Sidebar() {
                       type="button"
                       onClick={() => setSubmenuAberto((atual) => (atual === item.label ? null : item.label))}
                       title={item.label}
-                      className="flex w-full items-center justify-center gap-3 rounded-none border-l-[3px] px-3 py-2 text-sm font-medium transition-colors lg:justify-start"
+                      className="flex w-full items-center justify-center gap-3 rounded-md text-sm transition-colors lg:justify-start"
                       style={{
-                        borderColor: algumAtivo ? COR_ATIVO : 'transparent',
-                        backgroundColor: algumAtivo ? 'rgba(201,168,76,0.12)' : 'transparent',
-                        color: algumAtivo ? COR_ATIVO : COR_INATIVO,
+                        margin: '1px 8px',
+                        padding: '7px 10px',
+                        backgroundColor: algumAtivo ? COR_ATIVO_BG : 'transparent',
+                        color: algumAtivo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
+                        fontWeight: algumAtivo ? 500 : 400,
                       }}
                       onMouseEnter={(e) => {
-                        if (!algumAtivo) e.currentTarget.style.color = COR_INATIVO_HOVER;
+                        if (!algumAtivo) {
+                          e.currentTarget.style.backgroundColor = '#F9FAFB';
+                          e.currentTarget.style.color = '#111827';
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        if (!algumAtivo) e.currentTarget.style.color = COR_INATIVO;
+                        if (!algumAtivo) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = COR_INATIVO_TEXTO;
+                        }
                       }}
                     >
-                      <Icon size={18} />
+                      <Icon size={18} color={algumAtivo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE} className="shrink-0" />
                       <span className="hidden flex-1 text-left lg:inline">{item.label}</span>
                       <ChevronDown
                         size={14}
+                        color={algumAtivo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE}
                         className={`hidden transition-transform lg:block ${aberto ? 'rotate-180' : ''}`}
                       />
                     </button>
                     {aberto && (
-                      <div className="ml-6 mt-1 hidden space-y-1 border-l pl-3 lg:block" style={{ borderColor: 'rgba(201,168,76,0.15)' }}>
+                      <div className="ml-6 mt-1 hidden space-y-1 border-l pl-3 lg:block" style={{ borderColor: '#E5E7EB' }}>
                         {item.itens.map((sub) => {
                           const ativo = pathname === sub.href;
                           return (
                             <Link
                               key={sub.href}
                               href={sub.href}
-                              className="block rounded-none px-2 py-1.5 text-xs font-medium transition-colors"
-                              style={{ color: ativo ? COR_ATIVO : COR_INATIVO }}
+                              className="block rounded-md px-2 py-1.5 text-xs transition-colors"
+                              style={{
+                                color: ativo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
+                                fontWeight: ativo ? 500 : 400,
+                                backgroundColor: ativo ? COR_ATIVO_BG : 'transparent',
+                              }}
                               onMouseEnter={(e) => {
-                                if (!ativo) e.currentTarget.style.color = COR_INATIVO_HOVER;
+                                if (!ativo) e.currentTarget.style.color = '#111827';
                               }}
                               onMouseLeave={(e) => {
-                                if (!ativo) e.currentTarget.style.color = COR_INATIVO;
+                                if (!ativo) e.currentTarget.style.color = COR_INATIVO_TEXTO;
                               }}
                             >
                               {sub.label}
@@ -326,30 +363,28 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(201,168,76,0.15)' }}>
+      <div className="px-4 py-4" style={{ backgroundColor: '#F9FAFB', borderTop: '0.5px solid #E5E7EB' }}>
         <div className="flex items-center justify-center gap-2 lg:justify-start">
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-            style={{ backgroundColor: COR_ATIVO, color: '#1E1810' }}
+            style={{ backgroundColor: '#E8F5EE', color: '#1A7A4A' }}
           >
             {usuario ? iniciais(usuario.nome) : ''}
           </div>
           <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-sm font-semibold" style={{ color: '#D4C4A8' }}>
+            <p className="truncate text-sm font-medium" style={{ color: '#111827', fontSize: 13 }}>
               {usuario?.nome}
             </p>
-            <p className="text-xs" style={{ color: '#6B5E4E' }}>
-              {usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}
-            </p>
+            <p style={{ color: '#6B7280', fontSize: 11 }}>{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
           </div>
         </div>
         <button
           onClick={handleSair}
           title="Sair"
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors lg:justify-start"
-          style={{ borderColor: '#6B5E4E', color: '#6B5E4E' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = COR_INATIVO)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = '#6B5E4E')}
+          style={{ borderColor: '#E5E7EB', color: '#6B7280' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = '#6B7280')}
         >
           <LogOut size={14} />
           <span className="hidden lg:inline">Sair</span>

@@ -6,8 +6,8 @@ interface DespesasPieChartProps {
   data: { categoria: string; total: number }[];
 }
 
-// Paleta categórica tema Vaticano — uma cor por categoria de despesa
-const CORES = ['#C9A84C', '#8B2B1A', '#1C3A5C', '#5A7A52', '#8B6A2A', '#0F6E56', '#8B7355', '#1A1208'];
+// Paleta categórica Verde Missionário — uma cor por categoria de despesa
+const CORES = ['#1A7A4A', '#2563EB', '#D97706', '#DC2626', '#7C3AED', '#0891B2', '#0F5233', '#6B7280'];
 
 export function DespesasPieChart({ data }: DespesasPieChartProps) {
   if (data.length === 0) {
@@ -22,7 +22,10 @@ export function DespesasPieChart({ data }: DespesasPieChartProps) {
             <Cell key={entry.categoria} fill={CORES[index % CORES.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => `R$ ${(Number(value) || 0).toFixed(2)}`} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+        <Tooltip
+          formatter={(value) => `R$ ${(Number(value) || 0).toFixed(2)}`}
+          contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }}
+        />
         <Legend wrapperStyle={{ fontSize: 11 }} />
       </PieChart>
     </ResponsiveContainer>

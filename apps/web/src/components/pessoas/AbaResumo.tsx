@@ -74,8 +74,8 @@ export function AbaResumo({
       )}
 
       {!!pessoa.objetivo_atual && (
-        <div className="rounded-md border border-gold-light bg-gold-bg p-3">
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gold-dark">
+        <div className="rounded-md border border-border-green bg-accent-green-bg p-3">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary-dark">
             <Target size={13} /> Objetivo atual
           </p>
           <p className="mt-1 text-sm text-text-primary">{pessoa.objetivo_atual}</p>

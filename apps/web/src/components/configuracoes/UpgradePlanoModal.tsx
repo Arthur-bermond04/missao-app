@@ -43,7 +43,7 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
           const conteudo = (
             <>
               <p className="text-sm font-bold text-text-primary">{p.nome}</p>
-              <p className="mt-1 text-lg font-extrabold text-gold-dark">{p.preco}</p>
+              <p className="mt-1 text-lg font-extrabold text-primary">{p.preco}</p>
               <ul className="mt-3 space-y-1.5">
                 {p.recursos.map((r) => (
                   <li key={r} className="flex items-start gap-1.5 text-xs text-text-secondary">

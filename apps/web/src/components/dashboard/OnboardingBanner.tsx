@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Cross, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { CardOrnamental } from '@/components/ui/Ornamento';
 import type { Usuario } from '@/types/database';
 
 const PASSOS = [
@@ -30,24 +29,30 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
   if (oculto) return null;
 
   return (
-    <CardOrnamental className="mt-6 p-6">
+    <div
+      className="mt-6 rounded-md p-6"
+      style={{ background: 'linear-gradient(135deg, #1A7A4A 0%, #22C55E 100%)' }}
+    >
       <div className="flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold text-primary">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white">
           <Cross size={18} />
         </div>
-        <h2 className="logo-text text-lg font-medium text-text-primary">Bem-vindo ao MissãoApp!</h2>
+        <h2 className="logo-text text-lg font-medium text-white">Bem-vindo ao MissãoApp!</h2>
       </div>
-      <p className="mt-2 text-sm text-text-secondary">Vamos configurar sua comunidade em 3 passos:</p>
+      <p className="mt-2 text-sm text-white/80">Vamos configurar sua comunidade em 3 passos:</p>
 
       <ul className="mt-4 space-y-2">
         {PASSOS.map((p) => (
           <li key={p.n}>
-            <Link href={p.href} className="flex items-center gap-3 rounded-md bg-bg-card p-3 hover:shadow-card">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-border text-xs text-text-secondary">
+            <Link
+              href={p.href}
+              className="flex items-center gap-3 rounded-md bg-white/10 p-3 transition-colors hover:bg-white/20"
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-white/30 text-xs text-white">
                 {p.n}
               </span>
-              <span className="flex-1 text-sm text-text-primary">{p.texto}</span>
-              <ArrowRight size={16} className="text-text-secondary" />
+              <span className="flex-1 text-sm text-white">{p.texto}</span>
+              <ArrowRight size={16} className="text-white/80" />
             </Link>
           </li>
         ))}
@@ -56,14 +61,15 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
       <div className="mt-4 flex items-center gap-4">
         <Link
           href="/membros"
-          className="inline-flex items-center gap-1 rounded-[10px] bg-primary px-5 py-2.5 text-sm font-medium text-gold hover:bg-primary-light"
+          className="inline-flex items-center gap-1 rounded-sm bg-white px-5 py-2.5 text-sm font-medium hover:bg-white/90"
+          style={{ color: '#1A7A4A' }}
         >
           Começar pelo passo 1 <ArrowRight size={16} />
         </Link>
-        <button onClick={pular} className="text-sm text-text-secondary hover:text-text-primary">
+        <button onClick={pular} className="text-sm text-white/80 hover:text-white">
           Pular introdução
         </button>
       </div>
-    </CardOrnamental>
+    </div>
   );
 }

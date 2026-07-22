@@ -4,9 +4,9 @@ import type { NivelInteresse } from '../types/database';
 
 // Mesmas cores exatas do Badge.tsx web (quente/morno/frio)
 const CONFIG: Record<NivelInteresse, { emoji: string; label: string; bg: string; texto: string }> = {
-  quente: { emoji: '🔥', label: 'Quente', bg: '#FBF3E0', texto: '#8B6A2A' },
-  morno: { emoji: '💧', label: 'Morno', bg: '#E1F5EE', texto: '#085041' },
-  frio: { emoji: '❄️', label: 'Frio', bg: '#F7F4EE', texto: '#6B6357' },
+  quente: { emoji: '🔥', label: 'Quente', bg: '#FEF3C7', texto: '#D97706' },
+  morno: { emoji: '💧', label: 'Morno', bg: '#DBEAFE', texto: '#1D4ED8' },
+  frio: { emoji: '❄️', label: 'Frio', bg: '#F3F4F6', texto: '#6B7280' },
 };
 
 export function BadgeInteresse({ nivel }: { nivel: NivelInteresse }) {

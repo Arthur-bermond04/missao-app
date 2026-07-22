@@ -1,6 +1,6 @@
-// Degradê dourado claro → preto nobre, tema Vaticano (sequencial — não é
-// categórico, então não precisa do validador de paleta, só contraste de texto).
-const CORES_DEGRADE = ['#FBF3E0', '#E8C96A', '#C9A84C', '#8B6A2A', '#1A1208'];
+// Degradê verde claro → verde missão escuro (sequencial — não é categórico,
+// então não precisa do validador de paleta, só contraste de texto).
+const CORES_DEGRADE = ['#F0FDF4', '#BBF7D0', '#86EFAC', '#22C55E', '#0F5233'];
 const ALTURA_ETAPA = 56;
 const GAP = 4;
 
@@ -48,7 +48,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
               textAnchor="middle"
               fontSize="5.5"
               fontWeight="700"
-              fill={textoEscuro ? '#1A1208' : '#FBF3E0'}
+              fill={textoEscuro ? '#111827' : '#F0FDF4'}
             >
               {etapa.label}
             </text>
@@ -57,7 +57,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
               y={yTop + ALTURA_ETAPA / 2 + 8}
               textAnchor="middle"
               fontSize="5"
-              fill={textoEscuro ? '#6B6357' : '#E8C96A'}
+              fill={textoEscuro ? '#6B7280' : '#BBF7D0'}
             >
               {etapa.total}
             </text>

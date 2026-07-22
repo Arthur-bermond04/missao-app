@@ -6,8 +6,8 @@ interface FunilBarChartProps {
   data: { valor: string; label: string; total: number }[];
 }
 
-// Degradê dourado claro -> preto nobre, uma cor por etapa (sequencial, não categórico)
-const CORES_DEGRADE = ['#E8C96A', '#C9A84C', '#8B6A2A', '#4A3A18', '#1A1208'];
+// Degradê verde claro -> verde missão, uma cor por etapa (sequencial, não categórico)
+const CORES_DEGRADE = ['#BBF7D0', '#86EFAC', '#4ADE80', '#22C55E', '#1A7A4A'];
 
 export function FunilBarChart({ data }: FunilBarChartProps) {
   return (
@@ -18,7 +18,7 @@ export function FunilBarChart({ data }: FunilBarChartProps) {
           type="category"
           dataKey="label"
           width={110}
-          tick={{ fontSize: 11, fill: '#6b6357' }}
+          tick={{ fontSize: 11, fill: '#9CA3AF' }}
           axisLine={false}
           tickLine={false}
         />
@@ -29,7 +29,7 @@ export function FunilBarChart({ data }: FunilBarChartProps) {
             const pct = ((numero / maior) * 100).toFixed(0);
             return [`${numero} (${pct}%)`, 'Total'];
           }}
-          contentStyle={{ borderRadius: 8, borderColor: '#e2d9c8', fontSize: 12 }}
+          contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }}
         />
         <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={16}>
           {data.map((entry, index) => (

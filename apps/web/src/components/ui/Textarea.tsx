@@ -19,10 +19,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={textareaId}
-          className={`w-full rounded-md border px-3 py-2.5 text-sm outline-none transition-colors ${
+          className={`w-full rounded-sm border-[1.5px] px-3 py-2.5 text-sm outline-none transition-colors ${
             error
-              ? 'border-danger focus:border-danger focus:ring-2 focus:ring-danger/20'
-              : 'border-border focus:border-gold focus:ring-2 focus:ring-gold/20'
+              ? 'border-danger focus:border-danger focus:ring-[3px] focus:ring-danger/10'
+              : 'border-border focus:border-[#22C55E] focus:ring-[3px] focus:ring-[rgba(34,197,94,0.1)]'
           } ${className}`}
           {...rest}
         />

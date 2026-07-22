@@ -12,7 +12,7 @@ const PADDING_STYLES: Record<NonNullable<CardProps['padding']>, string> = {
 export function Card({ padding = 'md', hoverable, className = '', children, ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-lg border border-border bg-bg-card shadow-card ${PADDING_STYLES[padding]} ${
+      className={`rounded-md border-[0.5px] border-border bg-bg-card shadow-card ${PADDING_STYLES[padding]} ${
         hoverable ? 'transition-all hover:-translate-y-0.5 hover:shadow-hover' : ''
       } ${className}`}
       {...rest}

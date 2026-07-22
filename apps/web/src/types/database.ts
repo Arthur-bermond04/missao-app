@@ -252,14 +252,14 @@ export const CATEGORIAS_MINISTERIO_FINANCEIRO: { valor: CategoriaMinisterioFinan
 ];
 
 export const CORES_MINISTERIO = [
-  '#C9A84C', // dourado papal
-  '#8B2B1A', // vermelho cardeal
-  '#1C3A5C', // azul guarda suíça
-  '#5A7A52', // verde da cúpula
-  '#8B6A2A', // dourado escuro
-  '#0F6E56', // verde-petróleo
-  '#8B7355', // travertino
-  '#1A1208', // preto nobre
+  '#1A7A4A', // verde missão
+  '#2563EB', // azul informação
+  '#D97706', // âmbar
+  '#DC2626', // vermelho
+  '#7C3AED', // roxo
+  '#0891B2', // ciano
+  '#0F5233', // verde escuro
+  '#6B7280', // cinza
 ] as const;
 
 // =========================================================

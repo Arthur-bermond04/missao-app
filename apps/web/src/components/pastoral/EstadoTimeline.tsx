@@ -19,12 +19,12 @@ export function EstadoTimeline({ data }: EstadoTimelineProps) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data} margin={{ left: -10, right: 8, top: 8, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2d9c8" vertical={false} />
-        <XAxis dataKey="data" tick={{ fontSize: 11, fill: '#6b6357' }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+        <XAxis dataKey="data" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
         <YAxis
           domain={[1, 5]}
           ticks={[1, 2, 3, 4, 5]}
-          tick={{ fontSize: 11, fill: '#6b6357' }}
+          tick={{ fontSize: 11, fill: '#9CA3AF' }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) => SCORE_LABEL[v as number] ?? String(v)}
@@ -32,14 +32,14 @@ export function EstadoTimeline({ data }: EstadoTimelineProps) {
         />
         <Tooltip
           formatter={(value) => [SCORE_LABEL[Number(value)] ?? String(value), 'Estado']}
-          contentStyle={{ borderRadius: 8, borderColor: '#e2d9c8', fontSize: 12 }}
+          contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }}
         />
         <Line
           type="monotone"
           dataKey="score"
-          stroke="#8b6a2a"
+          stroke="#1A7A4A"
           strokeWidth={2}
-          dot={{ r: 4, fill: '#8b6a2a', strokeWidth: 0 }}
+          dot={{ r: 4, fill: '#1A7A4A', strokeWidth: 0 }}
           activeDot={{ r: 5 }}
         />
       </LineChart>

@@ -10,44 +10,45 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
 
-  /* Paleta MissãoApp — tema Vaticano (preto nobre + dourado papal) */
-  --color-primary: #1a1208; /* preto nobre */
-  --color-primary-light: #2c2008; /* escuro quente (hover) */
-  --color-primary-xlight: #f5e6c8; /* marfim claro */
-  /* alias mantido por compatibilidade — mesmas telas que já usavam bg-primary-dark
-     para hover continuam funcionando sem precisar tocar em cada uma */
-  --color-primary-dark: #2c2008;
+  /* Paleta MissãoApp — Verde Missionário */
+  --color-primary: #1a7a4a; /* verde missão — cor principal */
+  --color-primary-light: #2d9a63; /* verde médio — hover */
+  --color-primary-xlight: #e8f5ee; /* verde suavíssimo — backgrounds */
+  --color-primary-dark: #0f5233; /* verde escuro — textos sobre claro */
 
-  /* Dourado papal — cor de destaque principal */
-  --color-gold: #c9a84c;
-  --color-gold-light: #e8c96a;
-  --color-gold-dark: #8b6a2a;
-  --color-gold-bg: #fbf3e0;
+  /* Verde vibrante — acento e destaques */
+  --color-accent-green: #22c55e; /* verde vivo — item ativo, CTAs */
+  --color-accent-green-light: #86efac; /* verde claro — hover states */
+  --color-accent-green-bg: #f0fdf4; /* verde quase branco — fundo de destaque */
 
-  --color-accent: #0f6e56;
-  --color-accent-light: #e1f5ee;
+  /* mantido para compatibilidade — "accent" era o verde antigo (dízimo/receita);
+     agora aponta pro mesmo verde vibrante da nova identidade */
+  --color-accent: #22c55e;
+  --color-accent-light: #dcfce7;
 
-  --color-warning: #8b2b1a; /* vermelho cardeal */
-  --color-warning-light: #faece7;
+  /* Cores de status */
+  --color-success: #16a34a; /* verde sucesso */
+  --color-success-light: #dcfce7;
+  --color-warning: #d97706; /* âmbar — alertas */
+  --color-warning-light: #fef3c7;
+  --color-danger: #dc2626; /* vermelho — erros, negativo */
+  --color-danger-light: #fee2e2;
+  --color-info: #2563eb; /* azul — informações */
+  --color-info-light: #dbeafe;
 
-  --color-danger: #8b2b1a; /* vermelho cardeal */
-  --color-danger-light: #faece7;
+  /* Textos */
+  --color-text-primary: #111827; /* quase preto — texto principal */
+  --color-text-secondary: #6b7280; /* cinza médio — texto secundário */
+  --color-text-muted: #9ca3af; /* cinza claro — placeholders */
 
-  /* Cores de apoio arquitetônicas */
-  --color-stone: #8b7355; /* travertino — bordas e divisores */
-  --color-stone-light: #f7f4ee; /* pedra clara — fundo de páginas */
-  --color-dome-green: #5a7a52;
-  --color-cardinal: #8b2b1a;
-  --color-guard-blue: #1c3a5c;
+  /* Fundos */
+  --color-bg-page: #f9fafb; /* cinza levíssimo — fundo da página */
+  --color-bg-card: #ffffff; /* branco puro — cards */
+  --color-bg-sidebar: #ffffff; /* branco — sidebar */
 
-  --color-text-primary: #1a1208;
-  --color-text-secondary: #6b6357; /* marrom médio quente */
-  --color-border: #e2d9c8; /* travertino suave */
-  --color-bg-page: #f7f4ee; /* pedra clara */
-  --color-bg-card: #fafaf8; /* branco papal */
-
-  /* mantido para compatibilidade com telas ainda não migradas para os novos tokens (accent) */
-  --color-success: #1e9e5a;
+  /* Bordas */
+  --color-border: #e5e7eb; /* cinza suave — bordas padrão */
+  --color-border-green: #bbf7d0; /* verde suave — bordas de destaque */
 
   /* Raios e sombras */
   --radius-sm: 8px;
@@ -55,8 +56,8 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
 
-  --shadow-card: 0 1px 3px rgba(26, 18, 8, 0.06), 0 4px 16px rgba(201, 168, 76, 0.08);
-  --shadow-hover: 0 4px 12px rgba(201, 168, 76, 0.16);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 4px 12px rgba(22, 163, 74, 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,12 +81,12 @@ h1,
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f7f4ee;
+  background: #f9fafb;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e2d9c8;
+  background: #e5e7eb;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #c9a84c;
+  background: #22c55e;
 }

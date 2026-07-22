@@ -187,7 +187,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         ],
         styles: {
           titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 6] },
-          aviso: { fontSize: 10, italics: true, color: '#8B2B1A', margin: [0, 0, 0, 12] },
+          aviso: { fontSize: 10, italics: true, color: '#DC2626', margin: [0, 0, 0, 12] },
           secao: { fontSize: 13, bold: true, margin: [0, 14, 0, 6] },
         },
       })
@@ -341,7 +341,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       )}
 
       {/* Privacidade */}
-      <div className="mt-6 flex items-center gap-2 rounded-md bg-primary-xlight px-3 py-2 text-xs text-gold-dark">
+      <div className="mt-6 flex items-center gap-2 rounded-md bg-primary-xlight px-3 py-2 text-xs text-primary-dark">
         <Lock size={14} />
         Estes registros são confidenciais e visíveis apenas por você e pelo admin.
       </div>

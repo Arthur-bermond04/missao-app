@@ -193,7 +193,7 @@ export default function PessoasPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-xs font-bold text-gold-dark">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-xs font-bold text-primary-dark">
                         {p.foto_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.foto_url} alt={p.nome} className="h-full w-full object-cover" />

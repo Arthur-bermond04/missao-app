@@ -192,7 +192,7 @@ export default function DashboardPage() {
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
             <MetricCard
               icon={Users}
-              iconColor="gold"
+              iconColor="primary"
               label="Membros ativos"
               value={membrosAtivos}
               delta={
@@ -215,14 +215,14 @@ export default function DashboardPage() {
             <MetricCard icon={HeartHandshake} iconColor="accent" label="Células ativas" value={celulasAtivas} />
             <MetricCard
               icon={Tent}
-              iconColor="gold"
+              iconColor="warning"
               label="Inscritos no próximo retiro"
               value={proximoRetiro ? inscritosProximoRetiro : '—'}
               subtitle={proximoRetiro?.nome}
             />
             <MetricCard
               icon={Wallet}
-              iconColor="gold"
+              iconColor="primary"
               label="Arrecadação do mês"
               value={`R$ ${arrecadacaoMes.toFixed(2)}`}
               delta={
@@ -235,14 +235,20 @@ export default function DashboardPage() {
 
           <Ornamento />
 
-          {/* Pessoas + Ministérios + Pastoral — nível secundário: marfim plano, sem sombra */}
+          {/* Pessoas + Ministérios + Pastoral — nível secundário: verde quase branco, sem sombra */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Link href="/pessoas" className="rounded-lg bg-[#F5E6C8] p-5 transition-colors hover:bg-[#F0DEB4]">
+            <Link
+              href="/pessoas"
+              className="rounded-md p-5 transition-colors hover:bg-[#E8F5EE]"
+              style={{ backgroundColor: '#F0FDF4', border: '0.5px solid #BBF7D0' }}
+            >
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card text-gold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card" style={{ color: '#22C55E' }}>
                   <IdCard size={16} />
                 </div>
-                <h3 className="text-sm font-bold text-text-primary">Pessoas</h3>
+                <h3 className="text-sm font-medium" style={{ color: '#1A7A4A' }}>
+                  Pessoas
+                </h3>
               </div>
               <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span className="text-text-secondary">
@@ -260,12 +266,18 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/ministerios" className="rounded-lg bg-[#F5E6C8] p-5 transition-colors hover:bg-[#F0DEB4]">
+            <Link
+              href="/ministerios"
+              className="rounded-md p-5 transition-colors hover:bg-[#E8F5EE]"
+              style={{ backgroundColor: '#F0FDF4', border: '0.5px solid #BBF7D0' }}
+            >
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card text-gold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card" style={{ color: '#22C55E' }}>
                   <HandHeart size={16} />
                 </div>
-                <h3 className="text-sm font-bold text-text-primary">Ministérios</h3>
+                <h3 className="text-sm font-medium" style={{ color: '#1A7A4A' }}>
+                  Ministérios
+                </h3>
               </div>
               <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span className="text-text-secondary">
@@ -287,12 +299,18 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/pastoral" className="rounded-lg bg-[#F5E6C8] p-5 transition-colors hover:bg-[#F0DEB4]">
+            <Link
+              href="/pastoral"
+              className="rounded-md p-5 transition-colors hover:bg-[#E8F5EE]"
+              style={{ backgroundColor: '#F0FDF4', border: '0.5px solid #BBF7D0' }}
+            >
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card text-gold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-card" style={{ color: '#22C55E' }}>
                   <Heart size={16} />
                 </div>
-                <h3 className="text-sm font-bold text-text-primary">Pastoral</h3>
+                <h3 className="text-sm font-medium" style={{ color: '#1A7A4A' }}>
+                  Pastoral
+                </h3>
               </div>
               <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span className="text-text-secondary">
