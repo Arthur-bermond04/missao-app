@@ -20,6 +20,7 @@ import {
   Network,
   Bell,
   Gauge,
+  Users2,
   type LucideIcon,
   LogOut,
 } from 'lucide-react';
@@ -64,6 +65,7 @@ export const NAV_GRUPOS: NavGrupo[] = [
       { href: '/funil', label: 'Funil', icon: Filter },
       { href: '/retiros', label: 'Retiros', icon: Tent },
       { href: '/ministerios', label: 'Ministérios', icon: HandHeart },
+      { href: '/celulas', label: 'Células', icon: Users2 },
       { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake },
       { href: '/pastoral/monitoria', label: 'Monitoria pastoral', icon: Gauge, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
       { href: '/agenda', label: 'Agenda', icon: Calendar },

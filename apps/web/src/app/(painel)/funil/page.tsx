@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Filter, PartyPopper, HeartHandshake, IdCard, MapPin } from 'lucide-react';
+import { Filter, PartyPopper, HeartHandshake, IdCard, MapPin, UserPlus } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -10,13 +10,15 @@ import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { FunilVisual } from '@/components/funil/FunilVisual';
 import { PainelContato } from '@/components/funil/PainelContato';
-import { promoverContatoParaPessoa } from '@/lib/pessoas';
+import { promoverContatoParaPessoa, registrarAbordagem } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
 import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
-import { ETAPAS_FUNIL, type Contato, type Usuario } from '@/types/database';
+import { ETAPAS_FUNIL, type Contato, type NivelInteresse, type Usuario } from '@/types/database';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -33,6 +35,7 @@ export default function FunilPage() {
   const [missionarioId, setMissionarioId] = useState('');
   const [local, setLocal] = useState('');
   const [contatoSelecionado, setContatoSelecionado] = useState<Contato | null>(null);
+  const [modalAbordagem, setModalAbordagem] = useState(false);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -142,11 +145,28 @@ export default function FunilPage() {
         title="Funil de Evangelização"
         subtitle="Acompanhe a jornada de cada pessoa"
         actions={
-          <Button variant="secondary" onClick={exportarExcel}>
-            Exportar Excel
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={exportarExcel}>
+              Exportar Excel
+            </Button>
+            <Button icon={UserPlus} onClick={() => setModalAbordagem(true)}>
+              Registrar abordagem
+            </Button>
+          </div>
         }
       />
+
+      {modalAbordagem && (
+        <RegistrarAbordagemModal
+          comunidadeId={usuario.comunidade_id}
+          missionarioId={usuario.id}
+          onClose={() => setModalAbordagem(false)}
+          onRegistrado={(contato) => {
+            setContatos((atual) => [contato, ...atual]);
+            setModalAbordagem(false);
+          }}
+        />
+      )}
 
       {/* Filtros */}
       <div className="mt-6 flex flex-wrap gap-3 rounded-lg bg-bg-card p-4 shadow-card">
@@ -275,5 +295,118 @@ export default function FunilPage() {
         }}
       />
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modal de registrar abordagem (evangelização) direto no web
+// ---------------------------------------------------------------------------
+const NIVEIS: { valor: NivelInteresse; label: string }[] = [
+  { valor: 'quente', label: 'Quente' },
+  { valor: 'morno', label: 'Morno' },
+  { valor: 'frio', label: 'Frio' },
+];
+
+function RegistrarAbordagemModal({
+  comunidadeId,
+  missionarioId,
+  onClose,
+  onRegistrado,
+}: {
+  comunidadeId: string;
+  missionarioId: string;
+  onClose: () => void;
+  onRegistrado: (contato: Contato) => void;
+}) {
+  const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [idade, setIdade] = useState('');
+  const [nivel, setNivel] = useState<NivelInteresse>('morno');
+  const [local, setLocal] = useState('');
+  const [data, setData] = useState(new Date().toISOString().slice(0, 10));
+  const [observacoes, setObservacoes] = useState('');
+  const [criarPessoa, setCriarPessoa] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+
+  async function handleSalvar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nome.trim()) {
+      toastError('Informe o nome.');
+      return;
+    }
+    setSalvando(true);
+    try {
+      const { contato } = await registrarAbordagem(
+        {
+          comunidade_id: comunidadeId,
+          missionario_id: missionarioId,
+          nome: nome.trim(),
+          telefone: telefone.trim() || undefined,
+          idade: idade ? Number(idade) : undefined,
+          nivel_interesse: nivel,
+          local_abordagem: local.trim() || undefined,
+          data_abordagem: data,
+          observacoes: observacoes.trim() || undefined,
+        },
+        criarPessoa
+      );
+      toastSuccess(criarPessoa ? 'Abordagem registrada e cadastrada em Pessoas!' : 'Abordagem registrada!');
+      onRegistrado(contato);
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao registrar.');
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <Modal open onClose={onClose} title="Registrar abordagem">
+      <form onSubmit={handleSalvar} className="space-y-3">
+        <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Input label="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+          </div>
+          <div className="w-24">
+            <Input label="Idade" type="number" value={idade} onChange={(e) => setIdade(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-text-secondary">Nível de interesse</label>
+          <div className="flex gap-2">
+            {NIVEIS.map((n) => (
+              <button
+                key={n.valor}
+                type="button"
+                onClick={() => setNivel(n.valor)}
+                className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                  nivel === n.valor
+                    ? 'border-primary bg-primary-xlight text-primary'
+                    : 'border-border text-text-secondary hover:bg-bg-page'
+                }`}
+              >
+                {n.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Input label="Local da abordagem" value={local} onChange={(e) => setLocal(e.target.value)} />
+          </div>
+          <div className="w-40">
+            <Input label="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} required />
+          </div>
+        </div>
+        <Textarea label="Observações (opcional)" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} />
+        <label className="flex cursor-pointer items-center gap-2 rounded-md bg-bg-page px-3 py-2 text-sm text-text-primary">
+          <input type="checkbox" checked={criarPessoa} onChange={(e) => setCriarPessoa(e.target.checked)} />
+          Criar também no cadastro central de Pessoas
+        </label>
+        <Button type="submit" fullWidth loading={salvando}>
+          Registrar abordagem
+        </Button>
+      </form>
+    </Modal>
   );
 }

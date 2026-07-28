@@ -346,6 +346,49 @@ const ETAPA_FUNIL_PARA_JORNADA: Record<EtapaJornada, EtapaJornadaPessoa> = {
   cal: 'cal',
 };
 
+// Registra uma abordagem de evangelização direto no painel web (antes só
+// existia no mobile). Cria a linha em `contatos` e, opcionalmente, já cria a
+// pessoa no cadastro central com origem 'evangelizacao', ligando os dois.
+export async function registrarAbordagem(
+  dados: {
+    comunidade_id: string;
+    missionario_id: string;
+    nome: string;
+    telefone?: string;
+    idade?: number;
+    nivel_interesse: NivelInteresse;
+    local_abordagem?: string;
+    data_abordagem: string;
+    observacoes?: string;
+  },
+  criarPessoaTambem: boolean
+): Promise<{ contato: Contato; pessoa: Pessoa | null }> {
+  const { data, error } = await supabase
+    .from('contatos')
+    .insert({
+      comunidade_id: dados.comunidade_id,
+      missionario_id: dados.missionario_id,
+      nome: dados.nome,
+      telefone: dados.telefone || null,
+      idade: dados.idade ?? null,
+      nivel_interesse: dados.nivel_interesse,
+      local_abordagem: dados.local_abordagem || null,
+      data_abordagem: dados.data_abordagem,
+      observacoes: dados.observacoes || null,
+      etapa_jornada: 'abordagem',
+      tags: [],
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  const contato = data as Contato;
+
+  if (!criarPessoaTambem) return { contato, pessoa: null };
+
+  const pessoa = await promoverContatoParaPessoa(contato, dados.missionario_id);
+  return { contato: { ...contato, pessoa_id: pessoa.id }, pessoa };
+}
+
 export async function promoverContatoParaPessoa(contato: Contato, cadastradoPor: string): Promise<Pessoa> {
   const pessoa = await criarPessoa({
     comunidade_id: contato.comunidade_id,

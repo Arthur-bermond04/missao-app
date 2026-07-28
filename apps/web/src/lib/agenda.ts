@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 
-export type TipoEventoAgenda = 'ministerio' | 'pastoral' | 'retiro';
+// 'avulso' são os eventos cadastrados à mão (tabela agenda_eventos); os
+// demais são agregados dos outros módulos.
+export type TipoEventoAgenda = 'ministerio' | 'pastoral' | 'retiro' | 'avulso';
 
 export interface EventoAgenda {
   id: string;
@@ -19,13 +21,89 @@ export interface EventoAgenda {
 export async function listarEventosProprios(comunidadeId: string): Promise<EventoAgenda[]> {
   const hojeIso = new Date().toISOString().slice(0, 10);
 
-  const [encontros, ovelhas, retiros] = await Promise.all([
+  const [encontros, ovelhas, retiros, avulsos] = await Promise.all([
     buscarEncontrosMinisterio(comunidadeId, hojeIso),
     buscarProximasReunioesPastorais(hojeIso),
     buscarRetiros(comunidadeId, hojeIso),
+    buscarEventosAvulsos(comunidadeId, hojeIso),
   ]);
 
-  return [...encontros, ...ovelhas, ...retiros].sort((a, b) => a.data.localeCompare(b.data));
+  return [...encontros, ...ovelhas, ...retiros, ...avulsos].sort((a, b) => a.data.localeCompare(b.data));
+}
+
+// ---------------------------------------------------------------------------
+// Eventos avulsos (agenda_eventos)
+// ---------------------------------------------------------------------------
+
+export type TipoEventoAvulso = 'geral' | 'missa' | 'formacao' | 'reuniao' | 'evangelizacao';
+export type VisibilidadeEvento = 'todos' | 'lideranca' | 'missionarios';
+
+export const TIPOS_EVENTO_AVULSO: { valor: TipoEventoAvulso; label: string }[] = [
+  { valor: 'geral', label: 'Geral' },
+  { valor: 'missa', label: 'Missa' },
+  { valor: 'formacao', label: 'Formação' },
+  { valor: 'reuniao', label: 'Reunião' },
+  { valor: 'evangelizacao', label: 'Evangelização' },
+];
+
+export const VISIBILIDADES_EVENTO: { valor: VisibilidadeEvento; label: string }[] = [
+  { valor: 'todos', label: 'Todos' },
+  { valor: 'lideranca', label: 'Só liderança' },
+  { valor: 'missionarios', label: 'Missionários' },
+];
+
+async function buscarEventosAvulsos(comunidadeId: string, hojeIso: string): Promise<EventoAgenda[]> {
+  const { data, error } = await supabase
+    .from('agenda_eventos')
+    .select('id, titulo, descricao, local, data_inicio, data_fim, tipo')
+    .eq('comunidade_id', comunidadeId)
+    .gte('data_inicio', `${hojeIso}T00:00:00`)
+    .order('data_inicio', { ascending: true });
+  // se a migration ainda não rodou, não derruba a agenda
+  if (error) return [];
+
+  return (
+    (data as { id: string; titulo: string; local: string | null; data_inicio: string; tipo: string }[]) ?? []
+  ).map((e) => ({
+    id: e.id,
+    tipo: 'avulso' as const,
+    titulo: e.titulo,
+    subtitulo: e.local || undefined,
+    data: e.data_inicio,
+    href: '/agenda',
+  }));
+}
+
+export async function criarEventoAvulso(dados: {
+  comunidade_id: string;
+  criado_por: string;
+  titulo: string;
+  descricao?: string;
+  local?: string;
+  data_inicio: string;
+  data_fim?: string;
+  dia_inteiro?: boolean;
+  tipo: TipoEventoAvulso;
+  visivel_para: VisibilidadeEvento;
+}): Promise<void> {
+  const { error } = await supabase.from('agenda_eventos').insert({
+    comunidade_id: dados.comunidade_id,
+    criado_por: dados.criado_por,
+    titulo: dados.titulo,
+    descricao: dados.descricao || null,
+    local: dados.local || null,
+    data_inicio: dados.data_inicio,
+    data_fim: dados.data_fim || null,
+    dia_inteiro: dados.dia_inteiro ?? false,
+    tipo: dados.tipo,
+    visivel_para: dados.visivel_para,
+  });
+  if (error) throw error;
+}
+
+export async function excluirEventoAvulso(id: string) {
+  const { error } = await supabase.from('agenda_eventos').delete().eq('id', id);
+  if (error) throw error;
 }
 
 async function buscarEncontrosMinisterio(comunidadeId: string, hojeIso: string): Promise<EventoAgenda[]> {
