@@ -57,10 +57,42 @@ export async function listarInscritos(retiroId: string): Promise<InscricaoRetiro
 
 export async function atualizarInscricao(
   id: string,
-  campos: Partial<Pick<InscricaoRetiro, 'pagou' | 'valor_pago' | 'grupo' | 'presente'>>
+  campos: Partial<Pick<InscricaoRetiro, 'pagou' | 'valor_pago' | 'grupo' | 'presente'>>,
+  // Contexto opcional para a integração com Pessoas: quando o check-in é
+  // marcado (presente=true) e a inscrição tem pessoa vinculada, registra a
+  // participação na jornada da pessoa automaticamente.
+  contexto?: { usuarioId: string; retiroNome: string }
 ) {
   const { error } = await supabase.from('inscricoes_retiro').update(campos).eq('id', id);
   if (error) throw error;
+
+  if (campos.presente === true && contexto) {
+    try {
+      const { data: inscricao } = await supabase
+        .from('inscricoes_retiro')
+        .select('pessoa_id')
+        .eq('id', id)
+        .single();
+      const pessoaId = (inscricao as { pessoa_id: string | null } | null)?.pessoa_id;
+      if (pessoaId) {
+        const hoje = new Date().toISOString().slice(0, 10);
+        await supabase.from('pessoa_interacoes').insert({
+          pessoa_id: pessoaId,
+          usuario_id: contexto.usuarioId,
+          data: hoje,
+          tipo: 'retiro',
+          canal: 'presencial',
+          descricao: `Participou do retiro ${contexto.retiroNome}`,
+        });
+        await supabase
+          .from('pessoas')
+          .update({ ultimo_contato: hoje, atualizado_em: new Date().toISOString() })
+          .eq('id', pessoaId);
+      }
+    } catch {
+      // integração é melhoria — não pode derrubar o check-in
+    }
+  }
 }
 
 // Usado na coluna "Pastoral" da tabela de inscritos — mostra "Acompanhado"

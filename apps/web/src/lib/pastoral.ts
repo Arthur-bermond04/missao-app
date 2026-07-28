@@ -211,6 +211,34 @@ export async function criarEncontroPastoral(dados: {
   if (dados.proxima_reuniao) {
     await atualizarOvelha(dados.ovelha_id, { proxima_reuniao: dados.proxima_reuniao });
   }
+
+  // Integração com Pessoas: se a ovelha está vinculada a uma pessoa, registra
+  // que houve contato na jornada dela — SEM copiar o relato confidencial.
+  try {
+    const { data: ovelha } = await supabase
+      .from('pastoral_ovelhas')
+      .select('pessoa_id')
+      .eq('id', dados.ovelha_id)
+      .single();
+    const pessoaId = (ovelha as { pessoa_id: string | null } | null)?.pessoa_id;
+    if (pessoaId) {
+      await supabase.from('pessoa_interacoes').insert({
+        pessoa_id: pessoaId,
+        usuario_id: dados.pastor_id,
+        data: dados.data,
+        tipo: 'encontro_pastoral',
+        canal: 'presencial',
+        descricao: 'Encontro pastoral registrado',
+      });
+      await supabase
+        .from('pessoas')
+        .update({ ultimo_contato: dados.data, atualizado_em: new Date().toISOString() })
+        .eq('id', pessoaId);
+    }
+  } catch {
+    // a integração é melhoria — não pode derrubar o registro do encontro
+  }
+
   return data as PastoralEncontro;
 }
 

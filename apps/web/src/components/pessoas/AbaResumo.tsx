@@ -1,17 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, CalendarClock, HandHeart, HeartHandshake, Link2, Plus, Target } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { usePainelSession } from '@/lib/PainelSessionContext';
+import { frequenciaMinisteriosDaPessoa, type FrequenciaMinisterio } from '@/lib/ministerios';
 import { atualizarPessoa, proximoContatoVencido } from '@/lib/pessoas';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import { toastError, toastSuccess } from '@/lib/toast';
 import {
+  ETAPAS_JORNADA_PESSOA,
   FREQUENCIAS_ACOMPANHAMENTO_PESSOA,
   ORIGENS_PESSOA,
   SITUACOES_FE,
+  type EtapaJornadaPessoa,
   type FrequenciaAcompanhamentoPessoa,
   type Ministerio,
   type PastoralOvelha,
@@ -41,11 +46,19 @@ export function AbaResumo({
   ovelha: PastoralOvelha | null;
   ministerios: Ministerio[];
 }) {
+  const { usuario } = usePainelSession();
+  const terminologia = useTerminologia();
   const [proximaVisita, setProximaVisita] = useState(pessoa.proxima_visita ?? '');
   const [frequencia, setFrequencia] = useState<FrequenciaAcompanhamentoPessoa>(
     pessoa.frequencia_acompanhamento ?? 'mensal'
   );
+  const [etapa, setEtapa] = useState<EtapaJornadaPessoa>(pessoa.etapa_jornada);
   const [salvando, setSalvando] = useState(false);
+  const [frequencias, setFrequencias] = useState<FrequenciaMinisterio[]>([]);
+
+  useEffect(() => {
+    frequenciaMinisteriosDaPessoa(pessoa.id).then(setFrequencias).catch(() => setFrequencias([]));
+  }, [pessoa.id]);
 
   const vencido = proximoContatoVencido(pessoa);
 
@@ -53,8 +66,14 @@ export function AbaResumo({
     e.preventDefault();
     setSalvando(true);
     try {
-      const campos = { proxima_visita: proximaVisita || null, frequencia_acompanhamento: frequencia };
-      await atualizarPessoa(pessoa.id, campos);
+      const campos = {
+        proxima_visita: proximaVisita || null,
+        frequencia_acompanhamento: frequencia,
+        etapa_jornada: etapa,
+      };
+      // usuario.id habilita a integração: mudança de etapa vira evento no
+      // histórico e aparece no dashboard do coordenador.
+      await atualizarPessoa(pessoa.id, campos, usuario?.id);
       onAtualizada({ ...pessoa, ...campos });
       toastSuccess('Acompanhamento atualizado.');
     } catch (err) {
@@ -107,18 +126,32 @@ export function AbaResumo({
             </Link>
           )}
           {ministerios.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-md border border-border px-3 py-2">
-              <HandHeart size={14} className="text-primary" />
-              {ministerios.map((m) => (
-                <Link
-                  key={m.id}
-                  href="/ministerios"
-                  className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                  style={{ backgroundColor: m.cor }}
-                >
-                  {m.nome}
-                </Link>
-              ))}
+            <div className="space-y-1.5 rounded-md border border-border px-3 py-2">
+              {ministerios.map((m) => {
+                const freq = frequencias.find((f) => f.ministerio.id === m.id);
+                return (
+                  <div key={m.id} className="flex flex-wrap items-center gap-2">
+                    <HandHeart size={14} className="text-primary" />
+                    <Link
+                      href="/ministerios"
+                      className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                      style={{ backgroundColor: m.cor }}
+                    >
+                      {m.nome}
+                    </Link>
+                    {freq && (
+                      <span className="text-xs text-text-secondary">
+                        {freq.percentual != null
+                          ? `Presença: ${freq.percentual}% (${freq.presentes}/${freq.presencasRegistradas})`
+                          : 'Sem presenças registradas'}
+                        {freq.ultimoEncontro
+                          ? ` · Último encontro: ${new Date(freq.ultimoEncontro).toLocaleDateString('pt-BR')}`
+                          : ''}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <Link
@@ -178,6 +211,17 @@ export function AbaResumo({
               value={frequencia}
               onChange={(e) => setFrequencia(e.target.value as FrequenciaAcompanhamentoPessoa)}
               options={FREQUENCIAS_ACOMPANHAMENTO_PESSOA.map((f) => ({ value: f.valor, label: f.label }))}
+            />
+          </div>
+          <div className="w-44">
+            <Select
+              label="Etapa da jornada"
+              value={etapa}
+              onChange={(e) => setEtapa(e.target.value as EtapaJornadaPessoa)}
+              options={ETAPAS_JORNADA_PESSOA.map((et) => ({
+                value: et.valor,
+                label: labelEtapaJornadaPessoa(et.valor, terminologia),
+              }))}
             />
           </div>
           <Button type="submit" size="md" loading={salvando}>

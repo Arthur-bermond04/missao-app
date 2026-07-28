@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { ChevronRight, Menu } from 'lucide-react';
 import { NAV } from './Sidebar';
 import { NotificacoesBell } from './NotificacoesBell';
+import { ParaFazerBell } from './ParaFazerBell';
 
 export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; onAbrirDrawer: () => void }) {
   const pathname = usePathname();
@@ -34,6 +35,7 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
       </div>
 
       <div className="ml-auto flex items-center gap-1">
+        <ParaFazerBell />
         <NotificacoesBell comunidadeId={comunidadeId} />
       </div>
     </div>

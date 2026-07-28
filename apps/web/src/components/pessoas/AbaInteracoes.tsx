@@ -10,7 +10,13 @@ import { excluirInteracao } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
 import { CANAIS_INTERACAO, TIPOS_INTERACAO, type PessoaInteracao } from '@/types/database';
 
-const TIPO_LABEL = Object.fromEntries(TIPOS_INTERACAO.map((t) => [t.valor, t.label]));
+const TIPO_LABEL: Record<string, string> = {
+  ...Object.fromEntries(TIPOS_INTERACAO.map((t) => [t.valor, t.label])),
+  // tipos gerados automaticamente pelas integrações entre módulos
+  encontro_pastoral: 'Encontro pastoral',
+  retiro: 'Retiro',
+  mudanca_etapa: 'Avanço de etapa',
+};
 const CANAL_LABEL = Object.fromEntries(CANAIS_INTERACAO.map((c) => [c.valor, c.label]));
 
 export function AbaInteracoes({

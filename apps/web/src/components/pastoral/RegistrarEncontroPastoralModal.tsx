@@ -161,7 +161,7 @@ export function RegistrarEncontroPastoralModal({
         <Input label="Duração (minutos)" type="number" value={duracao} onChange={(e) => setDuracao(e.target.value)} />
 
         <div>
-          <label className="mb-1 block text-xs font-semibold text-text-secondary">Como a ovelha estava</label>
+          <label className="mb-1 block text-xs font-semibold text-text-secondary">Como ela estava?</label>
           <div className="flex flex-wrap gap-2">
             {ESTADOS_OVELHA_ENCONTRO.map((e) => (
               <button
@@ -197,9 +197,9 @@ export function RegistrarEncontroPastoralModal({
           </div>
         </div>
 
-        <Textarea label="Relato" value={relato} onChange={(e) => setRelato(e.target.value)} rows={4} required />
+        <Textarea label="O que foi conversado" value={relato} onChange={(e) => setRelato(e.target.value)} rows={4} required />
         <Textarea
-          label="Encaminhamentos (o que foi combinado)"
+          label="Combinamos para próxima vez"
           value={encaminhamentos}
           onChange={(e) => setEncaminhamentos(e.target.value)}
           rows={2}

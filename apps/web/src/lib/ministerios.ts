@@ -229,6 +229,62 @@ export async function listarMinisteriosDaPessoa(pessoaId: string): Promise<Minis
   return (((data as unknown as { ministerio: Ministerio | null }[]) ?? []).map((r) => r.ministerio).filter(Boolean)) as Ministerio[];
 }
 
+// Frequência de presença da pessoa em cada ministério — usada na aba Resumo
+// do perfil de Pessoa (integração entre módulos: dado que entra em
+// Ministérios aparece em Pessoas).
+export interface FrequenciaMinisterio {
+  ministerio: Ministerio;
+  presencasRegistradas: number;
+  presentes: number;
+  percentual: number | null;
+  ultimoEncontro: string | null;
+}
+
+export async function frequenciaMinisteriosDaPessoa(pessoaId: string): Promise<FrequenciaMinisterio[]> {
+  const ministerios = await listarMinisteriosDaPessoa(pessoaId);
+  if (ministerios.length === 0) return [];
+
+  const ids = ministerios.map((m) => m.id);
+  const { data: encontros, error: erroEnc } = await supabase
+    .from('ministerio_encontros')
+    .select('id, ministerio_id, data')
+    .in('ministerio_id', ids);
+  if (erroEnc) throw erroEnc;
+
+  const listaEncontros = (encontros as { id: string; ministerio_id: string; data: string }[]) ?? [];
+  const encontroParaMinisterio = new Map(listaEncontros.map((e) => [e.id, e.ministerio_id]));
+
+  const { data: presencas, error: erroPres } = await supabase
+    .from('ministerio_presencas')
+    .select('encontro_id, presente')
+    .eq('pessoa_id', pessoaId);
+  if (erroPres) throw erroPres;
+
+  const porMinisterio = new Map<string, { registradas: number; presentes: number }>();
+  for (const p of (presencas as { encontro_id: string; presente: boolean }[]) ?? []) {
+    const ministerioId = encontroParaMinisterio.get(p.encontro_id);
+    if (!ministerioId) continue;
+    const atual = porMinisterio.get(ministerioId) ?? { registradas: 0, presentes: 0 };
+    atual.registradas += 1;
+    if (p.presente) atual.presentes += 1;
+    porMinisterio.set(ministerioId, atual);
+  }
+
+  return ministerios.map((m) => {
+    const stats = porMinisterio.get(m.id) ?? { registradas: 0, presentes: 0 };
+    const ultimoEncontro = listaEncontros
+      .filter((e) => e.ministerio_id === m.id)
+      .reduce<string | null>((max, e) => (max === null || e.data > max ? e.data : max), null);
+    return {
+      ministerio: m,
+      presencasRegistradas: stats.registradas,
+      presentes: stats.presentes,
+      percentual: stats.registradas > 0 ? Math.round((stats.presentes / stats.registradas) * 100) : null,
+      ultimoEncontro,
+    };
+  });
+}
+
 // Usado no painel lateral de Membros, para mostrar em quais ministérios um usuário participa.
 export async function listarMinisteriosDoUsuario(usuarioId: string): Promise<Ministerio[]> {
   const { data, error } = await supabase

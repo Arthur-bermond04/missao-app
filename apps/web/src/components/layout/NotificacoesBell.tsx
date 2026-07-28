@@ -85,6 +85,13 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
               ))}
             </div>
           )}
+          <Link
+            href="/alertas"
+            onClick={() => setAberto(false)}
+            className="mt-2 block border-t border-border px-2 py-2 text-center text-xs font-medium text-primary hover:bg-bg-page"
+          >
+            Ver central de alertas →
+          </Link>
         </div>
       )}
     </div>

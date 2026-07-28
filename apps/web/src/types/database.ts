@@ -420,7 +420,20 @@ export type EtapaJornadaPessoa =
   | 'integrado'
   | 'afastado';
 export type FrequenciaAcompanhamentoPessoa = 'semanal' | 'quinzenal' | 'mensal' | 'sob_demanda' | 'nenhum';
-export type TipoInteracao = 'contato' | 'visita' | 'celula' | 'evento' | 'missa' | 'conversa' | 'outro';
+// Os três últimos são gerados automaticamente pelas integrações entre
+// módulos (encontro pastoral, check-in de retiro e avanço de etapa) — não
+// aparecem como opção nos formulários de nova interação.
+export type TipoInteracao =
+  | 'contato'
+  | 'visita'
+  | 'celula'
+  | 'evento'
+  | 'missa'
+  | 'conversa'
+  | 'outro'
+  | 'encontro_pastoral'
+  | 'retiro'
+  | 'mudanca_etapa';
 export type CanalInteracao = 'presencial' | 'whatsapp' | 'telefone' | 'email';
 
 export interface Pessoa {

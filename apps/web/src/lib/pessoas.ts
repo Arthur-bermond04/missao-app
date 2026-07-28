@@ -164,12 +164,53 @@ export async function criarPessoa(dados: NovaPessoaDados): Promise<Pessoa> {
   return data as Pessoa;
 }
 
-export async function atualizarPessoa(id: string, campos: Partial<Pessoa>) {
+const LABEL_ETAPA_HISTORICO: Record<string, string> = {
+  contato_inicial: 'Contato inicial',
+  interessado: 'Interessado',
+  participando: 'Participando',
+  cv: 'CV',
+  cal: 'CAL',
+  integrado: 'Integrado',
+  afastado: 'Afastado',
+};
+
+export async function atualizarPessoa(
+  id: string,
+  campos: Partial<Pessoa>,
+  // Quem está fazendo a alteração — necessário só para a integração de
+  // mudança de etapa (a interação automática precisa de um usuario_id).
+  usuarioId?: string
+) {
+  // Integração com o funil/dashboard: avanço de etapa vira um evento no
+  // histórico da pessoa (e daí aparece no dashboard do coordenador).
+  let etapaAnterior: string | null = null;
+  if (campos.etapa_jornada && usuarioId) {
+    const { data: atual } = await supabase.from('pessoas').select('etapa_jornada').eq('id', id).single();
+    etapaAnterior = (atual as { etapa_jornada: string } | null)?.etapa_jornada ?? null;
+  }
+
   const { error } = await supabase
     .from('pessoas')
     .update({ ...campos, atualizado_em: new Date().toISOString() })
     .eq('id', id);
   if (error) throw error;
+
+  if (campos.etapa_jornada && usuarioId && etapaAnterior && etapaAnterior !== campos.etapa_jornada) {
+    try {
+      await supabase.from('pessoa_interacoes').insert({
+        pessoa_id: id,
+        usuario_id: usuarioId,
+        data: new Date().toISOString().slice(0, 10),
+        tipo: 'mudanca_etapa',
+        canal: 'presencial',
+        descricao: `Avançou de ${LABEL_ETAPA_HISTORICO[etapaAnterior] ?? etapaAnterior} para ${
+          LABEL_ETAPA_HISTORICO[campos.etapa_jornada] ?? campos.etapa_jornada
+        }`,
+      });
+    } catch {
+      // registro histórico é melhoria — não pode derrubar a atualização
+    }
+  }
 }
 
 export async function arquivarPessoa(id: string) {

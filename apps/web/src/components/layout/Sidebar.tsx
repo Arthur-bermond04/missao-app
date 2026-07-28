@@ -18,6 +18,8 @@ import {
   BarChart3,
   Search,
   Network,
+  Bell,
+  Gauge,
   type LucideIcon,
   LogOut,
 } from 'lucide-react';
@@ -63,12 +65,14 @@ export const NAV_GRUPOS: NavGrupo[] = [
       { href: '/retiros', label: 'Retiros', icon: Tent },
       { href: '/ministerios', label: 'Ministérios', icon: HandHeart },
       { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake },
+      { href: '/pastoral/monitoria', label: 'Monitoria pastoral', icon: Gauge, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
       { href: '/agenda', label: 'Agenda', icon: Calendar },
     ],
   },
   {
     titulo: 'Gestão',
     itens: [
+      { href: '/alertas', label: 'Alertas', icon: Bell, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
       { href: '/mensagens', label: 'Comunicação', icon: MessageCircle },
       { href: '/financeiro', label: 'Financeiro', icon: Wallet, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
       { href: '/relatorios', label: 'Relatórios', icon: BarChart3, requerPerfil: PERFIS_GESTAO_FINANCEIRA },

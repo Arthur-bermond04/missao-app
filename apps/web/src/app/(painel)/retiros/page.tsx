@@ -126,7 +126,11 @@ export default function RetirosPage() {
   async function alterarInscricao(id: string, campos: Partial<InscricaoRetiro>) {
     setInscritos((atual) => atual.map((i) => (i.id === id ? { ...i, ...campos } : i)));
     try {
-      await atualizarInscricao(id, campos as any);
+      await atualizarInscricao(
+        id,
+        campos as any,
+        usuario && retiroSelecionado ? { usuarioId: usuario.id, retiroNome: retiroSelecionado.nome } : undefined
+      );
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao salvar. Tente novamente.');
     }
