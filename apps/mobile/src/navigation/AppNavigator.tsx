@@ -22,6 +22,10 @@ import { MinisteriosScreen } from '../screens/MinisteriosScreen';
 import { MinisterioDetalheScreen } from '../screens/MinisterioDetalheScreen';
 import { PastoralScreen } from '../screens/PastoralScreen';
 import { OvelhaDetalheScreen } from '../screens/OvelhaDetalheScreen';
+import { CelulasScreen } from '../screens/CelulasScreen';
+import { AgendaScreen } from '../screens/AgendaScreen';
+import { MonitoriaScreen } from '../screens/MonitoriaScreen';
+import { AlertasScreen } from '../screens/AlertasScreen';
 import { FinanceiroScreen } from '../screens/FinanceiroScreen';
 import { MensagensScreen } from '../screens/MensagensScreen';
 import { PerfilScreen } from '../screens/PerfilScreen';
@@ -123,6 +127,18 @@ function DashboardStackNavigator({ usuario }: { usuario: Usuario }) {
         options={({ route }) => ({ title: (route.params as any)?.nome ?? 'Ovelha' })}
       >
         {() => <OvelhaDetalheScreen comunidadeId={comunidadeId} perfil={usuario.perfil} />}
+      </DashboardStack.Screen>
+      <DashboardStack.Screen name="Celulas" options={{ title: 'Células' }}>
+        {() => <CelulasScreen comunidadeId={comunidadeId} perfil={usuario.perfil} />}
+      </DashboardStack.Screen>
+      <DashboardStack.Screen name="Agenda" options={{ title: 'Agenda' }}>
+        {() => <AgendaScreen comunidadeId={comunidadeId} usuarioId={usuario.id} perfil={usuario.perfil} />}
+      </DashboardStack.Screen>
+      <DashboardStack.Screen name="Monitoria" options={{ title: 'Monitoria pastoral' }}>
+        {() => <MonitoriaScreen comunidadeId={comunidadeId} perfil={usuario.perfil} />}
+      </DashboardStack.Screen>
+      <DashboardStack.Screen name="Alertas" options={{ title: 'Alertas' }}>
+        {() => <AlertasScreen usuario={usuario} />}
       </DashboardStack.Screen>
     </DashboardStack.Navigator>
   );

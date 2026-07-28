@@ -28,6 +28,7 @@ export interface Comunidade {
   tipo: 'paroquia' | 'comunidade' | 'movimento';
   plano: Plano;
   max_contatos: number | null;
+  meta_arrecadacao_mensal: number | null;
   terminologia: Terminologia;
   criado_em: string;
 }

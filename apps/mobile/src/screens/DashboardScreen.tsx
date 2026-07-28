@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Users, UserPlus, Tent, Wallet, ArrowRight, HandHeart, Heart, ChevronRight } from 'lucide-react-native';
+import { Users, UserPlus, Tent, Wallet, ArrowRight, HandHeart, Heart, ChevronRight, Users2, Calendar, Gauge, Bell } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { MetricCard } from '../components/ui/MetricCard';
 import { ProgressBar } from '../components/ui/ProgressBar';
@@ -39,6 +39,7 @@ export function DashboardScreen({
   const [paraFazer, setParaFazer] = useState<ItemParaFazer[]>([]);
   const [carregando, setCarregando] = useState(true);
   const podePastoral = PERFIS_PASTORAL.includes(perfil);
+  const podeGestao = perfil === 'coordenador' || perfil === 'admin';
 
   useFocusEffect(
     useCallback(() => {
@@ -193,6 +194,42 @@ export function DashboardScreen({
           <Text style={styles.acessoLabel}>Acompanhamento pastoral</Text>
           <ChevronRight size={18} color={colors.textMuted} />
         </Pressable>
+      )}
+
+      <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Celulas')}>
+        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+          <Users2 size={18} color={colors.primary} />
+        </View>
+        <Text style={styles.acessoLabel}>Células</Text>
+        <ChevronRight size={18} color={colors.textMuted} />
+      </Pressable>
+
+      <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Agenda')}>
+        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+          <Calendar size={18} color={colors.primary} />
+        </View>
+        <Text style={styles.acessoLabel}>Agenda</Text>
+        <ChevronRight size={18} color={colors.textMuted} />
+      </Pressable>
+
+      {podeGestao && (
+        <>
+          <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Monitoria')}>
+            <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+              <Gauge size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.acessoLabel}>Monitoria pastoral</Text>
+            <ChevronRight size={18} color={colors.textMuted} />
+          </Pressable>
+
+          <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Alertas')}>
+            <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+              <Bell size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.acessoLabel}>Alertas</Text>
+            <ChevronRight size={18} color={colors.textMuted} />
+          </Pressable>
+        </>
       )}
     </ScrollView>
   );
