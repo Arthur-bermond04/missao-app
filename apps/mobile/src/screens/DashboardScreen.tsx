@@ -7,10 +7,23 @@ import { MetricCard } from '../components/ui/MetricCard';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Button } from '../components/ui/Button';
 import { carregarDashboard, type DadosDashboard } from '../lib/dashboard';
+import { listarParaFazer, type ItemParaFazer, type PrioridadeParaFazer } from '../lib/paraFazer';
 import type { Perfil } from '../types/database';
 
 // Perfis que acompanham ovelhas (não existe perfil "pastor" no schema — usamos liderança)
 const PERFIS_PASTORAL: Perfil[] = ['lider', 'coordenador', 'padre', 'admin'];
+
+const COR_PRIORIDADE: Record<PrioridadeParaFazer, string> = {
+  urgente: colors.dangerText,
+  hoje: colors.amber,
+  semana: colors.accent,
+};
+
+const LABEL_PRIORIDADE: Record<PrioridadeParaFazer, string> = {
+  urgente: 'URGENTE',
+  hoje: 'HOJE',
+  semana: 'ESTA SEMANA',
+};
 
 export function DashboardScreen({
   comunidadeId,
@@ -23,6 +36,7 @@ export function DashboardScreen({
 }) {
   const navigation = useNavigation<any>();
   const [dados, setDados] = useState<DadosDashboard | null>(null);
+  const [paraFazer, setParaFazer] = useState<ItemParaFazer[]>([]);
   const [carregando, setCarregando] = useState(true);
   const podePastoral = PERFIS_PASTORAL.includes(perfil);
 
@@ -32,7 +46,8 @@ export function DashboardScreen({
       carregarDashboard(comunidadeId)
         .then(setDados)
         .finally(() => setCarregando(false));
-    }, [comunidadeId])
+      listarParaFazer(comunidadeId, usuarioId).then(setParaFazer).catch(() => setParaFazer([]));
+    }, [comunidadeId, usuarioId])
   );
 
   if (carregando && !dados) {
@@ -63,6 +78,38 @@ export function DashboardScreen({
     >
       <Text style={styles.titulo}>Dashboard</Text>
       <Text style={styles.subtitulo}>Visão geral da comunidade</Text>
+
+      {/* Para fazer hoje — a primeira coisa que o usuário vê */}
+      {paraFazer.length > 0 && (
+        <View style={styles.paraFazerCard}>
+          <Text style={styles.secaoTitulo}>Para fazer hoje</Text>
+          <View style={{ marginTop: 10, gap: 8 }}>
+            {paraFazer.slice(0, 6).map((item) => (
+              <Pressable
+                key={item.chave}
+                style={styles.paraFazerItem}
+                onPress={() =>
+                  item.tipo === 'ovelha'
+                    ? navigation.navigate('Pastoral')
+                    : navigation.navigate('PessoasTab', { screen: 'PessoaPerfil', params: { pessoaId: item.id, nome: item.nome, usuarioId } })
+                }
+              >
+                <View style={[styles.prioridadeDot, { backgroundColor: COR_PRIORIDADE[item.prioridade] }]} />
+                <View style={styles.avatarPeq}>
+                  <Text style={styles.avatarPeqTexto}>{item.nome.slice(0, 2).toUpperCase()}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.paraFazerNome}>{item.nome}</Text>
+                  <Text style={styles.paraFazerDesc}>
+                    {LABEL_PRIORIDADE[item.prioridade]} · {item.descricao}
+                  </Text>
+                </View>
+                <ChevronRight size={16} color={colors.textMuted} />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View style={styles.grid}>
         <MetricCard
@@ -188,4 +235,27 @@ const styles = StyleSheet.create({
   funilLabel: { fontSize: 14, color: colors.text, fontWeight: '600' },
   funilNumero: { fontSize: 14, color: colors.textMuted },
   verFunil: { marginTop: 16 },
+  paraFazerCard: {
+    marginTop: 16,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  paraFazerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  prioridadeDot: { width: 8, height: 8, borderRadius: 4 },
+  avatarPeq: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  avatarPeqTexto: { fontSize: 11, fontWeight: '700', color: colors.primary },
+  paraFazerNome: { fontSize: 14, fontWeight: '600', color: colors.text },
+  paraFazerDesc: { fontSize: 11, color: colors.textMuted, marginTop: 1 },
 });
