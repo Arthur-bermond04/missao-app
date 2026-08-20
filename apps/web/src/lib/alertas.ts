@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 import { listarMinisterios } from './ministerios';
 import { buscarComunidade } from './comunidades';
+import { detectarAusencias, FALTAS_CONSECUTIVAS_ALERTA } from './frequencia';
+import { ovelhaEmAtraso, type OvelhaResumo } from './monitoria';
 import type { PastoralOvelha, Pessoa, Usuario } from '../types/database';
 
 // ---------------------------------------------------------------------------
@@ -36,6 +38,133 @@ function diasEntre(a: string, b: string) {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 }
 
+// ---------------------------------------------------------------------------
+// Fontes de ausência
+// ---------------------------------------------------------------------------
+
+/**
+ * Métricas de encontro pastoral das ovelhas visíveis.
+ *
+ * Tenta a view de monitoria primeiro (é o caminho da gestão e do supervisor, e
+ * já traz dias_sem_encontro pronto sem expor relato). Para as ovelhas que a
+ * view não devolveu — o caso do pastor comum, que não tem acesso a ela — cai
+ * para o cálculo direto em pastoral_encontros, que o RLS libera para as
+ * ovelhas dele.
+ */
+async function resumoDeOvelhas(comunidadeId: string, ovelhas: PastoralOvelha[]): Promise<OvelhaResumo[]> {
+  if (ovelhas.length === 0) return [];
+
+  const { data: daView } = await supabase
+    .from('pastoral_ovelhas_resumo')
+    .select('*')
+    .eq('comunidade_id', comunidadeId)
+    .eq('ativo', true);
+
+  const resumo = (daView as OvelhaResumo[]) ?? [];
+  const cobertas = new Set(resumo.map((o) => o.id));
+  const faltantes = ovelhas.filter((o) => !cobertas.has(o.id));
+  if (faltantes.length === 0) return resumo;
+
+  const { data: encontros } = await supabase
+    .from('pastoral_encontros')
+    .select('ovelha_id, data')
+    .in(
+      'ovelha_id',
+      faltantes.map((o) => o.id)
+    );
+
+  const ultimoPorOvelha = new Map<string, string>();
+  for (const e of (encontros as { ovelha_id: string; data: string }[]) ?? []) {
+    const atual = ultimoPorOvelha.get(e.ovelha_id);
+    if (!atual || e.data > atual) ultimoPorOvelha.set(e.ovelha_id, e.data);
+  }
+
+  const hoje = hojeIso();
+  for (const o of faltantes) {
+    const ultimo = ultimoPorOvelha.get(o.id) ?? null;
+    resumo.push({
+      ...o,
+      total_encontros: 0,
+      encontros_ultimo_mes: 0,
+      ultimo_encontro: ultimo,
+      dias_sem_encontro: ultimo ? diasEntre(ultimo, hoje) : null,
+    } as OvelhaResumo);
+  }
+
+  return resumo;
+}
+
+/** Quem acumulou faltas seguidas nos últimos encontros de cada ministério. */
+async function ausenciasEmMinisterios(ministerioIds: string[]) {
+  if (ministerioIds.length === 0) return [];
+
+  const { data: encontros } = await supabase
+    .from('ministerio_encontros')
+    .select('id, ministerio_id, data')
+    .in('ministerio_id', ministerioIds)
+    .order('data', { ascending: false });
+
+  const lista = (encontros as { id: string; ministerio_id: string; data: string }[]) ?? [];
+  if (lista.length === 0) return [];
+
+  // Só interessam os últimos encontros de cada ministério — faltas antigas já
+  // foram resolvidas (ou não) e não deveriam reaparecer como alerta novo.
+  const recentesPorMinisterio = new Map<string, typeof lista>();
+  for (const e of lista) {
+    const atual = recentesPorMinisterio.get(e.ministerio_id) ?? [];
+    if (atual.length < FALTAS_CONSECUTIVAS_ALERTA) {
+      atual.push(e);
+      recentesPorMinisterio.set(e.ministerio_id, atual);
+    }
+  }
+
+  const encontrosRecentes = [...recentesPorMinisterio.values()].flat();
+  const dataDoEncontro = new Map(encontrosRecentes.map((e) => [e.id, e.data]));
+  const ministerioDoEncontro = new Map(encontrosRecentes.map((e) => [e.id, e.ministerio_id]));
+
+  const { data: presencas } = await supabase
+    .from('ministerio_presencas')
+    .select('encontro_id, usuario_id, pessoa_id, presente')
+    .in(
+      'encontro_id',
+      encontrosRecentes.map((e) => e.id)
+    );
+
+  const porMinisterio = new Map<string, { participanteId: string; data: string; presente: boolean }[]>();
+  for (const p of (presencas as { encontro_id: string; usuario_id: string | null; pessoa_id: string | null; presente: boolean }[]) ?? []) {
+    const participanteId = p.usuario_id ?? p.pessoa_id;
+    const data = dataDoEncontro.get(p.encontro_id);
+    const ministerioId = ministerioDoEncontro.get(p.encontro_id);
+    if (!participanteId || !data || !ministerioId) continue;
+    const atual = porMinisterio.get(ministerioId) ?? [];
+    atual.push({ participanteId, data, presente: p.presente });
+    porMinisterio.set(ministerioId, atual);
+  }
+
+  return [...porMinisterio.entries()].flatMap(([ministerioId, registros]) =>
+    detectarAusencias(registros).map((a) => ({ ...a, ministerioId }))
+  );
+}
+
+/** Ovelhas com faltas seguidas em célula, missa e demais eventos registrados. */
+async function ausenciasEmEventos(ovelhaIds: string[]) {
+  if (ovelhaIds.length === 0) return [];
+
+  const { data } = await supabase
+    .from('pastoral_presencas')
+    .select('ovelha_id, data, presente')
+    .in('ovelha_id', ovelhaIds)
+    .order('data', { ascending: false });
+
+  const registros = ((data as { ovelha_id: string; data: string; presente: boolean }[]) ?? []).map((p) => ({
+    participanteId: p.ovelha_id,
+    data: p.data,
+    presente: p.presente,
+  }));
+
+  return detectarAusencias(registros);
+}
+
 export async function gerarAlertasCentral(comunidadeId: string, usuario: Usuario): Promise<AlertaCentral[]> {
   const hoje = hojeIso();
   const corte30 = diasAtras(30);
@@ -59,6 +188,7 @@ export async function gerarAlertasCentral(comunidadeId: string, usuario: Usuario
   const pessoas = (pessoasRes.data as Pessoa[]) ?? [];
   const ovelhas = (ovelhasRes.data as PastoralOvelha[]) ?? [];
   const nomeUsuario = new Map(((usuariosRes.data as { id: string; nome: string }[]) ?? []).map((u) => [u.id, u.nome]));
+  const nomePessoa = new Map(pessoas.map((p) => [p.id, p.nome]));
   const retiros = (retirosRes.data as { id: string; nome: string; vagas: number | null; data_inicio: string }[]) ?? [];
 
   const alertas: AlertaCentral[] = [];
@@ -118,6 +248,56 @@ export async function gerarAlertasCentral(comunidadeId: string, usuario: Usuario
         href: '/ministerios',
       });
     }
+  }
+
+  // Ovelhas sem encontro pastoral há mais tempo do que a frequência combinada.
+  // Diferente de "reunião vencida", que depende de alguém ter agendado a
+  // próxima: aqui o gatilho é o silêncio em si.
+  for (const o of await resumoDeOvelhas(comunidadeId, ovelhas)) {
+    if (!ovelhaEmAtraso(o)) continue;
+    // Reunião vencida já cobre este caso com uma mensagem mais precisa.
+    if (o.proxima_reuniao && o.proxima_reuniao < hoje) continue;
+
+    const ehMinha = o.pastor_id === usuario.id;
+    alertas.push({
+      id: `ovelha-sem-encontro-${o.id}`,
+      nivel: 'urgente',
+      modulo: 'Pastoral',
+      mensagem:
+        o.dias_sem_encontro == null
+          ? `${o.nome} — Nenhum encontro pastoral registrado até hoje`
+          : `${o.nome} — Sem encontro pastoral há ${o.dias_sem_encontro} dias (combinado: ${o.frequencia_acompanhamento})`,
+      detalhe: `pastor: ${nomeUsuario.get(o.pastor_id) ?? '—'}`,
+      href: ehMinha ? `/pastoral/${o.id}` : '/pastoral/monitoria',
+    });
+  }
+
+  // Faltas seguidas em ministério
+  for (const a of await ausenciasEmMinisterios(ministerios.map((m) => m.id))) {
+    const ministerio = ministerios.find((m) => m.id === a.ministerioId);
+    alertas.push({
+      id: `ministerio-faltas-${a.ministerioId}-${a.participanteId}`,
+      nivel: 'atencao',
+      modulo: 'Ministérios',
+      mensagem: `${nomeUsuario.get(a.participanteId) ?? nomePessoa.get(a.participanteId) ?? 'Membro'} — ${a.faltas} faltas seguidas em ${ministerio?.nome ?? 'ministério'}`,
+      detalhe: `última ausência em ${new Date(a.ultimaFalta).toLocaleDateString('pt-BR')}`,
+      href: '/ministerios',
+    });
+  }
+
+  // Faltas seguidas em célula, missa e demais eventos acompanhados
+  const ovelhaPorId = new Map(ovelhas.map((o) => [o.id, o]));
+  for (const a of await ausenciasEmEventos(ovelhas.map((o) => o.id))) {
+    const ovelha = ovelhaPorId.get(a.participanteId);
+    if (!ovelha) continue;
+    alertas.push({
+      id: `ovelha-faltas-${a.participanteId}`,
+      nivel: 'atencao',
+      modulo: 'Pastoral',
+      mensagem: `${ovelha.nome} — ${a.faltas} ausências seguidas nos encontros da comunidade`,
+      detalhe: `última ausência em ${new Date(a.ultimaFalta).toLocaleDateString('pt-BR')}`,
+      href: ovelha.pastor_id === usuario.id ? `/pastoral/${ovelha.id}` : '/pastoral/monitoria',
+    });
   }
 
   // ---------------- ATENÇÃO ----------------
