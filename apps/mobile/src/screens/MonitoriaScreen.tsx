@@ -20,9 +20,9 @@ import type { Perfil } from '../types/database';
 const PERFIS_GESTAO: Perfil[] = ['coordenador', 'admin'];
 
 const STATUS_COR: Record<StatusPastor, string> = {
-  ativo: colors.accent,
-  atencao: colors.amber,
-  inativo: colors.dangerText,
+  ativo: colors.accentGreen,
+  atencao: colors.warning,
+  inativo: colors.danger,
 };
 const STATUS_LABEL: Record<StatusPastor, string> = {
   ativo: 'Ativo',
@@ -30,10 +30,10 @@ const STATUS_LABEL: Record<StatusPastor, string> = {
   inativo: 'Inativo',
 };
 const ESTADO_COR: Record<string, string> = {
-  crescendo: colors.accent,
+  crescendo: colors.accentGreen,
   estavel: colors.primary,
-  atencao: colors.amber,
-  risco: colors.dangerText,
+  atencao: colors.warning,
+  risco: colors.danger,
 };
 
 export function MonitoriaScreen({ comunidadeId, perfil }: { comunidadeId: string; perfil: Perfil }) {
@@ -97,8 +97,8 @@ export function MonitoriaScreen({ comunidadeId, perfil }: { comunidadeId: string
             <View style={styles.cardsResumo}>
               <ResumoCard label="Pastores" valor={resumoGeral.total} />
               <ResumoCard label="Ovelhas" valor={resumoGeral.ativas} />
-              <ResumoCard label="Em atraso" valor={resumoGeral.emAtraso} cor={resumoGeral.emAtraso > 0 ? colors.amber : undefined} />
-              <ResumoCard label="Em risco" valor={resumoGeral.emRisco} cor={resumoGeral.emRisco > 0 ? colors.dangerText : undefined} />
+              <ResumoCard label="Em atraso" valor={resumoGeral.emAtraso} cor={resumoGeral.emAtraso > 0 ? colors.warning : undefined} />
+              <ResumoCard label="Em risco" valor={resumoGeral.emRisco} cor={resumoGeral.emRisco > 0 ? colors.danger : undefined} />
             </View>
           </View>
         }
@@ -149,7 +149,7 @@ function PainelPastor({ metricas, onFechar }: { metricas: MetricasPastor; onFech
               <Text style={[styles.pastorMeta, { color: STATUS_COR[status] }]}>{STATUS_LABEL[status]} · {metricas.taxaCumprimento}%</Text>
             </View>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
           <ScrollView style={{ maxHeight: '80%' }} contentContainerStyle={{ paddingBottom: 20 }}>
@@ -163,7 +163,7 @@ function PainelPastor({ metricas, onFechar }: { metricas: MetricasPastor; onFech
                 <View key={o.id} style={styles.ovelhaLinha}>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <View style={[styles.estadoDot, { backgroundColor: ESTADO_COR[o.estado_espiritual] ?? colors.textMuted }]} />
+                      <View style={[styles.estadoDot, { backgroundColor: ESTADO_COR[o.estado_espiritual] ?? colors.textSecondary }]} />
                       <Text style={styles.pastorNome}>{o.nome}</Text>
                     </View>
                     <Text style={styles.pastorMeta}>
@@ -186,24 +186,24 @@ function PainelPastor({ metricas, onFechar }: { metricas: MetricasPastor; onFech
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 16, gap: 10, paddingBottom: 40 },
-  aviso: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, backgroundColor: colors.primaryLight, borderRadius: 10, padding: 10, marginBottom: 12, marginTop: 12 },
+  aviso: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, backgroundColor: colors.primaryXLight, borderRadius: 10, padding: 10, marginBottom: 12, marginTop: 12 },
   avisoTexto: { flex: 1, fontSize: 12, color: colors.primary },
   cardsResumo: { flexDirection: 'row', gap: 8, marginBottom: 4 },
-  resumoCard: { flex: 1, backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-  resumoValor: { fontSize: 20, fontWeight: '800', color: colors.text },
-  resumoLabel: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
-  pastorCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border },
-  pastorNome: { fontSize: 14, fontWeight: '700', color: colors.text },
-  pastorMeta: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
+  resumoCard: { flex: 1, backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
+  resumoValor: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
+  resumoLabel: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  pastorCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.bgCard, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border },
+  pastorNome: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  pastorMeta: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
   taxa: { fontSize: 18, fontWeight: '800' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  painel: { backgroundColor: colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '85%' },
+  painel: { backgroundColor: colors.bgCard, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '85%' },
   painelTopo: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  secao: { fontSize: 13, color: colors.text, backgroundColor: colors.background, borderRadius: 10, padding: 10 },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 14, marginBottom: 6 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  secao: { fontSize: 13, color: colors.textPrimary, backgroundColor: colors.bgPage, borderRadius: 10, padding: 10 },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 14, marginBottom: 6 },
   ovelhaLinha: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 10, marginTop: 6 },
   estadoDot: { width: 8, height: 8, borderRadius: 4 },
 });

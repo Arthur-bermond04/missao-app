@@ -29,7 +29,7 @@ import {
 } from '../types/database';
 
 const STATUS_LABEL: Record<string, string> = { agendado: 'Agendado', realizado: 'Realizado', cancelado: 'Cancelado' };
-const STATUS_COR: Record<string, string> = { agendado: colors.amber, realizado: colors.accent, cancelado: colors.textMuted };
+const STATUS_COR: Record<string, string> = { agendado: colors.warning, realizado: colors.accentGreen, cancelado: colors.textSecondary };
 
 type Aba = 'membros' | 'encontros' | 'caixa';
 const CARGO_LABEL: Record<string, string> = { coordenador: 'Coordenador', 'vice-coordenador': 'Vice', membro: 'Membro' };
@@ -163,7 +163,7 @@ export function MinisterioDetalheScreen() {
                     <Text style={styles.itemMeta}>{new Date(e.data).toLocaleDateString('pt-BR')}</Text>
                   </View>
                   <View style={styles.statusPill}>
-                    <Text style={[styles.statusTexto, { color: STATUS_COR[e.status] ?? colors.textMuted }]}>
+                    <Text style={[styles.statusTexto, { color: STATUS_COR[e.status] ?? colors.textSecondary }]}>
                       {STATUS_LABEL[e.status] ?? e.status}
                     </Text>
                   </View>
@@ -179,9 +179,9 @@ export function MinisterioDetalheScreen() {
         {aba === 'caixa' && (
           <View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsResumo}>
-              <MetricCard style={styles.cardResumo} icon={TrendingUp} iconColor={colors.accent} iconBg={colors.accentLight} label="Receitas do mês" value={`R$ ${receitaMes.toFixed(2)}`} />
-              <MetricCard style={styles.cardResumo} icon={TrendingDown} iconColor={colors.dangerText} iconBg={colors.dangerLight} label="Despesas do mês" value={`R$ ${despesaMes.toFixed(2)}`} />
-              <MetricCard style={styles.cardResumo} icon={Scale} iconColor={saldo >= 0 ? colors.accent : colors.dangerText} iconBg={saldo >= 0 ? colors.accentLight : colors.dangerLight} valorColor={saldo >= 0 ? colors.accent : colors.dangerText} label="Saldo" value={`R$ ${saldo.toFixed(2)}`} />
+              <MetricCard style={styles.cardResumo} icon={TrendingUp} iconColor={colors.accentGreen} iconBg={colors.successLight} label="Receitas do mês" value={`R$ ${receitaMes.toFixed(2)}`} />
+              <MetricCard style={styles.cardResumo} icon={TrendingDown} iconColor={colors.danger} iconBg={colors.dangerLight} label="Despesas do mês" value={`R$ ${despesaMes.toFixed(2)}`} />
+              <MetricCard style={styles.cardResumo} icon={Scale} iconColor={saldo >= 0 ? colors.accentGreen : colors.danger} iconBg={saldo >= 0 ? colors.successLight : colors.dangerLight} valorColor={saldo >= 0 ? colors.accentGreen : colors.danger} label="Saldo" value={`R$ ${saldo.toFixed(2)}`} />
             </ScrollView>
 
             {isCoordenador && (
@@ -195,7 +195,7 @@ export function MinisterioDetalheScreen() {
                     <Text style={styles.itemNome}>{l.categoria}</Text>
                     {!!l.descricao && <Text style={styles.itemMeta}>{l.descricao}</Text>}
                   </View>
-                  <Text style={{ color: l.tipo === 'receita' ? colors.accent : colors.dangerText, fontWeight: '700' }}>
+                  <Text style={{ color: l.tipo === 'receita' ? colors.accentGreen : colors.danger, fontWeight: '700' }}>
                     R$ {Number(l.valor).toFixed(2)}
                   </Text>
                 </View>
@@ -287,10 +287,10 @@ function EncontroModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>{editando ? 'Completar encontro' : 'Registrar encontro'}</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
-          <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} placeholder="Título" placeholderTextColor={colors.textMuted} />
+          <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} placeholder="Título" placeholderTextColor={colors.textSecondary} />
           <Text style={styles.campoLabel}>Presença</Text>
           <ScrollView style={{ maxHeight: 240 }}>
             {membros.map((m) => {
@@ -298,7 +298,7 @@ function EncontroModal({
               return (
                 <Pressable key={m.usuario_id} style={styles.presencaLinha} onPress={() => togglePresenca(m.usuario_id)}>
                   <Text style={styles.itemNome}>{m.nome}</Text>
-                  <Text style={{ color: presente ? colors.accent : colors.dangerText, fontWeight: '700' }}>
+                  <Text style={{ color: presente ? colors.accentGreen : colors.danger, fontWeight: '700' }}>
                     {presente ? 'Presente' : 'Ausente'}
                   </Text>
                 </Pressable>
@@ -369,7 +369,7 @@ function LancamentoModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Novo lançamento</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -390,9 +390,9 @@ function LancamentoModal({
             ))}
           </ScrollView>
 
-          <TextInput style={styles.input} value={valor} onChangeText={setValor} placeholder="Valor (R$)" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
+          <TextInput style={styles.input} value={valor} onChangeText={setValor} placeholder="Valor (R$)" placeholderTextColor={colors.textSecondary} keyboardType="numeric" />
           <Pressable style={styles.input} onPress={() => setMostrarData(true)}>
-            <Text style={{ color: colors.text }}>{data.toLocaleDateString('pt-BR')}</Text>
+            <Text style={{ color: colors.textPrimary }}>{data.toLocaleDateString('pt-BR')}</Text>
           </Pressable>
           {mostrarData && (
             <DateTimePicker
@@ -413,42 +413,42 @@ function LancamentoModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  tabs: { flexDirection: 'row', backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
+  container: { flex: 1, backgroundColor: colors.bgPage },
+  tabs: { flexDirection: 'row', backgroundColor: colors.bgCard, borderBottomWidth: 1, borderBottomColor: colors.border },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabAtiva: { borderBottomColor: colors.primary },
-  tabTexto: { fontSize: 14, color: colors.textMuted, fontWeight: '600' },
+  tabTexto: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
   tabTextoAtivo: { color: colors.primary },
   conteudo: { padding: 20 },
   lista: { gap: 10, marginTop: 12 },
-  card: { backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
-  itemLinha: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
-  itemLinhaEntre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  card: { backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  itemLinha: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  itemLinhaEntre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarTexto: { fontSize: 12, fontWeight: '700', color: colors.primary },
-  itemNome: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
-  itemMeta: { fontSize: 12, color: colors.textMuted },
-  vazio: { fontSize: 14, color: colors.textMuted, textAlign: 'center', marginTop: 20 },
-  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.background },
+  itemNome: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  itemMeta: { fontSize: 12, color: colors.textSecondary },
+  vazio: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: 20 },
+  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.bgPage },
   statusTexto: { fontSize: 11, fontWeight: '700' },
   acao: { marginTop: 12 },
   cardsResumo: { gap: 12, paddingRight: 4 },
   cardResumo: { width: 150 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
   presencaLinha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   segmento: { flexDirection: 'row', gap: 8, marginTop: 4 },
   segItem: { flex: 1, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
   segItemAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  segTexto: { fontSize: 13, color: colors.text, fontWeight: '600' },
+  segTexto: { fontSize: 13, color: colors.textPrimary, fontWeight: '600' },
   segTextoAtivo: { color: '#fff' },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

@@ -85,7 +85,7 @@ export function ConfirmacaoContatoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 24, alignItems: 'center' },
+  container: { flex: 1, backgroundColor: colors.bgPage, padding: 24, alignItems: 'center' },
   iconeSucesso: {
     width: 64,
     height: 64,
@@ -96,16 +96,16 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   iconeSucessoTexto: { fontSize: 30, color: colors.success, fontWeight: '800' },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 16 },
+  titulo: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginTop: 16 },
   subtitulo: {
     fontSize: 14,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     paddingHorizontal: 20,
   },
   resumoCard: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 18,
     width: '100%',
@@ -113,8 +113,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  resumoNome: { fontSize: 18, fontWeight: '700', color: colors.text },
-  resumoLinha: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
+  resumoNome: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  resumoLinha: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
   lembreteBanner: {
     backgroundColor: colors.warningLight,
     color: colors.warning,
@@ -142,5 +142,5 @@ const styles = StyleSheet.create({
   },
   acaoTextoSecundario: { color: colors.primary, fontWeight: '700', fontSize: 14 },
   voltar: { marginTop: 20 },
-  voltarTexto: { color: colors.textMuted, fontSize: 13 },
+  voltarTexto: { color: colors.textSecondary, fontSize: 13 },
 });

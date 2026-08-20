@@ -32,9 +32,9 @@ const NIVEL_ICONE: Record<NivelEquipe, typeof Crown> = {
 
 const NIVEL_COR: Record<NivelEquipe, string> = {
   lideranca: colors.primary,
-  formacao: colors.accent,
-  servico: colors.amber,
-  membro: colors.textMuted,
+  formacao: colors.accentGreen,
+  servico: colors.warning,
+  membro: colors.textSecondary,
 };
 
 export function EquipeScreen({ comunidadeId, perfil }: { comunidadeId: string; perfil: Perfil }) {
@@ -175,11 +175,11 @@ export function EquipeScreen({ comunidadeId, perfil }: { comunidadeId: string; p
                       </Text>
                     </View>
                     <Pressable onPress={() => setParaEncerrar(c)} hitSlop={8} style={{ marginRight: 12 }}>
-                      <XCircle size={16} color={colors.textMuted} />
+                      <XCircle size={16} color={colors.textSecondary} />
                     </Pressable>
                     {isAdmin && (
                       <Pressable onPress={() => setParaExcluir(c)} hitSlop={8}>
-                        <Trash2 size={16} color={colors.textMuted} />
+                        <Trash2 size={16} color={colors.textSecondary} />
                       </Pressable>
                     )}
                   </View>
@@ -284,7 +284,7 @@ function NovoCargoModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Adicionar cargo</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -302,7 +302,7 @@ function NovoCargoModal({
                   value={busca}
                   onChangeText={setBusca}
                   placeholder="Buscar por nome..."
-                  placeholderTextColor={colors.textMuted}
+                  placeholderTextColor={colors.textSecondary}
                 />
                 {resultados.map((r) => (
                   <Pressable
@@ -337,7 +337,7 @@ function NovoCargoModal({
                 value={cargoCustom}
                 onChangeText={setCargoCustom}
                 placeholder="Qual cargo?"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.textSecondary}
               />
             )}
 
@@ -376,33 +376,33 @@ function NovoCargoModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 20, paddingBottom: 90, gap: 16 },
   secao: {},
   secaoTopo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  secaoTitulo: { fontSize: 14, fontWeight: '700', color: colors.text },
-  secaoContagem: { fontSize: 12, color: colors.textMuted },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
-  avatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  secaoTitulo: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  secaoContagem: { fontSize: 12, color: colors.textSecondary },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  avatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarTexto: { fontSize: 12, fontWeight: '700', color: colors.primary },
-  itemNome: { fontSize: 14, fontWeight: '700', color: colors.text },
-  itemMeta: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
+  itemNome: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  itemMeta: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accentGreen, alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: 'rgba(34,197,94,0.4)', shadowOpacity: 0.4, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   fabTexto: { color: '#FFFFFF', fontSize: 28, lineHeight: 30 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
   resultadoItem: { paddingVertical: 10, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: colors.border },
-  selecionadoBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.primaryLight, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
+  selecionadoBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.primaryXLight, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
   selecionadoTexto: { fontSize: 14, fontWeight: '600', color: colors.primary },
   trocarTexto: { fontSize: 12, color: colors.primary, textDecorationLine: 'underline' },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

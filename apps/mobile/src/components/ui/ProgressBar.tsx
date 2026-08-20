@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   trilho: {
     height: 8,
     borderRadius: 999,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryXLight,
     overflow: 'hidden',
   },
   preenchimento: { height: 8, borderRadius: 999 },

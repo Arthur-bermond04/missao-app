@@ -12,27 +12,24 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
   const secaoAtual = NAV.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   return (
-    <div
-      className="sticky top-0 z-20 flex h-12 items-center gap-3 bg-bg-card px-4 md:ml-[72px] md:px-6 lg:ml-[240px]"
-      style={{ borderBottom: '0.5px solid #E5E7EB' }}
-    >
-      <button onClick={onAbrirDrawer} className="rounded-md p-1.5 text-text-primary hover:bg-bg-page md:hidden">
+    <div className="sticky top-0 z-20 flex h-12 items-center gap-3 bg-topbar-bg px-4 md:ml-[72px] md:px-6 lg:ml-[240px]">
+      <button
+        onClick={onAbrirDrawer}
+        aria-label="Abrir menu"
+        className="rounded-md p-1.5 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green md:hidden"
+      >
         <Menu size={20} />
       </button>
 
-      <div className="flex items-center gap-1 text-sm">
-        <span className="hidden md:inline" style={{ color: '#6B7280' }}>
-          MissãoApp
-        </span>
+      <nav aria-label="Trilha de navegação" className="flex items-center gap-1 text-sm">
+        <span className="hidden text-sidebar-text md:inline">MissãoApp</span>
         {!!secaoAtual && (
           <>
-            <ChevronRight size={14} className="hidden md:inline" color="#9CA3AF" />
-            <span className="font-medium" style={{ color: '#111827' }}>
-              {secaoAtual.label}
-            </span>
+            <ChevronRight size={14} className="hidden text-sidebar-text/60 md:inline" />
+            <span className="font-medium text-sidebar-text-active">{secaoAtual.label}</span>
           </>
         )}
-      </div>
+      </nav>
 
       <div className="ml-auto flex items-center gap-1">
         <ParaFazerBell />

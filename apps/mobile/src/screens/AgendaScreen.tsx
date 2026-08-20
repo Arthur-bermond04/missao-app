@@ -33,7 +33,7 @@ const COR: Record<TipoEventoAgenda, string> = {
   ministerio: colors.primary,
   pastoral: colors.info,
   retiro: '#7C3AED',
-  avulso: colors.amber,
+  avulso: colors.warning,
 };
 
 export function AgendaScreen({ comunidadeId, usuarioId, perfil }: { comunidadeId: string; usuarioId: string; perfil: Perfil }) {
@@ -125,7 +125,7 @@ export function AgendaScreen({ comunidadeId, usuarioId, perfil }: { comunidadeId
               <Text style={styles.itemData}>{new Date(e.data).toLocaleDateString('pt-BR')}</Text>
               {e.tipo === 'avulso' && podeGerir && (
                 <Pressable onPress={() => setParaExcluir(e)} hitSlop={8} style={{ marginLeft: 6 }}>
-                  <Trash2 size={14} color={colors.textMuted} />
+                  <Trash2 size={14} color={colors.textSecondary} />
                 </Pressable>
               )}
             </View>
@@ -196,12 +196,12 @@ function NovoEventoModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Novo evento</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
-          <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} placeholder="Título" placeholderTextColor={colors.textMuted} />
+          <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} placeholder="Título" placeholderTextColor={colors.textSecondary} />
           <Pressable style={styles.input} onPress={() => setMostrarData(true)}>
-            <Text style={{ color: colors.text }}>{data.toLocaleDateString('pt-BR')}</Text>
+            <Text style={{ color: colors.textPrimary }}>{data.toLocaleDateString('pt-BR')}</Text>
           </Pressable>
           {mostrarData && (
             <DateTimePicker
@@ -211,7 +211,7 @@ function NovoEventoModal({
               onChange={(ev, d) => { setMostrarData(false); if (ev.type === 'set' && d) setData(d); }}
             />
           )}
-          <TextInput style={styles.input} value={local} onChangeText={setLocal} placeholder="Local (opcional)" placeholderTextColor={colors.textMuted} />
+          <TextInput style={styles.input} value={local} onChangeText={setLocal} placeholder="Local (opcional)" placeholderTextColor={colors.textSecondary} />
 
           <Text style={styles.campoLabel}>Tipo</Text>
           <View style={styles.chipsWrap}>
@@ -241,28 +241,28 @@ function NovoEventoModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 16, gap: 8, paddingBottom: 90 },
   legenda: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 8 },
   legItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   dot: { width: 9, height: 9, borderRadius: 5 },
-  legTexto: { fontSize: 11, color: colors.textMuted },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  legTexto: { fontSize: 11, color: colors.textSecondary },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
   iconeCirc: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  itemTitulo: { fontSize: 14, fontWeight: '600', color: colors.text },
-  itemSub: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
-  itemData: { fontSize: 12, fontWeight: '700', color: colors.textMuted },
+  itemTitulo: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  itemSub: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
+  itemData: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accentGreen, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   fabTexto: { color: '#fff', fontSize: 28, lineHeight: 30 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

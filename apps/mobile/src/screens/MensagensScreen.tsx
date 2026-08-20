@@ -59,9 +59,9 @@ function HistoricoCard({ mensagem }: { mensagem: MensagemEnviada }) {
           </Text>
         </View>
         {aberto ? (
-          <ChevronUp size={18} color={colors.textMuted} />
+          <ChevronUp size={18} color={colors.textSecondary} />
         ) : (
-          <ChevronDown size={18} color={colors.textMuted} />
+          <ChevronDown size={18} color={colors.textSecondary} />
         )}
       </View>
       {aberto && <Text style={styles.histCorpo}>{mensagem.corpo}</Text>}
@@ -171,7 +171,7 @@ export function MensagensScreen({
         <TextInput
           style={styles.input}
           placeholder="Ex: Encontro de missionários"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.textSecondary}
           value={titulo}
           onChangeText={setTitulo}
         />
@@ -180,7 +180,7 @@ export function MensagensScreen({
         <TextInput
           style={[styles.input, styles.textarea]}
           placeholder="Escreva sua mensagem..."
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.textSecondary}
           value={corpo}
           onChangeText={setCorpo}
           multiline
@@ -210,54 +210,54 @@ export function MensagensScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20, paddingBottom: 40 },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
+  titulo: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
   card: {
     marginTop: 16,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  cardTitulo: { fontSize: 15, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 14, marginBottom: 6 },
+  cardTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 14, marginBottom: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderWidth: 1,
     borderColor: colors.border,
   },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
   templateChip: {
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryXLight,
   },
   templateChipTexto: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
   },
   textarea: { height: 110 },
   enviar: { marginTop: 18 },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 24 },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 24 },
   histLista: { marginTop: 12, gap: 10 },
   histItem: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   histTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   histInfo: { flex: 1, marginRight: 8 },
-  histTitulo: { fontSize: 14, fontWeight: '700', color: colors.text },
-  histMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  histCorpo: { fontSize: 14, color: colors.text, marginTop: 10, lineHeight: 20 },
+  histTitulo: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  histMeta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  histCorpo: { fontSize: 14, color: colors.textPrimary, marginTop: 10, lineHeight: 20 },
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CORES, EIXO_GRAFICO, GRADE_GRAFICO, TOOLTIP_GRAFICO } from '@/lib/cores';
 import { ESTADOS_OVELHA_ENCONTRO } from '@/types/database';
 
 interface EstadoTimelineProps {
@@ -19,12 +20,12 @@ export function EstadoTimeline({ data }: EstadoTimelineProps) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data} margin={{ left: -10, right: 8, top: 8, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-        <XAxis dataKey="data" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={GRADE_GRAFICO} vertical={false} />
+        <XAxis dataKey="data" tick={EIXO_GRAFICO} axisLine={false} tickLine={false} />
         <YAxis
           domain={[1, 5]}
           ticks={[1, 2, 3, 4, 5]}
-          tick={{ fontSize: 11, fill: '#9CA3AF' }}
+          tick={EIXO_GRAFICO}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) => SCORE_LABEL[v as number] ?? String(v)}
@@ -32,14 +33,14 @@ export function EstadoTimeline({ data }: EstadoTimelineProps) {
         />
         <Tooltip
           formatter={(value) => [SCORE_LABEL[Number(value)] ?? String(value), 'Estado']}
-          contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }}
+          contentStyle={TOOLTIP_GRAFICO}
         />
         <Line
           type="monotone"
           dataKey="score"
-          stroke="#1A7A4A"
+          stroke={CORES.primary}
           strokeWidth={2}
-          dot={{ r: 4, fill: '#1A7A4A', strokeWidth: 0 }}
+          dot={{ r: 4, fill: CORES.primary, strokeWidth: 0 }}
           activeDot={{ r: 5 }}
         />
       </LineChart>

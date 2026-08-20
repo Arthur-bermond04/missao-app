@@ -76,7 +76,7 @@ export function AbaCaixa({ ministerio, comunidadeId, lancamentos, pessoas, onRef
           iconColor={saldo >= 0 ? 'accent' : 'danger'}
           label="Saldo atual"
           value={`R$ ${saldo.toFixed(2)}`}
-          valorClassName={saldo > 0 ? 'text-[#16A34A]' : saldo < 0 ? 'text-danger' : 'text-text-secondary'}
+          valorClassName={saldo > 0 ? 'text-success' : saldo < 0 ? 'text-danger' : 'text-text-secondary'}
         />
       </div>
 

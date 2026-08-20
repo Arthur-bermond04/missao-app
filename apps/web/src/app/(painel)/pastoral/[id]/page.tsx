@@ -48,6 +48,7 @@ import {
   listarPresencasOvelha,
   scoreEstadoEncontro,
 } from '@/lib/pastoral';
+import { CORES } from '@/lib/cores';
 import { labelEtapaFormacao, useTerminologia } from '@/lib/terminologia';
 import { listarRetirosDaPessoa } from '@/lib/pessoas';
 import { registrarAcessoRecente } from '@/lib/recentes';
@@ -414,7 +415,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         ],
         styles: {
           titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 6] },
-          aviso: { fontSize: 10, italics: true, color: '#DC2626', margin: [0, 0, 0, 12] },
+          aviso: { fontSize: 10, italics: true, color: CORES.danger, margin: [0, 0, 0, 12] },
           secao: { fontSize: 13, bold: true, margin: [0, 14, 0, 6] },
         },
       })

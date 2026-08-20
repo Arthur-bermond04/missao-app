@@ -27,20 +27,22 @@ export type BadgeVariant =
   | 'receita'
   | 'despesa';
 
-const VARIANT_CONFIG: Record<BadgeVariant, { bg: string; text: string; border?: string; icon: LucideIcon; label: string }> = {
-  quente: { bg: '#FEF3C7', text: '#D97706', icon: Flame, label: 'Quente' },
-  morno: { bg: '#DBEAFE', text: '#1D4ED8', icon: Droplet, label: 'Morno' },
-  frio: { bg: '#F3F4F6', text: '#6B7280', icon: Snowflake, label: 'Frio' },
-  pago: { bg: '#DCFCE7', text: '#16A34A', icon: CheckCircle2, label: 'Pago' },
-  pendente: { bg: '#FEF3C7', text: '#D97706', icon: Clock, label: 'Pendente' },
-  integrado: { bg: '#E8F5EE', text: '#1A7A4A', icon: BadgeCheck, label: 'Integrado' },
-  aberto: { bg: '#DBEAFE', text: '#1D4ED8', icon: CircleDot, label: 'Aberto' },
-  encerrado: { bg: '#F3F4F6', text: '#6B7280', icon: XCircle, label: 'Encerrado' },
-  realizado: { bg: '#DCFCE7', text: '#16A34A', icon: CheckCircle2, label: 'Realizado' },
-  ativo: { bg: '#DCFCE7', text: '#16A34A', icon: CheckCircle2, label: 'Ativo' },
-  inativo: { bg: '#F3F4F6', text: '#6B7280', icon: XCircle, label: 'Inativo' },
-  receita: { bg: '#DCFCE7', text: '#16A34A', icon: ArrowUpRight, label: 'Receita' },
-  despesa: { bg: '#FEE2E2', text: '#DC2626', icon: ArrowDownRight, label: 'Despesa' },
+// Pílula = fundo claro + texto saturado da mesma família. As classes saem dos
+// tokens de status do design system (globals.css), não de hex solto.
+const VARIANT_CONFIG: Record<BadgeVariant, { classes: string; icon: LucideIcon; label: string }> = {
+  quente: { classes: 'bg-warning-light text-warning', icon: Flame, label: 'Quente' },
+  morno: { classes: 'bg-info-light text-info', icon: Droplet, label: 'Morno' },
+  frio: { classes: 'bg-neutral-light text-neutral', icon: Snowflake, label: 'Frio' },
+  pago: { classes: 'bg-success-light text-success', icon: CheckCircle2, label: 'Pago' },
+  pendente: { classes: 'bg-warning-light text-warning', icon: Clock, label: 'Pendente' },
+  integrado: { classes: 'bg-primary-xlight text-primary', icon: BadgeCheck, label: 'Integrado' },
+  aberto: { classes: 'bg-info-light text-info', icon: CircleDot, label: 'Aberto' },
+  encerrado: { classes: 'bg-neutral-light text-neutral', icon: XCircle, label: 'Encerrado' },
+  realizado: { classes: 'bg-success-light text-success', icon: CheckCircle2, label: 'Realizado' },
+  ativo: { classes: 'bg-success-light text-success', icon: CheckCircle2, label: 'Ativo' },
+  inativo: { classes: 'bg-neutral-light text-neutral', icon: XCircle, label: 'Inativo' },
+  receita: { classes: 'bg-success-light text-success', icon: ArrowUpRight, label: 'Receita' },
+  despesa: { classes: 'bg-danger-light text-danger', icon: ArrowDownRight, label: 'Despesa' },
 };
 
 export function Badge({
@@ -52,12 +54,9 @@ export function Badge({
   children?: React.ReactNode;
   showIcon?: boolean;
 }) {
-  const { bg, text, border, icon: Icon, label } = VARIANT_CONFIG[variant];
+  const { classes, icon: Icon, label } = VARIANT_CONFIG[variant];
   return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
-      style={{ backgroundColor: bg, color: text, border: border ? `1px solid ${border}` : undefined }}
-    >
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${classes}`}>
       {showIcon && <Icon size={12} />}
       {children ?? label}
     </span>

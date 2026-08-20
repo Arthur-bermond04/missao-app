@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* O painel é desenhado só para tema claro (a navegação escura é decisão de
+     design, não dark mode). Declarar isso evita que o navegador aplique o
+     esquema escuro em controles nativos — select, scrollbar, date picker —
+     sobre uma UI que continua clara. */
+  color-scheme: light;
 }
 
 @theme inline {
@@ -36,15 +42,30 @@
   --color-info: #2563eb; /* azul — informações */
   --color-info-light: #dbeafe;
 
+  /* Neutro — pílulas e chips sem carga semântica (frio, inativo, encerrado) */
+  --color-neutral: #6b7280;
+  --color-neutral-light: #f3f4f6;
+
   /* Textos */
   --color-text-primary: #111827; /* quase preto — texto principal */
   --color-text-secondary: #6b7280; /* cinza médio — texto secundário */
   --color-text-muted: #9ca3af; /* cinza claro — placeholders */
 
   /* Fundos */
-  --color-bg-page: #f9fafb; /* cinza levíssimo — fundo da página */
+  --color-bg-page: #f9fafb; /* cinza levíssimo — fundo de áreas internas */
   --color-bg-card: #ffffff; /* branco puro — cards */
-  --color-bg-sidebar: #ffffff; /* branco — sidebar */
+  --color-content-bg: #f4f5f7; /* cinza claro — "chão" da página, sob os cards */
+
+  /* Navegação escura — sidebar e topbar.
+     Cinza-azulado neutro, não preto e não azul saturado: o contraste com os
+     cards brancos vem do tom, e o verde da marca fica reservado para o item
+     ativo e para as ações primárias. */
+  --color-sidebar-bg: #2e3446;
+  --color-sidebar-bg-hover: #3a4156;
+  --color-sidebar-border: #3a4156;
+  --color-sidebar-text: #a7adbc;
+  --color-sidebar-text-active: #ffffff;
+  --color-topbar-bg: #2e3446;
 
   /* Bordas */
   --color-border: #e5e7eb; /* cinza suave — bordas padrão */
@@ -60,33 +81,29 @@
   --shadow-hover: 0 4px 12px rgba(22, 163, 74, 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-}
-
-h1,
-.logo-text {
-  font-family: var(--font-cinzel), Georgia, serif;
 }
 
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f9fafb;
+  background: var(--color-bg-page);
 }
 ::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
+  background: var(--color-border);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #22c55e;
+  background: var(--color-accent-green);
+}
+
+/* Scrollbar dentro da navegação escura — a clara sumiria no fundo. */
+.scrollbar-escura::-webkit-scrollbar-track {
+  background: var(--color-sidebar-bg);
+}
+.scrollbar-escura::-webkit-scrollbar-thumb {
+  background: var(--color-sidebar-border);
 }

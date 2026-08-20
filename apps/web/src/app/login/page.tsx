@@ -32,26 +32,15 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Coluna esquerda — identidade */}
-      <div
-        className="hidden w-2/5 flex-col justify-between p-10 lg:flex"
-        style={{ background: 'linear-gradient(135deg, #1A7A4A 0%, #0F5233 100%)' }}
-      >
+      <div className="hidden w-2/5 flex-col justify-between bg-linear-135 from-primary to-primary-dark p-10 lg:flex">
         <div />
         <div>
           <Logo size={64} variant="white" showText />
-          <h2 className="mt-6 text-[26px] font-normal leading-tight text-white" style={{ fontFamily: 'Georgia, serif' }}>
-            Cada pessoa importa na missão.
-          </h2>
+          <h2 className="mt-6 text-[26px] font-semibold leading-tight text-white">Cada pessoa importa na missão.</h2>
           <p className="mt-3 text-sm text-white/75">Acompanhe sua equipe, seus contatos e seus retiros.</p>
-
-          {/* Ornamento decorativo */}
-          <div className="mt-5 flex items-center gap-3" aria-hidden="true">
-            <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.2)' }} />
-            <span className="text-xs text-white/70">✝</span>
-            <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.2)' }} />
-          </div>
+          <div className="mt-5 h-px w-16 bg-white/20" aria-hidden="true" />
         </div>
-        <p className="logo-text text-sm text-white/40">MissãoApp</p>
+        <p className="text-sm text-white/40">MissãoApp</p>
       </div>
 
       {/* Coluna direita — formulário */}
@@ -88,7 +77,7 @@ export default function LoginPage() {
           </Button>
 
           <p className="mt-4 text-center text-xs">
-            <a href="#" className="hover:underline" style={{ color: '#1A7A4A' }}>
+            <a href="#" className="text-primary hover:underline">
               Esqueci minha senha
             </a>
           </p>

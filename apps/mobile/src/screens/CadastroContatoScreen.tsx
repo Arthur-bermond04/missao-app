@@ -127,7 +127,7 @@ export function CadastroContatoScreen({
         value={nome}
         onChangeText={setNome}
         placeholder="Nome da pessoa"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         autoFocus
       />
 
@@ -137,7 +137,7 @@ export function CadastroContatoScreen({
         value={telefone}
         onChangeText={setTelefone}
         placeholder="(00) 00000-0000"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         keyboardType="phone-pad"
       />
 
@@ -147,7 +147,7 @@ export function CadastroContatoScreen({
         value={idade}
         onChangeText={setIdade}
         placeholder="Idade"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         keyboardType="number-pad"
       />
 
@@ -175,7 +175,7 @@ export function CadastroContatoScreen({
         value={localAbordagem}
         onChangeText={setLocalAbordagem}
         placeholder="Detectando localização..."
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
       />
 
       <Text style={styles.label}>Tags de interesse</Text>
@@ -200,7 +200,7 @@ export function CadastroContatoScreen({
         value={observacoes}
         onChangeText={setObservacoes}
         placeholder="Alguma observação sobre a conversa..."
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         multiline
         numberOfLines={4}
       />
@@ -221,18 +221,18 @@ export function CadastroContatoScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20, paddingBottom: 60 },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginTop: 14, marginBottom: 6 },
+  titulo: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginTop: 14, marginBottom: 6 },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
   },
   textarea: { minHeight: 90, textAlignVertical: 'top' },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
   },
   nivelEmoji: { fontSize: 24 },
   nivelLabel: { fontWeight: '700', marginTop: 4, fontSize: 13 },
@@ -252,12 +252,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderWidth: 1,
     borderColor: colors.border,
   },
   tagChipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  tagTexto: { fontSize: 12, color: colors.text },
+  tagTexto: { fontSize: 12, color: colors.textPrimary },
   tagTextoAtivo: { color: '#fff', fontWeight: '600' },
   salvarBotao: {
     backgroundColor: colors.primary,

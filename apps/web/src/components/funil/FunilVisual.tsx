@@ -1,6 +1,5 @@
-// Degradê verde claro → verde missão escuro (sequencial — não é categórico,
-// então não precisa do validador de paleta, só contraste de texto).
-const CORES_DEGRADE = ['#F0FDF4', '#BBF7D0', '#86EFAC', '#22C55E', '#0F5233'];
+import { CORES, DEGRADE_FUNIL } from '@/lib/cores';
+
 const ALTURA_ETAPA = 56;
 const GAP = 4;
 
@@ -34,7 +33,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
         ]
           .map((p) => p.join(','))
           .join(' ');
-        const cor = CORES_DEGRADE[Math.min(i, CORES_DEGRADE.length - 1)];
+        const cor = DEGRADE_FUNIL[Math.min(i, DEGRADE_FUNIL.length - 1)];
         const textoEscuro = luminanciaRelativa(cor) > 0.45;
         return (
           <g key={etapa.label}>
@@ -48,7 +47,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
               textAnchor="middle"
               fontSize="5.5"
               fontWeight="700"
-              fill={textoEscuro ? '#111827' : '#F0FDF4'}
+              fill={textoEscuro ? CORES.textPrimary : CORES.accentGreenBg}
             >
               {etapa.label}
             </text>
@@ -57,7 +56,7 @@ export function FunilVisual({ etapas }: { etapas: { label: string; total: number
               y={yTop + ALTURA_ETAPA / 2 + 8}
               textAnchor="middle"
               fontSize="5"
-              fill={textoEscuro ? '#6B7280' : '#BBF7D0'}
+              fill={textoEscuro ? CORES.textSecondary : CORES.borderGreen}
             >
               {etapa.total}
             </text>

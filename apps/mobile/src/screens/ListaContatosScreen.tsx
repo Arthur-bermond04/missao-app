@@ -82,7 +82,7 @@ export function ListaContatosScreen({
       <TextInput
         style={styles.busca}
         placeholder="Buscar por nome ou telefone"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         value={busca}
         onChangeText={setBusca}
       />
@@ -180,19 +180,19 @@ export function ListaContatosScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
-  contador: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  titulo: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
+  contador: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   busca: {
     marginHorizontal: 20,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
   },
   chips: {
     flexDirection: 'row',
@@ -204,19 +204,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderWidth: 1,
     borderColor: colors.border,
   },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
   lista: { padding: 20, paddingBottom: 100, gap: 10 },
-  vazio: { textAlign: 'center', color: colors.textMuted, marginTop: 60 },
+  vazio: { textAlign: 'center', color: colors.textSecondary, marginTop: 60 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 14,
     padding: 12,
     gap: 12,
@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   cardInfo: { flex: 1 },
-  cardNome: { fontSize: 15, fontWeight: '700', color: colors.text },
-  cardLocal: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  cardNome: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  cardLocal: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   cardDireita: { alignItems: 'flex-end', gap: 4 },
-  pendente: { fontSize: 10, color: colors.textMuted },
+  pendente: { fontSize: 10, color: colors.textSecondary },
   fab: {
     position: 'absolute',
     right: 20,
@@ -253,8 +253,8 @@ const styles = StyleSheet.create({
   fabOpcoes: { position: 'absolute', right: 20, bottom: 92, alignItems: 'flex-end', gap: 12 },
   fabOpcaoLinha: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   fabOpcaoLabel: {
-    backgroundColor: colors.card,
-    color: colors.text,
+    backgroundColor: colors.bgCard,
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '600',
     paddingHorizontal: 12,

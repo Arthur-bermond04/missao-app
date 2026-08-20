@@ -40,7 +40,7 @@ export function Modal({ open, onClose, title, description, size = 'md', children
       >
         <div className="flex items-start justify-between border-b border-border pb-3">
           <div>
-            <h2 className="logo-text text-lg font-medium text-text-primary">{title}</h2>
+            <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
             {!!description && <p className="mt-1 text-sm text-text-secondary">{description}</p>}
           </div>
           <button onClick={onClose} className="rounded-md p-1 text-text-secondary hover:bg-primary-xlight">

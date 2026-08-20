@@ -27,21 +27,14 @@ export function QuickActions() {
             <Link
               key={a.href}
               href={a.href}
-              className="flex items-center gap-3 rounded-md border-[0.5px] border-[#E5E7EB] bg-white p-4 transition-all hover:border-[#BBF7D0] hover:bg-[#F0FDF4] hover:shadow-hover"
+              className="flex items-center gap-3 rounded-md border-[0.5px] border-border bg-bg-card p-4 transition-all hover:border-border-green hover:bg-accent-green-bg hover:shadow-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green"
             >
-              <div
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: '#E8F5EE', color: '#1A7A4A' }}
-              >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-primary">
                 <Icon size={20} />
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: '#111827' }}>
-                  {a.titulo}
-                </p>
-                <p className="text-xs" style={{ color: '#6B7280' }}>
-                  {a.descricao}
-                </p>
+                <p className="text-sm font-medium text-text-primary">{a.titulo}</p>
+                <p className="text-xs text-text-secondary">{a.descricao}</p>
               </div>
             </Link>
           );

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, Bell, Check, ChevronRight, FileDown, Info, ShieldAlert } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
+import { CORES } from '@/lib/cores';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -106,7 +107,7 @@ export default function AlertasPage() {
         content,
         styles: {
           titulo: { fontSize: 16, bold: true, margin: [0, 0, 0, 4] },
-          sub: { fontSize: 10, color: '#6B6B8A', margin: [0, 0, 0, 12] },
+          sub: { fontSize: 10, color: CORES.textSecondary, margin: [0, 0, 0, 12] },
           secao: { fontSize: 13, bold: true, margin: [0, 12, 0, 6] },
         },
       })

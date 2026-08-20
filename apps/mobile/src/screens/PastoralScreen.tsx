@@ -132,7 +132,7 @@ export function PastoralScreen({ comunidadeId, usuarioId }: { comunidadeId: stri
                 <EstadoBadge estado={item.estado_espiritual} />
                 {totalFrutos > 0 && (
                   <View style={styles.frutosBadge}>
-                    <Sparkles size={11} color={colors.accent} />
+                    <Sparkles size={11} color={colors.accentGreen} />
                     <Text style={styles.frutosBadgeTexto}>{totalFrutos}</Text>
                   </View>
                 )}
@@ -197,11 +197,11 @@ function NovaOvelhaModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Nova {nomeOvelha.toLowerCase()}</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
-          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor={colors.textMuted} />
-          <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} placeholder="Telefone (opcional)" placeholderTextColor={colors.textMuted} />
+          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor={colors.textSecondary} />
+          <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} placeholder="Telefone (opcional)" placeholderTextColor={colors.textSecondary} />
           <Button label="Adicionar" onPress={salvar} loading={salvando} style={{ marginTop: 12 }} />
         </View>
       </View>
@@ -210,25 +210,25 @@ function NovaOvelhaModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 20, gap: 10, paddingBottom: 90 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.border },
-  cardCritico: { borderColor: colors.dangerText, borderWidth: 1.5 },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.bgCard, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.border },
+  cardCritico: { borderColor: colors.danger, borderWidth: 1.5 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarTexto: { fontSize: 13, fontWeight: '700', color: colors.primary },
   info: { flex: 1 },
-  nome: { fontSize: 15, fontWeight: '700', color: colors.text },
-  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  metaSecundaria: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
-  frutosBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
-  frutosBadgeTexto: { fontSize: 11, fontWeight: '700', color: colors.accent },
+  nome: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  metaSecundaria: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  frutosBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.successLight, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
+  frutosBadgeTexto: { fontSize: 11, fontWeight: '700', color: colors.accentGreen },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   badgeTexto: { fontSize: 12, fontWeight: '600' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accentGreen, alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: 'rgba(34,197,94,0.4)', shadowOpacity: 0.4, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   fabTexto: { color: '#FFFFFF', fontSize: 28, lineHeight: 30 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
 });

@@ -64,7 +64,7 @@ export function PerfilScreen({ usuario, onSair }: { usuario: Usuario; onSair: ()
             <KeyRound size={18} color={colors.primary} />
             <Text style={styles.itemLabel}>Alterar senha</Text>
           </View>
-          <ChevronRight size={18} color={colors.textMuted} />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <View style={styles.separador} />
@@ -103,15 +103,15 @@ export function PerfilScreen({ usuario, onSair }: { usuario: Usuario; onSair: ()
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20, paddingBottom: 40 },
   topo: { alignItems: 'center', paddingVertical: 12 },
-  nome: { fontSize: 20, fontWeight: '800', color: colors.text, marginTop: 12 },
+  nome: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginTop: 12 },
   perfil: { fontSize: 14, color: colors.primary, fontWeight: '600', marginTop: 2 },
-  comunidade: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  secaoTitulo: { fontSize: 13, fontWeight: '700', color: colors.textMuted, marginTop: 20, marginBottom: 8 },
+  comunidade: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  secaoTitulo: { fontSize: 13, fontWeight: '700', color: colors.textSecondary, marginTop: 20, marginBottom: 8 },
   card: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
@@ -120,10 +120,10 @@ const styles = StyleSheet.create({
   item: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16 },
   itemColuna: { paddingVertical: 16 },
   itemEsquerda: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  itemLabel: { fontSize: 15, color: colors.text, fontWeight: '500' },
+  itemLabel: { fontSize: 15, color: colors.textPrimary, fontWeight: '500' },
   separador: { height: 1, backgroundColor: colors.border },
-  dispositivoId: { fontSize: 13, color: colors.text, marginTop: 10 },
-  dispositivoAcesso: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
+  dispositivoId: { fontSize: 13, color: colors.textPrimary, marginTop: 10 },
+  dispositivoAcesso: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
   redefinir: { marginTop: 12, alignSelf: 'flex-start' },
   sair: { marginTop: 24 },
 });

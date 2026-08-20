@@ -136,13 +136,13 @@ function InfoLinha({ label, valor }: { label: string; valor: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20, paddingBottom: 60 },
-  vazio: { textAlign: 'center', color: colors.textMuted, marginTop: 60 },
+  vazio: { textAlign: 'center', color: colors.textSecondary, marginTop: 60 },
   cabecalho: { alignItems: 'center', gap: 8, marginBottom: 20 },
-  nome: { fontSize: 20, fontWeight: '800', color: colors.text },
+  nome: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   card: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -150,17 +150,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   infoLinha: { gap: 2 },
-  label: { fontSize: 12, color: colors.textMuted, fontWeight: '600' },
-  valor: { fontSize: 14, color: colors.text },
+  label: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+  valor: { fontSize: 14, color: colors.textPrimary },
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   tagChip: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryXLight,
   },
   tagTexto: { fontSize: 11, color: colors.primary, fontWeight: '600' },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 24, marginBottom: 12 },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 24, marginBottom: 12 },
   timeline: { flexDirection: 'row', alignItems: 'center' },
   timelineItem: { flex: 1, alignItems: 'center' },
   timelineBolinha: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   timelineBolinhaAtiva: { backgroundColor: colors.primary },
-  timelineLabel: { fontSize: 10, color: colors.textMuted, marginTop: 4, textAlign: 'center' },
+  timelineLabel: { fontSize: 10, color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
   timelineLabelAtivo: { color: colors.primary, fontWeight: '700' },
   timelineLinha: {
     position: 'absolute',

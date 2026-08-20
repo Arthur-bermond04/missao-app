@@ -54,16 +54,12 @@ export function ParaFazerBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setAberto((v) => !v)}
-        className="group relative rounded-md p-2 hover:bg-bg-page"
-        style={{ color: '#6B7280' }}
+        className="group relative rounded-md p-2 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green"
         title="Para fazer"
       >
-        <ListChecks size={18} className="transition-colors group-hover:text-[#1A7A4A]" />
+        <ListChecks size={18} />
         {pendentesAgora > 0 && (
-          <span
-            className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
-            style={{ backgroundColor: '#DC2626' }}
-          >
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
             {pendentesAgora > 9 ? '9+' : pendentesAgora}
           </span>
         )}

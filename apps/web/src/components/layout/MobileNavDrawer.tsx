@@ -23,10 +23,14 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
   return createPortal(
     <div className="fixed inset-0 z-30 flex md:hidden">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative flex w-72 flex-col bg-white">
+      <div className="scrollbar-escura relative flex w-72 flex-col overflow-y-auto bg-sidebar-bg">
         <div className="flex items-center justify-between px-5 pb-5 pt-6">
-          <Logo size={32} variant="color" showText />
-          <button onClick={onClose} className="rounded-md p-1 hover:bg-[#F9FAFB]" style={{ color: '#6B7280' }}>
+          <Logo size={32} variant="white" showText />
+          <button
+            onClick={onClose}
+            aria-label="Fechar menu"
+            className="rounded-md p-1 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green"
+          >
             <X size={20} />
           </button>
         </div>
@@ -40,40 +44,33 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: ativo ? '#E8F5EE' : 'transparent',
-                  color: ativo ? '#1A7A4A' : '#374151',
-                }}
+                aria-current={ativo ? 'page' : undefined}
+                className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+                  ativo
+                    ? 'bg-sidebar-bg-hover text-sidebar-text-active'
+                    : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
+                }`}
               >
-                <Icon size={18} color={ativo ? '#22C55E' : '#6B7280'} />
+                <Icon size={18} className={ativo ? 'text-accent-green' : ''} />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="px-4 py-4" style={{ backgroundColor: '#F9FAFB', borderTop: '0.5px solid #E5E7EB' }}>
+        <div className="border-t border-sidebar-border px-4 py-4">
           <div className="flex items-center gap-2">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold"
-              style={{ backgroundColor: '#E8F5EE', color: '#1A7A4A' }}
-            >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
               {usuario ? iniciais(usuario.nome) : ''}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium" style={{ color: '#111827' }}>
-                {usuario?.nome}
-              </p>
-              <p className="text-xs" style={{ color: '#6B7280' }}>
-                {usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}
-              </p>
+              <p className="truncate text-sm font-medium text-sidebar-text-active">{usuario?.nome}</p>
+              <p className="text-xs text-sidebar-text">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
             </div>
           </div>
           <button
             onClick={handleSair}
-            className="mt-3 flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors"
-            style={{ borderColor: '#E5E7EB', color: '#6B7280' }}
+            className="mt-3 flex w-full items-center gap-2 rounded-md border border-sidebar-border px-2 py-1.5 text-xs text-sidebar-text transition-colors hover:border-danger hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg"
           >
             <LogOut size={14} />
             Sair

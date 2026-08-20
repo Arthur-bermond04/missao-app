@@ -13,6 +13,7 @@ import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { buscarComunidade } from '@/lib/comunidades';
+import { CORES } from '@/lib/cores';
 import {
   criarEventoAvulso,
   excluirEventoAvulso,
@@ -36,11 +37,13 @@ const ICONE_TIPO: Record<TipoEventoAgenda, typeof HandHeart> = {
   avulso: Sparkle,
 };
 
+// Valor literal (e não classe) porque a bolinha de legenda e o ícone montam a
+// versão translúcida concatenando alfa no hex.
 const COR_TIPO: Record<TipoEventoAgenda, string> = {
-  ministerio: '#1A7A4A',
-  pastoral: '#2563EB',
-  retiro: '#7C3AED',
-  avulso: '#D97706',
+  ministerio: CORES.primary,
+  pastoral: CORES.info,
+  retiro: CORES.roxo,
+  avulso: CORES.warning,
 };
 
 const LABEL_TIPO: Record<TipoEventoAgenda, string> = {

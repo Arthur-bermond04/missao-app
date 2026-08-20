@@ -14,9 +14,9 @@ import type { Perfil } from '../types/database';
 const PERFIS_PASTORAL: Perfil[] = ['lider', 'coordenador', 'padre', 'admin'];
 
 const COR_PRIORIDADE: Record<PrioridadeParaFazer, string> = {
-  urgente: colors.dangerText,
-  hoje: colors.amber,
-  semana: colors.accent,
+  urgente: colors.danger,
+  hoje: colors.warning,
+  semana: colors.accentGreen,
 };
 
 const LABEL_PRIORIDADE: Record<PrioridadeParaFazer, string> = {
@@ -105,7 +105,7 @@ export function DashboardScreen({
                     {LABEL_PRIORIDADE[item.prioridade]} · {item.descricao}
                   </Text>
                 </View>
-                <ChevronRight size={16} color={colors.textMuted} />
+                <ChevronRight size={16} color={colors.textSecondary} />
               </Pressable>
             ))}
           </View>
@@ -116,8 +116,8 @@ export function DashboardScreen({
         <MetricCard
           style={styles.gridItem}
           icon={Users}
-          iconColor={colors.goldDark}
-          iconBg={colors.goldBg}
+          iconColor={colors.primaryDark}
+          iconBg={colors.primaryXLight}
           label="Membros ativos"
           value={d.membrosAtivos}
         />
@@ -132,8 +132,8 @@ export function DashboardScreen({
         <MetricCard
           style={styles.gridItem}
           icon={Tent}
-          iconColor={colors.goldDark}
-          iconBg={colors.goldBg}
+          iconColor={colors.primaryDark}
+          iconBg={colors.primaryXLight}
           label="Próximo retiro"
           value={d.proximoRetiro?.nome ?? 'Nenhum'}
           subtitle={
@@ -143,8 +143,8 @@ export function DashboardScreen({
         <MetricCard
           style={styles.gridItem}
           icon={Wallet}
-          iconColor={colors.goldDark}
-          iconBg={colors.goldBg}
+          iconColor={colors.primaryDark}
+          iconBg={colors.primaryXLight}
           label="Arrecadação do mês"
           value={`R$ ${d.arrecadacaoMes.toFixed(2)}`}
         />
@@ -179,55 +179,55 @@ export function DashboardScreen({
 
       {/* Acesso a Ministérios e Pastoral */}
       <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Ministerios')}>
-        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryXLight }]}>
           <HandHeart size={18} color={colors.primary} />
         </View>
         <Text style={styles.acessoLabel}>Meus ministérios</Text>
-        <ChevronRight size={18} color={colors.textMuted} />
+        <ChevronRight size={18} color={colors.textSecondary} />
       </Pressable>
 
       {podePastoral && (
         <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Pastoral')}>
-          <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+          <View style={[styles.acessoIcone, { backgroundColor: colors.primaryXLight }]}>
             <Heart size={18} color={colors.primary} />
           </View>
           <Text style={styles.acessoLabel}>Acompanhamento pastoral</Text>
-          <ChevronRight size={18} color={colors.textMuted} />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </Pressable>
       )}
 
       <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Celulas')}>
-        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryXLight }]}>
           <Users2 size={18} color={colors.primary} />
         </View>
         <Text style={styles.acessoLabel}>Células</Text>
-        <ChevronRight size={18} color={colors.textMuted} />
+        <ChevronRight size={18} color={colors.textSecondary} />
       </Pressable>
 
       <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Agenda')}>
-        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+        <View style={[styles.acessoIcone, { backgroundColor: colors.primaryXLight }]}>
           <Calendar size={18} color={colors.primary} />
         </View>
         <Text style={styles.acessoLabel}>Agenda</Text>
-        <ChevronRight size={18} color={colors.textMuted} />
+        <ChevronRight size={18} color={colors.textSecondary} />
       </Pressable>
 
       {podeGestao && (
         <>
           <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Monitoria')}>
-            <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+            <View style={[styles.acessoIcone, { backgroundColor: colors.primaryXLight }]}>
               <Gauge size={18} color={colors.primary} />
             </View>
             <Text style={styles.acessoLabel}>Monitoria pastoral</Text>
-            <ChevronRight size={18} color={colors.textMuted} />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </Pressable>
 
           <Pressable style={styles.acessoCard} onPress={() => navigation.navigate('Alertas')}>
-            <View style={[styles.acessoIcone, { backgroundColor: colors.primaryLight }]}>
+            <View style={[styles.acessoIcone, { backgroundColor: colors.primaryXLight }]}>
               <Bell size={18} color={colors.primary} />
             </View>
             <Text style={styles.acessoLabel}>Alertas</Text>
-            <ChevronRight size={18} color={colors.textMuted} />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </Pressable>
         </>
       )}
@@ -236,45 +236,45 @@ export function DashboardScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  centro: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: colors.bgPage },
+  centro: { flex: 1, backgroundColor: colors.bgPage, alignItems: 'center', justifyContent: 'center' },
   conteudo: { padding: 20, paddingBottom: 40 },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 14, color: colors.textMuted, marginTop: 2 },
+  titulo: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
+  subtitulo: { fontSize: 14, color: colors.textSecondary, marginTop: 2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 16 },
   gridItem: { width: '47.5%', flexGrow: 1 },
   secao: {
     marginTop: 20,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text },
-  vazio: { fontSize: 14, color: colors.textMuted, marginTop: 12 },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  vazio: { fontSize: 14, color: colors.textSecondary, marginTop: 12 },
   acessoCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     marginTop: 12,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
   },
   acessoIcone: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  acessoLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
+  acessoLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.textPrimary },
   funilLista: { marginTop: 12, gap: 12 },
   funilItem: { gap: 6 },
   funilLinha: { flexDirection: 'row', justifyContent: 'space-between' },
-  funilLabel: { fontSize: 14, color: colors.text, fontWeight: '600' },
-  funilNumero: { fontSize: 14, color: colors.textMuted },
+  funilLabel: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
+  funilNumero: { fontSize: 14, color: colors.textSecondary },
   verFunil: { marginTop: 16 },
   paraFazerCard: {
     marginTop: 16,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -291,8 +291,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   prioridadeDot: { width: 8, height: 8, borderRadius: 4 },
-  avatarPeq: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  avatarPeq: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarPeqTexto: { fontSize: 11, fontWeight: '700', color: colors.primary },
-  paraFazerNome: { fontSize: 14, fontWeight: '600', color: colors.text },
-  paraFazerDesc: { fontSize: 11, color: colors.textMuted, marginTop: 1 },
+  paraFazerNome: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  paraFazerDesc: { fontSize: 11, color: colors.textSecondary, marginTop: 1 },
 });

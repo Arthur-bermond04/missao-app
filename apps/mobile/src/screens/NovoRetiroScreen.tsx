@@ -46,25 +46,25 @@ export function NovoRetiroScreen({ comunidadeId }: { comunidadeId: string }) {
       <Text style={styles.titulo}>Novo retiro</Text>
 
       <Text style={styles.label}>Nome *</Text>
-      <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Ex: Retiro de Emaús" placeholderTextColor={colors.textMuted} />
+      <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Ex: Retiro de Emaús" placeholderTextColor={colors.textSecondary} />
 
       <Text style={styles.label}>Data de início * (AAAA-MM-DD)</Text>
-      <TextInput style={styles.input} value={dataInicio} onChangeText={setDataInicio} placeholder="2026-08-15" placeholderTextColor={colors.textMuted} />
+      <TextInput style={styles.input} value={dataInicio} onChangeText={setDataInicio} placeholder="2026-08-15" placeholderTextColor={colors.textSecondary} />
 
       <Text style={styles.label}>Data de fim * (AAAA-MM-DD)</Text>
-      <TextInput style={styles.input} value={dataFim} onChangeText={setDataFim} placeholder="2026-08-17" placeholderTextColor={colors.textMuted} />
+      <TextInput style={styles.input} value={dataFim} onChangeText={setDataFim} placeholder="2026-08-17" placeholderTextColor={colors.textSecondary} />
 
       <Text style={styles.label}>Local</Text>
-      <TextInput style={styles.input} value={local} onChangeText={setLocal} placeholder="Sítio da comunidade" placeholderTextColor={colors.textMuted} />
+      <TextInput style={styles.input} value={local} onChangeText={setLocal} placeholder="Sítio da comunidade" placeholderTextColor={colors.textSecondary} />
 
       <View style={styles.linha}>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>Vagas</Text>
-          <TextInput style={styles.input} value={vagas} onChangeText={setVagas} keyboardType="number-pad" placeholder="50" placeholderTextColor={colors.textMuted} />
+          <TextInput style={styles.input} value={vagas} onChangeText={setVagas} keyboardType="number-pad" placeholder="50" placeholderTextColor={colors.textSecondary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>Valor (R$)</Text>
-          <TextInput style={styles.input} value={valor} onChangeText={setValor} keyboardType="decimal-pad" placeholder="150.00" placeholderTextColor={colors.textMuted} />
+          <TextInput style={styles.input} value={valor} onChangeText={setValor} keyboardType="decimal-pad" placeholder="150.00" placeholderTextColor={colors.textSecondary} />
         </View>
       </View>
 
@@ -76,18 +76,18 @@ export function NovoRetiroScreen({ comunidadeId }: { comunidadeId: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20, paddingBottom: 60 },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginTop: 14, marginBottom: 6 },
+  titulo: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginTop: 14, marginBottom: 6 },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
   },
   linha: { flexDirection: 'row', gap: 12 },

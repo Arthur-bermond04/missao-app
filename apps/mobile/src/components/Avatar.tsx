@@ -19,7 +19,7 @@ export function Avatar({ nome, size = 44 }: { nome: string; size?: number }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryXLight,
     alignItems: 'center',
     justifyContent: 'center',
   },

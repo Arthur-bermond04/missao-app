@@ -8,9 +8,9 @@ import { gerarAlertas, type AlertaCentral, type NivelAlerta } from '../lib/alert
 import type { Usuario } from '../types/database';
 
 const NIVEL_COR: Record<NivelAlerta, string> = {
-  urgente: colors.dangerText,
-  atencao: colors.amber,
-  informativo: colors.accent,
+  urgente: colors.danger,
+  atencao: colors.warning,
+  informativo: colors.accentGreen,
 };
 const NIVEL_LABEL: Record<NivelAlerta, string> = {
   urgente: 'URGENTE',
@@ -85,15 +85,15 @@ export function AlertasScreen({ usuario }: { usuario: Usuario }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 16, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  headerTexto: { fontSize: 13, color: colors.textMuted, flex: 1 },
-  secaoTitulo: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, marginTop: 14, marginBottom: 6, backgroundColor: colors.background },
-  card: { backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, borderLeftWidth: 4, padding: 12, marginBottom: 8 },
+  headerTexto: { fontSize: 13, color: colors.textSecondary, flex: 1 },
+  secaoTitulo: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, marginTop: 14, marginBottom: 6, backgroundColor: colors.bgPage },
+  card: { backgroundColor: colors.bgCard, borderRadius: 12, borderWidth: 1, borderColor: colors.border, borderLeftWidth: 4, padding: 12, marginBottom: 8 },
   cardTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  mensagem: { flex: 1, fontSize: 14, color: colors.text, fontWeight: '500' },
-  moduloPill: { backgroundColor: colors.background, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  moduloTexto: { fontSize: 10, color: colors.textMuted, fontWeight: '600' },
-  detalhe: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
+  mensagem: { flex: 1, fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
+  moduloPill: { backgroundColor: colors.bgPage, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  moduloTexto: { fontSize: 10, color: colors.textSecondary, fontWeight: '600' },
+  detalhe: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
 });

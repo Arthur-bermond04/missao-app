@@ -29,15 +29,19 @@ function PainelShell({ children }: { children: React.ReactNode }) {
       {usuario?.comunidade_id ? (
         <Topbar comunidadeId={usuario.comunidade_id} onAbrirDrawer={() => setDrawerAberto(true)} />
       ) : (
-        <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-bg-card px-4 py-3 md:hidden">
-          <button onClick={() => setDrawerAberto(true)} className="rounded-md p-1.5 text-text-primary hover:bg-bg-page">
+        <div className="sticky top-0 z-20 flex items-center gap-3 bg-topbar-bg px-4 py-3 md:hidden">
+          <button
+            onClick={() => setDrawerAberto(true)}
+            aria-label="Abrir menu"
+            className="rounded-md p-1.5 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active"
+          >
             <Menu size={22} />
           </button>
-          <span className="text-lg font-bold text-primary">✝ MissãoApp</span>
+          <span className="text-lg font-semibold text-sidebar-text-active">MissãoApp</span>
         </div>
       )}
 
-      <main className="min-h-screen bg-bg-page p-4 md:ml-[72px] md:p-6 lg:ml-[240px] lg:p-8">{children}</main>
+      <main className="min-h-screen bg-content-bg p-4 md:ml-[72px] md:p-6 lg:ml-[240px] lg:p-8">{children}</main>
     </>
   );
 }

@@ -34,7 +34,7 @@ export function LoginScreen({
       <TextInput
         style={styles.input}
         placeholder="E-mail"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -43,7 +43,7 @@ export function LoginScreen({
       <TextInput
         style={styles.input}
         placeholder="Senha"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={senha}
         onChangeText={setSenha}
@@ -61,23 +61,23 @@ export function LoginScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', padding: 24 },
+  container: { flex: 1, backgroundColor: colors.bgPage, justifyContent: 'center', padding: 24 },
   titulo: { fontSize: 28, fontWeight: '800', color: colors.primary, textAlign: 'center' },
   subtitulo: {
     fontSize: 14,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     marginBottom: 32,
   },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
     marginBottom: 12,
   },

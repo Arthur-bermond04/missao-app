@@ -3,7 +3,6 @@
 import { Check, Mail } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { CardOrnamental } from '@/components/ui/Ornamento';
 import { useTerminologia } from '@/lib/terminologia';
 import type { Plano } from '@/types/database';
 
@@ -71,10 +70,17 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
               )}
             </>
           );
-          return p.valor === planoAtual ? (
-            <CardOrnamental key={p.valor}>{conteudo}</CardOrnamental>
-          ) : (
-            <div key={p.valor} className="rounded-lg border border-border p-4">
+          // O plano atual se destaca por borda e anel verdes, sem os cantos
+          // ornamentais do tema anterior.
+          return (
+            <div
+              key={p.valor}
+              className={`rounded-lg p-4 ${
+                p.valor === planoAtual
+                  ? 'border border-border-green ring-1 ring-accent-green/20'
+                  : 'border border-border'
+              }`}
+            >
               {conteudo}
             </div>
           );

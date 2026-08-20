@@ -200,7 +200,7 @@ export function OvelhaDetalheScreen({ comunidadeId, perfil }: { comunidadeId: st
           </Pressable>
           {isAdmin && (
             <Pressable onPress={() => setConfirmExcluir(true)}>
-              <Text style={[styles.acaoTexto, { color: colors.dangerText }]}>Excluir permanentemente</Text>
+              <Text style={[styles.acaoTexto, { color: colors.danger }]}>Excluir permanentemente</Text>
             </Pressable>
           )}
         </View>
@@ -231,7 +231,7 @@ export function OvelhaDetalheScreen({ comunidadeId, perfil }: { comunidadeId: st
                         {est?.emoji} {e.tipo}
                       </Text>
                       <Pressable onPress={() => setEncontroParaExcluir(e)} hitSlop={8}>
-                        <Trash2 size={14} color={colors.textMuted} />
+                        <Trash2 size={14} color={colors.textSecondary} />
                       </Pressable>
                     </View>
                   </View>
@@ -254,7 +254,7 @@ export function OvelhaDetalheScreen({ comunidadeId, perfil }: { comunidadeId: st
                   <Text style={styles.itemNome}>{p.nome_evento || p.tipo_evento}</Text>
                   <Text style={styles.itemMeta}>{new Date(p.data).toLocaleDateString('pt-BR')}</Text>
                 </View>
-                <Text style={{ color: p.presente ? colors.accent : colors.dangerText, fontWeight: '700', fontSize: 12 }}>
+                <Text style={{ color: p.presente ? colors.accentGreen : colors.danger, fontWeight: '700', fontSize: 12 }}>
                   {p.presente ? 'Presente' : 'Ausente'}
                 </Text>
               </View>
@@ -278,11 +278,11 @@ export function OvelhaDetalheScreen({ comunidadeId, perfil }: { comunidadeId: st
                 <View key={f.id} style={styles.card}>
                   <View style={styles.cardTopo}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-                      <Sparkles size={14} color={colors.accent} />
+                      <Sparkles size={14} color={colors.accentGreen} />
                       <Text style={styles.itemNome}>{f.titulo}</Text>
                     </View>
                     <Pressable onPress={() => setFrutoParaExcluir(f)} hitSlop={8}>
-                      <Trash2 size={14} color={colors.textMuted} />
+                      <Trash2 size={14} color={colors.textSecondary} />
                     </Pressable>
                   </View>
                   <Text style={styles.itemMeta}>
@@ -358,13 +358,13 @@ function EncontroPastoralModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Registrar encontro</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
           <ScrollView style={{ maxHeight: 420 }}>
             <Pressable style={styles.input} onPress={() => setMostrarData(true)}>
-              <Text style={{ color: colors.text }}>{data.toLocaleDateString('pt-BR')}</Text>
+              <Text style={{ color: colors.textPrimary }}>{data.toLocaleDateString('pt-BR')}</Text>
             </Pressable>
             {mostrarData && (
               <DateTimePicker
@@ -399,10 +399,10 @@ function EncontroPastoralModal({
             </View>
 
             <Text style={styles.campoLabel}>Relato</Text>
-            <TextInput style={[styles.input, { height: 100 }]} value={relato} onChangeText={setRelato} multiline textAlignVertical="top" placeholder="O que foi conversado..." placeholderTextColor={colors.textMuted} />
+            <TextInput style={[styles.input, { height: 100 }]} value={relato} onChangeText={setRelato} multiline textAlignVertical="top" placeholder="O que foi conversado..." placeholderTextColor={colors.textSecondary} />
 
             <Text style={styles.campoLabel}>Encaminhamentos</Text>
-            <TextInput style={styles.input} value={encaminhamentos} onChangeText={setEncaminhamentos} placeholder="O que foi combinado (opcional)" placeholderTextColor={colors.textMuted} />
+            <TextInput style={styles.input} value={encaminhamentos} onChangeText={setEncaminhamentos} placeholder="O que foi combinado (opcional)" placeholderTextColor={colors.textSecondary} />
           </ScrollView>
 
           <Button label="Salvar" onPress={salvar} loading={salvando} style={{ marginTop: 12 }} />
@@ -478,12 +478,12 @@ function PresencaModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Registrar presença</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
           <Pressable style={styles.input} onPress={() => setMostrarData(true)}>
-            <Text style={{ color: colors.text }}>{data.toLocaleDateString('pt-BR')}</Text>
+            <Text style={{ color: colors.textPrimary }}>{data.toLocaleDateString('pt-BR')}</Text>
           </Pressable>
           {mostrarData && (
             <DateTimePicker
@@ -518,7 +518,7 @@ function PresencaModal({
               value={nomeCustom}
               onChangeText={setNomeCustom}
               placeholder="Qual evento?"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={colors.textSecondary}
             />
           )}
 
@@ -597,12 +597,12 @@ function FrutoModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Registrar fruto</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
           <Pressable style={styles.input} onPress={() => setMostrarData(true)}>
-            <Text style={{ color: colors.text }}>{data.toLocaleDateString('pt-BR')}</Text>
+            <Text style={{ color: colors.textPrimary }}>{data.toLocaleDateString('pt-BR')}</Text>
           </Pressable>
           {mostrarData && (
             <DateTimePicker
@@ -631,7 +631,7 @@ function FrutoModal({
             value={titulo}
             onChangeText={setTitulo}
             placeholder="Ex: Começou a frequentar a missa semanalmente"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textSecondary}
           />
 
           <Text style={styles.campoLabel}>Descrição (opcional)</Text>
@@ -641,7 +641,7 @@ function FrutoModal({
             onChangeText={setDescricao}
             multiline
             textAlignVertical="top"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textSecondary}
           />
 
           <Button label="Salvar" onPress={salvar} loading={salvando} style={{ marginTop: 12 }} />
@@ -652,39 +652,39 @@ function FrutoModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20 },
   header: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarTexto: { fontSize: 18, fontWeight: '700', color: colors.primary },
-  nome: { fontSize: 18, fontWeight: '800', color: colors.text },
+  nome: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
   badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, marginTop: 4 },
-  meta: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
+  meta: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
   acoesLinha: { flexDirection: 'row', gap: 18, marginTop: 10 },
   acaoTexto: { fontSize: 13, fontWeight: '600', color: colors.primary },
-  privacidade: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primaryLight, borderRadius: 10, padding: 10, marginTop: 12 },
+  privacidade: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primaryXLight, borderRadius: 10, padding: 10, marginTop: 12 },
   privacidadeTexto: { flex: 1, fontSize: 12, color: colors.primary },
   botoesTopo: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 24 },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 24 },
   frutosTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24 },
-  vazio: { fontSize: 14, color: colors.textMuted, marginTop: 8 },
-  card: { backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  vazio: { fontSize: 14, color: colors.textSecondary, marginTop: 8 },
+  card: { backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
   cardTopo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  itemLinhaEntre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
-  itemNome: { fontSize: 14, fontWeight: '700', color: colors.text },
-  itemMeta: { fontSize: 12, color: colors.textMuted },
-  relato: { fontSize: 14, color: colors.text, lineHeight: 20 },
-  encaminhamentos: { fontSize: 13, color: colors.textMuted, marginTop: 6 },
+  itemLinhaEntre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  itemNome: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  itemMeta: { fontSize: 12, color: colors.textSecondary },
+  relato: { fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
+  encaminhamentos: { fontSize: 13, color: colors.textSecondary, marginTop: 6 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

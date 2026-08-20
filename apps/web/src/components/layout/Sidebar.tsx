@@ -117,22 +117,12 @@ export function iniciais(nome: string) {
   return letras.join('').toUpperCase();
 }
 
-// Cores fixas da identidade "Verde Missionário" — sidebar branca, acento
-// verde só no item ativo e nos estados de hover/foco.
-const COR_INATIVO_TEXTO = '#374151';
-const COR_INATIVO_ICONE = '#6B7280';
-const COR_LABEL_GRUPO = '#9CA3AF';
-const COR_ATIVO_BG = '#E8F5EE';
-const COR_ATIVO_TEXTO = '#1A7A4A';
-const COR_ATIVO_ICONE = '#22C55E';
-
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { usuario, sair, pode } = usePainelSession();
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
-  const [buscaFocada, setBuscaFocada] = useState(false);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -169,25 +159,20 @@ export function Sidebar() {
   })).filter((grupo) => grupo.itens.length > 0);
 
   return (
-    <aside
-      className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-white md:flex lg:w-[240px]"
-      style={{ boxShadow: '1px 0 0 #E5E7EB' }}
-    >
+    <aside className="scrollbar-escura fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-sidebar-bg md:flex lg:w-[240px]">
       {usuario?.comunidade_id && (
         <BuscaGlobal open={buscaAberta} onClose={() => setBuscaAberta(false)} comunidadeId={usuario.comunidade_id} />
       )}
 
       <div className="px-5 pb-4 pt-6">
         <div className="flex items-center justify-center lg:hidden">
-          <Logo size={32} variant="color" />
+          <Logo size={32} variant="white" />
         </div>
         <div className="hidden lg:flex">
-          <Logo size={36} variant="color" showText />
+          <Logo size={36} variant="white" showText />
         </div>
         {!!nomeComunidade && (
-          <p className="mt-1 hidden truncate text-xs lg:block" style={{ color: '#6B7280' }}>
-            {nomeComunidade}
-          </p>
+          <p className="mt-1 hidden truncate text-xs text-sidebar-text lg:block">{nomeComunidade}</p>
         )}
       </div>
 
@@ -196,17 +181,8 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setBuscaAberta(true)}
-          onFocus={() => setBuscaFocada(true)}
-          onBlur={() => setBuscaFocada(false)}
           title="Buscar (Ctrl+K)"
-          className="flex w-full items-center justify-center gap-2 rounded-lg text-sm transition-colors focus:outline-none lg:justify-start"
-          style={{
-            backgroundColor: '#F3F4F6',
-            border: buscaFocada ? '1.5px solid #22C55E' : '1.5px solid transparent',
-            boxShadow: buscaFocada ? '0 0 0 3px rgba(34,197,94,0.1)' : 'none',
-            color: '#9CA3AF',
-            padding: '8px 12px',
-          }}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start"
         >
           <Search size={16} />
           <span className="hidden flex-1 text-left lg:inline">Buscar...</span>
@@ -216,20 +192,8 @@ export function Sidebar() {
       <nav className="mt-1 flex-1 space-y-1 px-2 pb-3">
         {gruposVisiveis.map((grupo, indiceGrupo) => (
           <div key={grupo.titulo}>
-            {indiceGrupo > 0 && (
-              <div style={{ height: '0.5px', background: '#F3F4F6', margin: '4px 12px' }} />
-            )}
-            <p
-              className="hidden lg:block"
-              style={{
-                color: COR_LABEL_GRUPO,
-                fontSize: 10,
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.07em',
-                padding: '0.6rem 0.75rem 0.2rem',
-              }}
-            >
+            {indiceGrupo > 0 && <div className="mx-3 my-1 h-px bg-sidebar-border" />}
+            <p className="hidden px-3 pb-0.5 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-text/70 lg:block">
               {grupo.titulo}
             </p>
             <div>
@@ -241,28 +205,14 @@ export function Sidebar() {
                     key={item.href}
                     href={item.href}
                     title={item.label}
-                    className="group flex items-center justify-center gap-3 rounded-md text-sm transition-colors lg:justify-start"
-                    style={{
-                      margin: '1px 8px',
-                      padding: '7px 10px',
-                      backgroundColor: ativo ? COR_ATIVO_BG : 'transparent',
-                      color: ativo ? COR_ATIVO_TEXTO : COR_INATIVO_TEXTO,
-                      fontWeight: ativo ? 500 : 400,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!ativo) {
-                        e.currentTarget.style.backgroundColor = '#F9FAFB';
-                        e.currentTarget.style.color = '#111827';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!ativo) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.color = COR_INATIVO_TEXTO;
-                      }
-                    }}
+                    aria-current={ativo ? 'page' : undefined}
+                    className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start ${
+                      ativo
+                        ? 'bg-sidebar-bg-hover font-medium text-sidebar-text-active'
+                        : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
+                    }`}
                   >
-                    <Icon size={18} color={ativo ? COR_ATIVO_ICONE : COR_INATIVO_ICONE} className="shrink-0" />
+                    <Icon size={18} className={`shrink-0 ${ativo ? 'text-accent-green' : ''}`} />
                     <span className="hidden lg:inline">{item.label}</span>
                   </Link>
                 );
@@ -272,28 +222,20 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-4 py-4" style={{ backgroundColor: '#F9FAFB', borderTop: '0.5px solid #E5E7EB' }}>
+      <div className="border-t border-sidebar-border px-4 py-4">
         <div className="flex items-center justify-center gap-2 lg:justify-start">
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-            style={{ backgroundColor: '#E8F5EE', color: '#1A7A4A' }}
-          >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
             {usuario ? iniciais(usuario.nome) : ''}
           </div>
           <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-sm font-medium" style={{ color: '#111827', fontSize: 13 }}>
-              {usuario?.nome}
-            </p>
-            <p style={{ color: '#6B7280', fontSize: 11 }}>{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
+            <p className="truncate text-[13px] font-medium text-sidebar-text-active">{usuario?.nome}</p>
+            <p className="text-[11px] text-sidebar-text">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
           </div>
         </div>
         <button
           onClick={handleSair}
           title="Sair"
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors lg:justify-start"
-          style={{ borderColor: '#E5E7EB', color: '#6B7280' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = '#6B7280')}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-sidebar-border px-2 py-1.5 text-xs text-sidebar-text transition-colors hover:border-danger hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start"
         >
           <LogOut size={14} />
           <span className="hidden lg:inline">Sair</span>

@@ -13,12 +13,11 @@ export function LimiteContatosBanner({ usados, limite, onUpgradeClick }: LimiteC
 
   return (
     <div
-      className="mb-6 flex items-center justify-between gap-3 rounded-md px-4 py-3 text-sm"
-      style={
+      className={`mb-6 flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm ${
         atingiuLimite
-          ? { backgroundColor: '#FEE2E2', border: '1px solid #DC2626', color: '#991B1B' }
-          : { backgroundColor: '#FEF3C7', border: '1px solid #F59E0B', color: '#92400E' }
-      }
+          ? 'border-danger bg-danger-light text-danger'
+          : 'border-warning bg-warning-light text-warning'
+      }`}
     >
       <div className="flex items-center gap-2">
         <AlertTriangle size={18} />

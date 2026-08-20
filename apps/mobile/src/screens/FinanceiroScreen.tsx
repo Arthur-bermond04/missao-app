@@ -59,7 +59,7 @@ function LancamentoModal({ visivel, tipo, onFechar, onSalvar, salvando }: Lancam
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>{tipo === 'receita' ? 'Nova receita' : 'Nova despesa'}</Text>
             <Pressable onPress={fechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -82,7 +82,7 @@ function LancamentoModal({ visivel, tipo, onFechar, onSalvar, salvando }: Lancam
             value={descricao}
             onChangeText={setDescricao}
             placeholder="Descrição"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textSecondary}
           />
 
           <Text style={styles.campoLabel}>Valor (R$)</Text>
@@ -91,7 +91,7 @@ function LancamentoModal({ visivel, tipo, onFechar, onSalvar, salvando }: Lancam
             value={valor}
             onChangeText={setValor}
             placeholder="0,00"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
 
@@ -217,15 +217,15 @@ export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: strin
           <MetricCard
             style={styles.cardResumo}
             icon={TrendingUp}
-            iconColor={colors.accent}
-            iconBg={colors.accentLight}
+            iconColor={colors.accentGreen}
+            iconBg={colors.successLight}
             label="Receitas do mês"
             value={`R$ ${receitaMes.toFixed(2)}`}
           />
           <MetricCard
             style={styles.cardResumo}
             icon={TrendingDown}
-            iconColor={colors.dangerText}
+            iconColor={colors.danger}
             iconBg={colors.dangerLight}
             label="Despesas do mês"
             value={`R$ ${despesaMes.toFixed(2)}`}
@@ -233,9 +233,9 @@ export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: strin
           <MetricCard
             style={styles.cardResumo}
             icon={Scale}
-            iconColor={saldoMes >= 0 ? colors.accent : colors.dangerText}
-            iconBg={saldoMes >= 0 ? colors.accentLight : colors.dangerLight}
-            valorColor={saldoMes >= 0 ? colors.accent : colors.dangerText}
+            iconColor={saldoMes >= 0 ? colors.accentGreen : colors.danger}
+            iconBg={saldoMes >= 0 ? colors.successLight : colors.dangerLight}
+            valorColor={saldoMes >= 0 ? colors.accentGreen : colors.danger}
             label="Saldo do mês"
             value={`R$ ${saldoMes.toFixed(2)}`}
           />
@@ -261,13 +261,13 @@ export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: strin
                   <View
                     style={[
                       styles.badge,
-                      { backgroundColor: l.tipo === 'receita' ? colors.accentLight : colors.dangerLight },
+                      { backgroundColor: l.tipo === 'receita' ? colors.successLight : colors.dangerLight },
                     ]}
                   >
                     <Text
                       style={[
                         styles.badgeTexto,
-                        { color: l.tipo === 'receita' ? colors.accent : colors.dangerText },
+                        { color: l.tipo === 'receita' ? colors.accentGreen : colors.danger },
                       ]}
                     >
                       {l.tipo === 'receita' ? 'Receita' : 'Despesa'}
@@ -280,7 +280,7 @@ export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: strin
                   <Text
                     style={[
                       styles.lancValor,
-                      { color: l.tipo === 'receita' ? colors.accent : colors.dangerText },
+                      { color: l.tipo === 'receita' ? colors.accentGreen : colors.danger },
                     ]}
                   >
                     R$ {l.valor.toFixed(2)}
@@ -288,7 +288,7 @@ export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: strin
                   <Text style={styles.lancData}>{new Date(l.data).toLocaleDateString('pt-BR')}</Text>
                   {podeExcluir && (
                     <Pressable onPress={() => setParaExcluir(l)} hitSlop={8} style={{ marginTop: 6 }}>
-                      <Trash2 size={14} color={colors.textMuted} />
+                      <Trash2 size={14} color={colors.textSecondary} />
                     </Pressable>
                   )}
                 </View>
@@ -312,19 +312,19 @@ export function FinanceiroScreen({ comunidadeId, perfil }: { comunidadeId: strin
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20, paddingBottom: 40 },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
+  titulo: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
   cardsResumo: { gap: 12, marginTop: 16, paddingRight: 4 },
   cardResumo: { width: 150 },
   botoes: { flexDirection: 'row', gap: 12, marginTop: 16 },
   botao: { flex: 1 },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 24 },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 24 },
   lista: { marginTop: 12, gap: 10 },
   lancItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
@@ -333,39 +333,39 @@ const styles = StyleSheet.create({
   lancInfo: { flex: 1, gap: 4 },
   badge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
   badgeTexto: { fontSize: 11, fontWeight: '700' },
-  lancCategoria: { fontSize: 14, fontWeight: '600', color: colors.text, textTransform: 'capitalize' },
-  lancDescricao: { fontSize: 12, color: colors.textMuted },
+  lancCategoria: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, textTransform: 'capitalize' },
+  lancDescricao: { fontSize: 12, color: colors.textSecondary },
   lancDireita: { alignItems: 'flex-end', justifyContent: 'center' },
   lancValor: { fontSize: 15, fontWeight: '700' },
-  lancData: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  lancData: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 14, marginBottom: 6 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 14, marginBottom: 6 },
   chips: { gap: 8, paddingRight: 8 },
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderWidth: 1,
     borderColor: colors.border,
   },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text, textTransform: 'capitalize' },
+  chipTexto: { fontSize: 13, color: colors.textPrimary, textTransform: 'capitalize' },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
   },
-  dateTexto: { fontSize: 15, color: colors.text },
+  dateTexto: { fontSize: 15, color: colors.textPrimary },
   salvar: { marginTop: 20 },
 });

@@ -1,13 +1,11 @@
 'use client';
 
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { DEGRADE_FUNIL, EIXO_GRAFICO, TOOLTIP_GRAFICO } from '@/lib/cores';
 
 interface FunilBarChartProps {
   data: { valor: string; label: string; total: number }[];
 }
-
-// Degradê verde claro -> verde missão, uma cor por etapa (sequencial, não categórico)
-const CORES_DEGRADE = ['#BBF7D0', '#86EFAC', '#4ADE80', '#22C55E', '#1A7A4A'];
 
 export function FunilBarChart({ data }: FunilBarChartProps) {
   return (
@@ -18,7 +16,7 @@ export function FunilBarChart({ data }: FunilBarChartProps) {
           type="category"
           dataKey="label"
           width={110}
-          tick={{ fontSize: 11, fill: '#9CA3AF' }}
+          tick={EIXO_GRAFICO}
           axisLine={false}
           tickLine={false}
         />
@@ -29,11 +27,11 @@ export function FunilBarChart({ data }: FunilBarChartProps) {
             const pct = ((numero / maior) * 100).toFixed(0);
             return [`${numero} (${pct}%)`, 'Total'];
           }}
-          contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }}
+          contentStyle={TOOLTIP_GRAFICO}
         />
         <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={16}>
           {data.map((entry, index) => (
-            <Cell key={entry.valor} fill={CORES_DEGRADE[index % CORES_DEGRADE.length]} />
+            <Cell key={entry.valor} fill={DEGRADE_FUNIL[index % DEGRADE_FUNIL.length]} />
           ))}
         </Bar>
       </BarChart>

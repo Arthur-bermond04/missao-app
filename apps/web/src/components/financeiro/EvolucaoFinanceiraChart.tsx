@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CORES, EIXO_GRAFICO, GRADE_GRAFICO, TOOLTIP_GRAFICO } from '@/lib/cores';
 import type { Financeiro } from '@/types/database';
 
 const JANELAS = [
@@ -58,16 +59,16 @@ export function EvolucaoFinanceiraChart({ lancamentos }: { lancamentos: Financei
       <div className="mt-3">
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={dados} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={GRADE_GRAFICO} vertical={false} />
+            <XAxis dataKey="mes" tick={EIXO_GRAFICO} axisLine={false} tickLine={false} />
+            <YAxis tick={EIXO_GRAFICO} axisLine={false} tickLine={false} />
             <Tooltip
               formatter={(value) => `R$ ${(Number(value) || 0).toFixed(2)}`}
-              contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }}
+              contentStyle={TOOLTIP_GRAFICO}
             />
             <Legend wrapperStyle={{ fontSize: 12 }} formatter={(value) => (value === 'receitas' ? 'Receitas' : 'Despesas')} />
-            <Line type="monotone" dataKey="receitas" stroke="#22C55E" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="despesas" stroke="#DC2626" strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="receitas" stroke={CORES.accentGreen} strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="despesas" stroke={CORES.danger} strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

@@ -38,9 +38,11 @@ import type { Usuario } from '../types/database';
 
 const PERFIS_GESTAO_RETIROS = ['coordenador', 'admin'];
 
+// Navegação escura, igual à sidebar/topbar do painel web: o verde da marca
+// fica reservado para o item ativo e para as ações, não para o cromo inteiro.
 const stackScreenOptions = {
-  headerStyle: { backgroundColor: colors.primary },
-  headerTintColor: '#FFFFFF',
+  headerStyle: { backgroundColor: colors.sidebarBg },
+  headerTintColor: colors.sidebarTextActive,
   headerTitleStyle: { fontWeight: '700' as const },
 };
 
@@ -252,9 +254,13 @@ function TabsAutenticado({
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMutedGreen,
-        tabBarStyle: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border },
+        tabBarActiveTintColor: colors.accentGreen,
+        tabBarInactiveTintColor: colors.sidebarText,
+        tabBarStyle: {
+          backgroundColor: colors.sidebarBg,
+          borderTopWidth: 1,
+          borderTopColor: colors.sidebarBorder,
+        },
         tabBarLabelStyle: { fontSize: 11 },
       }}
     >
@@ -331,12 +337,12 @@ export function AppNavigator() {
 const styles = StyleSheet.create({
   centro: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bgPage,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
   },
-  mensagem: { textAlign: 'center', color: colors.textMuted, fontSize: 14 },
+  mensagem: { textAlign: 'center', color: colors.textSecondary, fontSize: 14 },
   headerBotao: {
     color: colors.primary,
     fontWeight: '700',

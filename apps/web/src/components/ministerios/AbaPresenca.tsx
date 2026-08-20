@@ -94,8 +94,8 @@ export function AbaPresenca({ membros, membrosPessoa = [], encontros, presencas 
                 </div>
                 <div className="mt-1 h-2.5 w-full rounded-full bg-bg-page">
                   <div
-                    className="h-2.5 rounded-full"
-                    style={{ width: `${f}%`, backgroundColor: gargalo ? '#DC2626' : '#22C55E' }}
+                    className={`h-2.5 rounded-full ${gargalo ? 'bg-danger' : 'bg-accent-green'}`}
+                    style={{ width: `${f}%` }}
                   />
                 </div>
               </div>

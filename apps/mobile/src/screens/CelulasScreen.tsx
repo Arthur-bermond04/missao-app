@@ -130,7 +130,7 @@ export function CelulasScreen({ comunidadeId, perfil }: { comunidadeId: string; 
           value={busca}
           onChangeText={setBusca}
           placeholder="Buscar por nome ou líder"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={colors.textSecondary}
         />
         <View style={styles.segmento}>
           {(['ativas', 'inativas', 'todas'] as const).map((f) => (
@@ -164,14 +164,14 @@ export function CelulasScreen({ comunidadeId, perfil }: { comunidadeId: string; 
           <Pressable style={[styles.card, !c.ativa && { opacity: 0.6 }]} onPress={() => setDetalhe(c)}>
             <View style={styles.cardTopo}>
               <Text style={styles.cardNome}>{c.nome}</Text>
-              <View style={[styles.statusPill, { backgroundColor: c.ativa ? colors.primaryLight : colors.background }]}>
-                <Text style={[styles.statusTexto, { color: c.ativa ? colors.primary : colors.textMuted }]}>
+              <View style={[styles.statusPill, { backgroundColor: c.ativa ? colors.primaryXLight : colors.bgPage }]}>
+                <Text style={[styles.statusTexto, { color: c.ativa ? colors.primary : colors.textSecondary }]}>
                   {c.ativa ? 'Ativa' : 'Inativa'}
                 </Text>
               </View>
             </View>
             <Text style={styles.cardMeta}>
-              <UserRound size={11} color={colors.textMuted} /> {c.lider_nome ?? 'Sem líder'}
+              <UserRound size={11} color={colors.textSecondary} /> {c.lider_nome ?? 'Sem líder'}
             </Text>
             <Text style={styles.cardMeta}>
               {c.dia_semana ? DIA_LABEL[c.dia_semana] ?? c.dia_semana : 'Dia não definido'}
@@ -263,11 +263,11 @@ function CelulaFormModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>{editando ? 'Editar célula' : 'Nova célula'}</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
           <ScrollView style={{ maxHeight: 440 }}>
-            <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome da célula" placeholderTextColor={colors.textMuted} />
+            <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome da célula" placeholderTextColor={colors.textSecondary} />
 
             <Text style={styles.campoLabel}>Líder</Text>
             {liderId ? (
@@ -277,7 +277,7 @@ function CelulaFormModal({
               </Pressable>
             ) : (
               <>
-                <TextInput style={styles.input} value={buscaLider} onChangeText={setBuscaLider} placeholder="Buscar membro..." placeholderTextColor={colors.textMuted} />
+                <TextInput style={styles.input} value={buscaLider} onChangeText={setBuscaLider} placeholder="Buscar membro..." placeholderTextColor={colors.textSecondary} />
                 {resultados.map((u) => (
                   <Pressable key={u.id} style={styles.resultado} onPress={() => { setLiderId(u.id); setBuscaLider(''); }}>
                     <Text style={styles.cardNome}>{u.nome}</Text>
@@ -295,8 +295,8 @@ function CelulaFormModal({
               ))}
             </View>
 
-            <TextInput style={styles.input} value={horario} onChangeText={setHorario} placeholder="Horário (ex: 20:00)" placeholderTextColor={colors.textMuted} />
-            <TextInput style={styles.input} value={endereco} onChangeText={setEndereco} placeholder="Endereço" placeholderTextColor={colors.textMuted} />
+            <TextInput style={styles.input} value={horario} onChangeText={setHorario} placeholder="Horário (ex: 20:00)" placeholderTextColor={colors.textSecondary} />
+            <TextInput style={styles.input} value={endereco} onChangeText={setEndereco} placeholder="Endereço" placeholderTextColor={colors.textSecondary} />
           </ScrollView>
           <Button label={editando ? 'Salvar' : 'Criar célula'} onPress={salvar} loading={salvando} style={{ marginTop: 12 }} />
         </View>
@@ -332,7 +332,7 @@ function DetalheModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>{celula.nome}</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
           <ScrollView style={{ maxHeight: 420 }}>
@@ -369,40 +369,40 @@ function DetalheModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  filtros: { padding: 16, gap: 10, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
-  busca: { backgroundColor: colors.background, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 14 },
+  container: { flex: 1, backgroundColor: colors.bgPage },
+  filtros: { padding: 16, gap: 10, backgroundColor: colors.bgCard, borderBottomWidth: 1, borderBottomColor: colors.border },
+  busca: { backgroundColor: colors.bgPage, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 14 },
   segmento: { flexDirection: 'row', gap: 8 },
   segItem: { flex: 1, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
   segAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  segTexto: { fontSize: 12, color: colors.text, fontWeight: '600' },
+  segTexto: { fontSize: 12, color: colors.textPrimary, fontWeight: '600' },
   segTextoAtivo: { color: '#fff' },
   lista: { padding: 16, gap: 10, paddingBottom: 90 },
-  card: { backgroundColor: colors.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: colors.border, gap: 4 },
+  card: { backgroundColor: colors.bgCard, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: colors.border, gap: 4 },
   cardTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardNome: { fontSize: 14, fontWeight: '700', color: colors.text },
-  cardMeta: { fontSize: 12, color: colors.textMuted },
+  cardNome: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  cardMeta: { fontSize: 12, color: colors.textSecondary },
   statusPill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
   statusTexto: { fontSize: 10, fontWeight: '700' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accentGreen, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   fabTexto: { color: '#fff', fontSize: 28, lineHeight: 30 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
-  selecionado: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.primaryLight, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginTop: 8 },
+  selecionado: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.primaryXLight, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginTop: 8 },
   selecionadoTexto: { fontSize: 14, fontWeight: '600', color: colors.primary },
   trocar: { fontSize: 12, color: colors.primary, textDecorationLine: 'underline' },
   resultado: { paddingVertical: 10, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: colors.border },
   detLinha: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  detTexto: { fontSize: 14, color: colors.text },
+  detTexto: { fontSize: 14, color: colors.textPrimary },
   membroLinha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginTop: 6 },
-  vazio: { fontSize: 13, color: colors.textMuted, marginTop: 8 },
+  vazio: { fontSize: 13, color: colors.textSecondary, marginTop: 8 },
 });

@@ -44,7 +44,7 @@ export function AlterarSenhaScreen() {
         value={novaSenha}
         onChangeText={setNovaSenha}
         placeholder="Mínimo 6 caracteres"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
       />
 
@@ -54,7 +54,7 @@ export function AlterarSenhaScreen() {
         value={confirmar}
         onChangeText={setConfirmar}
         placeholder="Repita a senha"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
       />
 
@@ -64,17 +64,17 @@ export function AlterarSenhaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20 },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 14, marginBottom: 6 },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 14, marginBottom: 6 },
   input: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
   },
   salvar: { marginTop: 24 },

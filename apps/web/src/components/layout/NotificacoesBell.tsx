@@ -40,16 +40,12 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setAberto((v) => !v)}
-        className="group relative rounded-md p-2 hover:bg-bg-page"
-        style={{ color: '#6B7280' }}
+        className="group relative rounded-md p-2 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green"
         title="Notificações"
       >
-        <Bell size={18} className="transition-colors group-hover:text-[#1A7A4A]" />
+        <Bell size={18} />
         {total > 0 && (
-          <span
-            className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
-            style={{ backgroundColor: '#22C55E' }}
-          >
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-green px-1 text-[10px] font-bold text-white">
             {total > 9 ? '9+' : total}
           </span>
         )}

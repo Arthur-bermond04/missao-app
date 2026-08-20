@@ -169,7 +169,7 @@ export function FunilScreen({ comunidadeId }: { comunidadeId: string }) {
                   {c.telefone ?? 'Sem telefone'} · {diasParado(c)} dias parado
                 </Text>
               </View>
-              <ChevronRight size={18} color={colors.textMuted} />
+              <ChevronRight size={18} color={colors.textSecondary} />
             </Pressable>
           ))}
         </View>
@@ -179,28 +179,28 @@ export function FunilScreen({ comunidadeId }: { comunidadeId: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  centro: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: colors.bgPage },
+  centro: { flex: 1, backgroundColor: colors.bgPage, alignItems: 'center', justifyContent: 'center' },
   conteudo: { padding: 20, paddingBottom: 40 },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 14, color: colors.textMuted, marginTop: 2 },
+  titulo: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
+  subtitulo: { fontSize: 14, color: colors.textSecondary, marginTop: 2 },
   filtros: { flexDirection: 'row', gap: 12, marginTop: 16 },
   dateField: { flex: 1 },
-  dateLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginBottom: 4 },
+  dateLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 },
   dateInput: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  dateTexto: { fontSize: 14, color: colors.text },
-  datePlaceholder: { fontSize: 14, color: colors.textMuted },
+  dateTexto: { fontSize: 14, color: colors.textPrimary },
+  datePlaceholder: { fontSize: 14, color: colors.textSecondary },
   limpar: { fontSize: 11, color: colors.primary, marginTop: 4 },
   card: {
     marginTop: 12,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -209,9 +209,9 @@ const styles = StyleSheet.create({
   },
   funilItem: { gap: 6 },
   funilLinha: { flexDirection: 'row', justifyContent: 'space-between' },
-  funilLabel: { fontSize: 14, color: colors.text, fontWeight: '600' },
-  funilNumero: { fontSize: 14, color: colors.textMuted },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 24 },
+  funilLabel: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
+  funilNumero: { fontSize: 14, color: colors.textSecondary },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 24 },
   travadoItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -219,6 +219,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   travadoInfo: { flex: 1 },
-  travadoNome: { fontSize: 14, fontWeight: '600', color: colors.text },
-  travadoDetalhe: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  travadoNome: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  travadoDetalhe: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
 });

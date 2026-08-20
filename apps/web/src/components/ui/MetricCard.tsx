@@ -15,7 +15,7 @@ interface MetricCardProps {
 
 const ICON_STYLES: Record<MetricCardProps['iconColor'], string> = {
   primary: 'bg-primary-xlight text-primary',
-  accent: 'bg-[#F0FDF4] text-[#16A34A]',
+  accent: 'bg-accent-green-bg text-success',
   warning: 'bg-warning-light text-warning',
   danger: 'bg-danger-light text-danger',
   info: 'bg-info-light text-info',
@@ -31,7 +31,7 @@ export function MetricCard({ icon: Icon, iconColor, label, value, delta, subtitl
       <p className={`mt-1 text-2xl font-extrabold ${valorClassName ?? 'text-text-primary'}`}>{value}</p>
       {!!subtitle && <p className="mt-0.5 text-xs text-text-secondary">{subtitle}</p>}
       {delta !== undefined && Number.isFinite(delta.value) && (
-        <p className={`mt-1 text-xs font-semibold ${delta.value >= 0 ? 'text-[#16A34A]' : 'text-danger'}`}>
+        <p className={`mt-1 text-xs font-semibold ${delta.value >= 0 ? 'text-success' : 'text-danger'}`}>
           {delta.value >= 0 ? '+' : ''}
           {delta.value.toFixed(0)}% vs mês anterior
         </p>

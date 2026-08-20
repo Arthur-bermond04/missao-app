@@ -29,15 +29,12 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
   if (oculto) return null;
 
   return (
-    <div
-      className="mt-6 rounded-md p-6"
-      style={{ background: 'linear-gradient(135deg, #1A7A4A 0%, #22C55E 100%)' }}
-    >
+    <div className="mt-6 rounded-md bg-linear-135 from-primary to-accent-green p-6">
       <div className="flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white">
           <Cross size={18} />
         </div>
-        <h2 className="logo-text text-lg font-medium text-white">Bem-vindo ao MissãoApp!</h2>
+        <h2 className="text-lg font-semibold text-white">Bem-vindo ao MissãoApp!</h2>
       </div>
       <p className="mt-2 text-sm text-white/80">Vamos configurar sua comunidade em 3 passos:</p>
 
@@ -61,8 +58,7 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
       <div className="mt-4 flex items-center gap-4">
         <Link
           href="/membros"
-          className="inline-flex items-center gap-1 rounded-sm bg-white px-5 py-2.5 text-sm font-medium hover:bg-white/90"
-          style={{ color: '#1A7A4A' }}
+          className="inline-flex items-center gap-1 rounded-sm bg-white px-5 py-2.5 text-sm font-medium text-primary hover:bg-white/90"
         >
           Começar pelo passo 1 <ArrowRight size={16} />
         </Link>

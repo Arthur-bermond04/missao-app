@@ -65,7 +65,7 @@ export function MinisteriosScreen({ usuarioId }: { usuarioId: string }) {
                   : ''}
               </Text>
             </View>
-            <ChevronRight size={18} color={colors.textMuted} />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </Pressable>
         )}
       />
@@ -74,12 +74,12 @@ export function MinisteriosScreen({ usuarioId }: { usuarioId: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 20, gap: 10 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 14,
     padding: 14,
     gap: 12,
@@ -88,6 +88,6 @@ const styles = StyleSheet.create({
   },
   corDot: { width: 14, height: 14, borderRadius: 7 },
   info: { flex: 1 },
-  nome: { fontSize: 15, fontWeight: '700', color: colors.text },
-  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  nome: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
 });

@@ -4,9 +4,9 @@ import { colors } from '../../theme/colors';
 import { inscreverToast, type EventoToast, type TipoToast } from '../../lib/toast';
 
 const CONFIG: Record<TipoToast, { bg: string; texto: string }> = {
-  sucesso: { bg: colors.accentLight, texto: colors.accent },
-  erro: { bg: colors.dangerLight, texto: colors.dangerText },
-  info: { bg: colors.primaryLight, texto: colors.primary },
+  sucesso: { bg: colors.successLight, texto: colors.accentGreen },
+  erro: { bg: colors.dangerLight, texto: colors.danger },
+  info: { bg: colors.primaryXLight, texto: colors.primary },
 };
 
 export function ToastHost() {

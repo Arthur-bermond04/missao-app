@@ -152,12 +152,12 @@ function NovaPessoaModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Nova pessoa</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
           <ScrollView style={{ maxHeight: 420 }}>
-            <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor={colors.textMuted} />
-            <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} placeholder="Telefone (opcional)" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
+            <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor={colors.textSecondary} />
+            <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} placeholder="Telefone (opcional)" placeholderTextColor={colors.textSecondary} keyboardType="phone-pad" />
 
             <Text style={styles.campoLabel}>Origem</Text>
             <View style={styles.chipsWrap}>
@@ -173,7 +173,7 @@ function NovaPessoaModal({
                 value={origemDescricao}
                 onChangeText={setOrigemDescricao}
                 placeholder="Qual a origem?"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={colors.textSecondary}
               />
             )}
           </ScrollView>
@@ -185,26 +185,26 @@ function NovaPessoaModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   lista: { padding: 20, gap: 10, paddingBottom: 90 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.border },
-  cardCritico: { borderColor: colors.dangerText, borderWidth: 1.5 },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.bgCard, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.border },
+  cardCritico: { borderColor: colors.danger, borderWidth: 1.5 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarTexto: { fontSize: 13, fontWeight: '700', color: colors.primary },
   info: { flex: 1 },
-  nome: { fontSize: 15, fontWeight: '700', color: colors.text },
-  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  nome: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.accentGreen, alignItems: 'center', justifyContent: 'center', elevation: 4, shadowColor: 'rgba(34,197,94,0.4)', shadowOpacity: 0.4, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   fabTexto: { color: '#FFFFFF', fontSize: 28, lineHeight: 30 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

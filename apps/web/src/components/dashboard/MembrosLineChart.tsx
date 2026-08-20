@@ -1,6 +1,7 @@
 'use client';
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CORES, EIXO_GRAFICO, GRADE_GRAFICO, TOOLTIP_GRAFICO } from '@/lib/cores';
 
 interface MembrosLineChartProps {
   data: { mes: string; total: number }[];
@@ -12,21 +13,21 @@ export function MembrosLineChart({ data }: MembrosLineChartProps) {
       <AreaChart data={data} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="membrosFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#22C55E" stopOpacity={0.1} />
-            <stop offset="100%" stopColor="#22C55E" stopOpacity={0} />
+            <stop offset="0%" stopColor={CORES.accentGreen} stopOpacity={0.1} />
+            <stop offset="100%" stopColor={CORES.accentGreen} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-        <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} allowDecimals={false} />
-        <Tooltip contentStyle={{ borderRadius: 8, background: '#FFFFFF', borderColor: '#E5E7EB', color: '#111827', fontSize: 12 }} />
+        <CartesianGrid strokeDasharray="3 3" stroke={GRADE_GRAFICO} vertical={false} />
+        <XAxis dataKey="mes" tick={EIXO_GRAFICO} axisLine={false} tickLine={false} />
+        <YAxis tick={EIXO_GRAFICO} axisLine={false} tickLine={false} allowDecimals={false} />
+        <Tooltip contentStyle={TOOLTIP_GRAFICO} />
         <Area
           type="monotone"
           dataKey="total"
-          stroke="#22C55E"
+          stroke={CORES.accentGreen}
           strokeWidth={2}
           fill="url(#membrosFill)"
-          dot={{ r: 4, fill: '#22C55E', strokeWidth: 0 }}
+          dot={{ r: 4, fill: CORES.accentGreen, strokeWidth: 0 }}
           activeDot={{ r: 5 }}
         />
       </AreaChart>

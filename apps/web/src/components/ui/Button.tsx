@@ -10,11 +10,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_STYLES: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary: 'bg-[#1A7A4A] text-white hover:bg-[#0F5233] shadow-[0_1px_3px_rgba(22,163,74,0.3)]',
-  secondary: 'bg-transparent border-[1.5px] border-[#E5E7EB] text-[#374151] hover:bg-[#F9FAFB]',
-  success: 'bg-[#22C55E] text-white hover:bg-[#16A34A]',
-  danger: 'bg-transparent border-[1.5px] border-[#DC2626] text-[#DC2626] hover:bg-[#FEE2E2]',
-  ghost: 'bg-transparent text-[#6B7280] hover:bg-[#F9FAFB]',
+  primary: 'bg-primary text-white hover:bg-primary-dark shadow-[0_1px_3px_rgba(22,163,74,0.3)]',
+  secondary: 'bg-transparent border-[1.5px] border-border text-text-primary hover:bg-bg-page',
+  success: 'bg-accent-green text-white hover:bg-success',
+  danger: 'bg-transparent border-[1.5px] border-danger text-danger hover:bg-danger-light',
+  ghost: 'bg-transparent text-text-secondary hover:bg-bg-page',
 };
 
 const SIZE_STYLES: Record<NonNullable<ButtonProps['size']>, string> = {
@@ -32,7 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={`inline-flex items-center justify-center gap-2 rounded-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT_STYLES[variant]} ${SIZE_STYLES[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
+        className={`inline-flex items-center justify-center gap-2 rounded-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT_STYLES[variant]} ${SIZE_STYLES[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
         {...rest}
       >
         {loading ? <Loader2 size={16} className="animate-spin" /> : Icon ? <Icon size={16} /> : null}

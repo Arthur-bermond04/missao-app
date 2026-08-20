@@ -55,6 +55,35 @@ cp .env.example .env.local   # preencha com as chaves do Supabase
 npm run dev
 ```
 
+## Design system
+
+A identidade do painel é de **painel administrativo**: navegação escura, conteúdo
+sobre cinza claro, cards brancos por cima, e o verde da marca reservado para o
+item ativo e para as ações primárias. O tema "solene" anterior (fonte Cinzel,
+logo com cúpula, cantos ornamentais) foi descontinuado.
+
+Cor se escreve como **classe de token**, nunca hex solto:
+
+```
+bg-primary  text-danger  border-border  bg-sidebar-bg  text-sidebar-text-active
+```
+
+Os tokens vivem em `apps/web/src/app/globals.css` (bloco `@theme inline`) e
+`apps/mobile/src/theme/colors.ts`, com os mesmos nomes nos dois apps.
+
+Há **uma exceção**: contextos que não aceitam classe CSS e exigem a string da
+cor — Recharts (desenha SVG por prop), pdfmake (gera PDF fora do DOM) e
+gradientes/SVG inline. Para esses existe `apps/web/src/lib/cores.ts`, que
+espelha os tokens. Ao mexer em `globals.css`, mexer nele também.
+
+A prévia do WhatsApp em `PreviaMensagem.tsx` mantém dois hex próprios de
+propósito: são as cores do WhatsApp, não do MissãoApp, e trocá-las pelo verde
+da marca tornaria a prévia menos fiel.
+
+O painel é **só tema claro** — a navegação escura é decisão de design, não dark
+mode. O `:root` declara `color-scheme: light` para o navegador não aplicar
+esquema escuro em controles nativos sobre uma UI clara.
+
 ## Permissões
 
 O acesso é decidido no banco, pelo RLS. A regra não está mais escrita como

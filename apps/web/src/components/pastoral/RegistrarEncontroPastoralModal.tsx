@@ -221,7 +221,7 @@ export function RegistrarEncontroPastoralModal({
             max={5}
             value={abertura}
             onChange={(e) => setAbertura(Number(e.target.value))}
-            className="w-full accent-[#22C55E]"
+            className="w-full accent-accent-green"
           />
         </div>
 

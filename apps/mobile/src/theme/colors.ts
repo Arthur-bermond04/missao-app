@@ -1,52 +1,60 @@
+// Tokens do MissãoApp — mesmos nomes e valores de apps/web/src/app/globals.css.
+//
+// Antes existiam três gerações de nomes convivendo: os da identidade original
+// "dourado papal" (gold*, stone*), que tinham sido só reapontados para verde
+// sem renomear, e dois conjuntos parciais criados depois. Nome que mente sobre
+// o valor (gold guardando verde, primaryLight guardando o tom mais claro de
+// todos) custa mais caro que a renomeação.
 export const colors = {
-  // Verde Missionário — verde missão + acento vibrante
+  // Verde Missionário
   primary: '#1A7A4A',
-  primaryDark: '#0F5233', // hover/pressed
-  primaryLight: '#E8F5EE', // fundo suave (avatares, badges, etc.)
+  primaryLight: '#2D9A63',
+  primaryXLight: '#E8F5EE',
+  primaryDark: '#0F5233',
 
-  // Verde vibrante — acento e destaques (substitui o antigo dourado papal)
-  gold: '#1A7A4A',
-  goldLight: '#86EFAC',
-  goldDark: '#0F5233',
-  goldBg: '#E8F5EE',
+  // Verde vibrante — acento, item ativo, CTAs
+  accentGreen: '#22C55E',
+  accentGreenLight: '#86EFAC',
+  accentGreenBg: '#F0FDF4',
 
-  // Cores de apoio neutras (substituem o antigo travertino)
-  stone: '#6B7280', // cinza médio — bordas e divisores
-  stoneLight: '#F9FAFB', // cinza levíssimo — fundo de páginas
-
+  // Status
   success: '#16A34A',
   successLight: '#DCFCE7',
   warning: '#D97706',
   warningLight: '#FEF3C7',
-  quente: '#D97706',
-  morno: '#2563EB',
-  frio: '#6B7280',
-  background: '#F9FAFB',
-  card: '#FFFFFF',
-  text: '#111827',
-  textMuted: '#6B7280',
-  border: '#E5E7EB',
   danger: '#DC2626',
-
-  // Tokens alinhados ao design system do painel web
-  accent: '#22C55E',
-  accentLight: '#DCFCE7',
-  amber: '#D97706',
-  amberLight: '#FEF3C7',
-  dangerText: '#DC2626',
   dangerLight: '#FEE2E2',
   info: '#2563EB',
   infoLight: '#DBEAFE',
 
-  // Nomes da identidade "Verde Missionário" (para código novo)
-  primaryXLight: '#E8F5EE',
-  accentGreen: '#22C55E',
-  accentGreenLight: '#86EFAC',
-  accentGreenBg: '#F0FDF4',
+  // Neutro sem carga semântica
+  neutral: '#6B7280',
+  neutralLight: '#F3F4F6',
+
+  // Textos
   textPrimary: '#111827',
   textSecondary: '#6B7280',
-  textMutedGreen: '#9CA3AF',
+  textMuted: '#9CA3AF',
+
+  // Fundos
   bgPage: '#F9FAFB',
   bgCard: '#FFFFFF',
+  contentBg: '#F4F5F7',
+
+  // Navegação escura — mesma faixa tonal da sidebar/topbar do painel web
+  sidebarBg: '#2E3446',
+  sidebarBgHover: '#3A4156',
+  sidebarBorder: '#3A4156',
+  sidebarText: '#A7ADBC',
+  sidebarTextActive: '#FFFFFF',
+
+  // Bordas
+  border: '#E5E7EB',
   borderGreen: '#BBF7D0',
+
+  // Aliases semânticos do nível de interesse — nomes de domínio, não de cor,
+  // então continuam válidos e apontam para os tokens de status.
+  quente: '#D97706',
+  morno: '#2563EB',
+  frio: '#6B7280',
 };

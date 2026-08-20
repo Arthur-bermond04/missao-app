@@ -109,7 +109,7 @@ export function PessoaPerfilScreen({ comunidadeId, perfil }: { comunidadeId: str
 
         {isAdmin && (
           <Pressable onPress={() => setConfirmExcluirPessoa(true)} style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.dangerText }}>Excluir permanentemente</Text>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.danger }}>Excluir permanentemente</Text>
           </Pressable>
         )}
 
@@ -135,7 +135,7 @@ export function PessoaPerfilScreen({ comunidadeId, perfil }: { comunidadeId: str
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <Text style={styles.itemMeta}>{tipoLabel}</Text>
                       <Pressable onPress={() => setInteracaoParaExcluir(i)} hitSlop={8}>
-                        <Trash2 size={14} color={colors.textMuted} />
+                        <Trash2 size={14} color={colors.textSecondary} />
                       </Pressable>
                     </View>
                   </View>
@@ -205,13 +205,13 @@ function NovaInteracaoModal({
           <View style={styles.modalTopo}>
             <Text style={styles.modalTitulo}>Nova interação</Text>
             <Pressable onPress={onFechar}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
           <ScrollView style={{ maxHeight: 420 }}>
             <Pressable style={styles.input} onPress={() => setMostrarData(true)}>
-              <Text style={{ color: colors.text }}>{data.toLocaleDateString('pt-BR')}</Text>
+              <Text style={{ color: colors.textPrimary }}>{data.toLocaleDateString('pt-BR')}</Text>
             </Pressable>
             {mostrarData && (
               <DateTimePicker
@@ -242,7 +242,7 @@ function NovaInteracaoModal({
               multiline
               textAlignVertical="top"
               placeholder="Descreva a conversa/visita..."
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={colors.textSecondary}
             />
           </ScrollView>
 
@@ -254,35 +254,35 @@ function NovaInteracaoModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   conteudo: { padding: 20 },
   header: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primaryXLight, alignItems: 'center', justifyContent: 'center' },
   avatarTexto: { fontSize: 18, fontWeight: '700', color: colors.primary },
-  nome: { fontSize: 18, fontWeight: '800', color: colors.text },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.primaryLight },
+  nome: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.primaryXLight },
   badgeTexto: { fontSize: 12, fontWeight: '600', color: colors.primary },
-  meta: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
-  observacoes: { backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border, marginTop: 16 },
-  observacoesTexto: { fontSize: 13, color: colors.text, lineHeight: 19 },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 24 },
-  vazio: { fontSize: 14, color: colors.textMuted, marginTop: 8 },
-  card: { backgroundColor: colors.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
+  meta: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+  observacoes: { backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border, marginTop: 16 },
+  observacoesTexto: { fontSize: 13, color: colors.textPrimary, lineHeight: 19 },
+  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginTop: 24 },
+  vazio: { fontSize: 14, color: colors.textSecondary, marginTop: 8 },
+  card: { backgroundColor: colors.bgCard, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border },
   cardTopo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  itemNome: { fontSize: 14, fontWeight: '700', color: colors.text },
-  itemMeta: { fontSize: 12, color: colors.textMuted },
-  relato: { fontSize: 14, color: colors.text, lineHeight: 20 },
-  encaminhamentos: { fontSize: 13, color: colors.textMuted, marginTop: 6 },
+  itemNome: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  itemMeta: { fontSize: 12, color: colors.textSecondary },
+  relato: { fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
+  encaminhamentos: { fontSize: 13, color: colors.textSecondary, marginTop: 6 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  modalCard: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   modalTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 12, marginBottom: 6 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15, marginTop: 8 },
+  modalTitulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  campoLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 6 },
+  input: { backgroundColor: colors.bgCard, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, marginTop: 8 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
   chipAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTexto: { fontSize: 13, color: colors.text },
+  chipTexto: { fontSize: 13, color: colors.textPrimary },
   chipTextoAtivo: { color: '#fff', fontWeight: '600' },
 });

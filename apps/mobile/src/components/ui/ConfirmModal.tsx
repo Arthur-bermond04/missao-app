@@ -46,7 +46,7 @@ export function ConfirmModal({
           <View style={styles.topo}>
             <Text style={styles.titulo}>{titulo}</Text>
             <Pressable onPress={onFechar} disabled={confirmando}>
-              <X size={20} color={colors.textMuted} />
+              <X size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
           <Text style={styles.descricao}>{descricao}</Text>
@@ -68,10 +68,10 @@ export function ConfirmModal({
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  card: { backgroundColor: colors.card, borderRadius: 18, padding: 20 },
+  card: { backgroundColor: colors.bgCard, borderRadius: 18, padding: 20 },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  titulo: { fontSize: 17, fontWeight: '700', color: colors.text },
-  descricao: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
+  titulo: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
+  descricao: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
   acoes: { flexDirection: 'row', gap: 10, marginTop: 18 },
   botao: { flex: 1 },
 });

@@ -35,7 +35,7 @@ export function MetricCard({ icon: Icon, iconColor, iconBg, label, value, valorC
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  label: { fontSize: 12, color: colors.textMuted, fontWeight: '600' },
-  valor: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 2 },
-  subtitulo: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  label: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+  valor: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginTop: 2 },
+  subtitulo: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
 });

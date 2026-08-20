@@ -58,7 +58,7 @@ export function RetiroDetalheScreen() {
       <TextInput
         style={styles.busca}
         placeholder="Buscar por nome para check-in"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textSecondary}
         value={busca}
         onChangeText={setBusca}
       />
@@ -93,26 +93,26 @@ export function RetiroDetalheScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.bgPage },
   header: { paddingHorizontal: 20, paddingTop: 16 },
-  contador: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
+  contador: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
   busca: {
     marginHorizontal: 20,
     marginTop: 10,
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.text,
+    color: colors.textPrimary,
   },
   lista: { padding: 20, paddingBottom: 60, gap: 8 },
-  vazio: { textAlign: 'center', color: colors.textMuted, marginTop: 60 },
+  vazio: { textAlign: 'center', color: colors.textSecondary, marginTop: 60 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: colors.bgCard,
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
@@ -120,9 +120,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cardPresente: { borderColor: colors.success },
-  nome: { fontSize: 15, fontWeight: '700', color: colors.text },
-  grupo: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  pagou: { fontSize: 11, color: colors.textMuted },
+  nome: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  grupo: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  pagou: { fontSize: 11, color: colors.textSecondary },
   checkbox: {
     width: 24,
     height: 24,
