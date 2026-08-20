@@ -20,6 +20,7 @@ import {
   Network,
   Bell,
   Gauge,
+  ScrollText,
   Users2,
   type LucideIcon,
   LogOut,
@@ -88,7 +89,10 @@ export const NAV_GRUPOS: NavGrupo[] = [
   },
   {
     titulo: 'Sistema',
-    itens: [{ href: '/configuracoes', label: 'Configurações', icon: Settings, modulo: 'configuracoes' }],
+    itens: [
+      { href: '/configuracoes', label: 'Configurações', icon: Settings, modulo: 'configuracoes' },
+      { href: '/auditoria', label: 'Auditoria', icon: ScrollText, modulo: 'auditoria' },
+    ],
   },
 ];
 

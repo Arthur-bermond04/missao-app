@@ -89,6 +89,24 @@ view `pastoral_ovelhas_resumo`), nunca o relato, os temas ou o nível de abertur
 
 Um trigger (`usuarios_valida_supervisor`) recusa ciclos na hierarquia.
 
+## Auditoria (LGPD)
+
+A tabela `auditoria` guarda quem alterou o quê, quando — campo a campo em
+`UPDATE`, e como um evento da linha em `INSERT`/`DELETE`. É escrita por trigger
+e **não tem policy de escrita**: o histórico só cresce e não é adulterável pela
+API, nem por admin. Leitura em `/auditoria` (módulo `auditoria`, liberado só
+para admin por padrão).
+
+Tabelas auditadas: `pessoas`, `pastoral_ovelhas`, `usuarios`, `permissoes`,
+`financeiro` e `comunidades`.
+
+`pastoral_encontros` fica **fora de propósito** — é a tabela do relato. Auditar
+a ovelha (etapa, estado, pastor responsável) responde às perguntas de gestão sem
+criar uma segunda cópia do conteúdo confidencial. Pela mesma razão, campos
+livres (`relato`, `temas_abordados`, `nivel_abertura`, `encaminhamentos`,
+`observacoes`, `objetivo_atual`) entram no log como `(conteudo omitido)`: fica
+registrado que mudaram, não o que passaram a dizer.
+
 ## Verificação (CI)
 
 O workflow `.github/workflows/ci.yml` roda em todo push na `main` e em todo PR:
