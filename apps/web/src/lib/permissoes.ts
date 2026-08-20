@@ -60,6 +60,40 @@ export function podeNaMatriz(matriz: MatrizPermissoes, modulo: string, acao: Aca
 }
 
 /**
+ * Regras que valiam antes da tabela `permissoes` existir — a lista fixa de
+ * perfis que a Sidebar usava em `requerPerfil`, mais os módulos de escopo
+ * ampliado.
+ *
+ * Módulo ausente daqui era livre para a comunidade inteira.
+ */
+const RESTRICOES_LEGADO: Record<string, Perfil[]> = {
+  monitoria: ['coordenador', 'admin'],
+  alertas: ['coordenador', 'admin'],
+  financeiro: ['coordenador', 'admin'],
+  relatorios: ['coordenador', 'admin'],
+  auditoria: ['admin'],
+  pessoas_todas: ['coordenador', 'admin'],
+  pastoral_todas: ['admin'],
+  funil_todos: ['lider', 'coordenador', 'admin'],
+};
+
+/**
+ * Decide o acesso sem a matriz do banco.
+ *
+ * Serve de rede de segurança para quando `permissoes` não pode ser lida — a
+ * tabela ainda não foi criada, o banco está fora do ar, a rede caiu. Sem isso,
+ * a matriz vazia esconde o app inteiro do usuário, porque `pode()` nega tudo.
+ *
+ * Cair para o comportamento anterior é seguro: a UI só decide o que mostrar; a
+ * autorização de verdade continua no RLS do Postgres, que não depende disto.
+ */
+export function podeNoLegado(perfil: Perfil | null, modulo: string, _acao: AcaoPermissao): boolean {
+  if (!perfil) return false;
+  const restricao = RESTRICOES_LEGADO[modulo];
+  return !restricao || restricao.includes(perfil);
+}
+
+/**
  * Grava um override da comunidade. Nunca altera o default do sistema — se o
  * valor escolhido coincidir com o default, o override é removido, para a
  * comunidade voltar a acompanhar mudanças futuras no default.

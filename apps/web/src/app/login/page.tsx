@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/useSession';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Logo } from '@/components/ui/Logo';
+import { AuthShell } from '@/components/layout/AuthShell';
 
 export default function LoginPage() {
   const { entrar } = useSession();
@@ -30,59 +31,47 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Coluna esquerda — identidade */}
-      <div className="hidden w-2/5 flex-col justify-between bg-linear-135 from-primary to-primary-dark p-10 lg:flex">
-        <div />
-        <div>
-          <Logo size={64} variant="white" showText />
-          <h2 className="mt-6 text-[26px] font-semibold leading-tight text-white">Cada pessoa importa na missão.</h2>
-          <p className="mt-3 text-sm text-white/75">Acompanhe sua equipe, seus contatos e seus retiros.</p>
-          <div className="mt-5 h-px w-16 bg-white/20" aria-hidden="true" />
+    <AuthShell titulo="Bem-vindo de volta" subtitulo="Painel da liderança">
+      <form onSubmit={handleEntrar}>
+        <div className="mt-6">
+          <Input
+            label="E-mail"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="voce@exemplo.com"
+            autoComplete="email"
+            required
+          />
         </div>
-        <p className="text-sm text-white/40">MissãoApp</p>
-      </div>
 
-      {/* Coluna direita — formulário */}
-      <div className="flex flex-1 items-center justify-center bg-bg-page px-6">
-        <form onSubmit={handleEntrar} className="w-full max-w-sm rounded-md bg-bg-card p-8 shadow-card">
-          <h1 className="font-sans text-2xl font-semibold text-text-primary">Bem-vindo de volta</h1>
-          <p className="mt-1 text-sm text-text-secondary">Painel da liderança</p>
+        <div className="mt-4">
+          <Input
+            label="Senha"
+            type="password"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </div>
 
-          <div className="mt-6">
-            <Input
-              label="E-mail"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@exemplo.com"
-              required
-            />
-          </div>
+        {!!erro && <p className="mt-3 text-sm text-danger">{erro}</p>}
 
-          <div className="mt-4">
-            <Input
-              label="Senha"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
-          </div>
+        <Button type="submit" loading={entrando} fullWidth size="lg" className="mt-6">
+          {entrando ? 'Entrando...' : 'Entrar'}
+        </Button>
 
-          {!!erro && <p className="mt-3 text-sm text-danger">{erro}</p>}
-
-          <Button type="submit" loading={entrando} fullWidth size="lg" className="mt-6">
-            {entrando ? 'Entrando...' : 'Entrar'}
-          </Button>
-
-          <p className="mt-4 text-center text-xs">
-            <a href="#" className="text-primary hover:underline">
-              Esqueci minha senha
-            </a>
-          </p>
-        </form>
-      </div>
-    </div>
+        <p className="mt-4 text-center text-xs">
+          {/* Leva o e-mail já digitado, para não obrigar a redigitar. */}
+          <Link
+            href={email.trim() ? `/esqueci-senha?email=${encodeURIComponent(email.trim())}` : '/esqueci-senha'}
+            className="text-primary hover:underline"
+          >
+            Esqueci minha senha
+          </Link>
+        </p>
+      </form>
+    </AuthShell>
   );
 }

@@ -69,7 +69,14 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
         setPermissoes(p);
         setGruposAbertos(new Set(m.map((x) => x.grupo)));
       })
-      .catch((err) => toastError(err instanceof Error ? err.message : 'Erro ao carregar permissões.'))
+      // Falha aqui quase sempre é "tabela não existe"; o estado vazio abaixo
+      // explica o que fazer, então não vale gritar um toast por cima.
+      .catch(() => {
+        if (!cancelado) {
+          setModulos([]);
+          setPermissoes([]);
+        }
+      })
       .finally(() => {
         if (!cancelado) setCarregando(false);
       });
@@ -163,6 +170,27 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
   }
 
   if (carregando) return <p className="text-sm text-text-secondary">Carregando...</p>;
+
+  // Sem catálogo não há o que configurar — é o sintoma de a migration de
+  // permissões ainda não ter rodado neste banco. Enquanto isso o app funciona
+  // com as regras anteriores (ver podeNoLegado em lib/permissoes.ts).
+  if (modulos.length === 0) {
+    return (
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-text-primary">Permissões por perfil</h2>
+        <div className="rounded-md bg-warning-light px-3 py-2 text-sm text-warning">
+          A matriz de permissões ainda não existe neste banco.
+        </div>
+        <p className="text-sm text-text-secondary">
+          Rode <code className="rounded bg-bg-page px-1">supabase/migrations/20260820030000_permissoes_hierarquia.sql</code>{' '}
+          no SQL Editor do Supabase para habilitar esta tela.
+        </p>
+        <p className="text-sm text-text-secondary">
+          Até lá o acesso segue as regras anteriores, com o perfil fixo — nada fica aberto por engano.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

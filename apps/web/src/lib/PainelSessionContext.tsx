@@ -2,7 +2,13 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/lib/useSession';
-import { listarPermissoes, podeNaMatriz, resolverMatriz, type MatrizPermissoes } from '@/lib/permissoes';
+import {
+  listarPermissoes,
+  podeNaMatriz,
+  podeNoLegado,
+  resolverMatriz,
+  type MatrizPermissoes,
+} from '@/lib/permissoes';
 import type { AcaoPermissao } from '@/types/database';
 
 type PainelSession = ReturnType<typeof useSession> & {
@@ -14,6 +20,12 @@ type PainelSession = ReturnType<typeof useSession> & {
    */
   pode: (modulo: string, acao: AcaoPermissao) => boolean;
   permissoesCarregando: boolean;
+  /**
+   * true quando a matriz não pôde ser lida e `pode()` está caindo nas regras
+   * antigas. Normalmente significa que a migration de permissões ainda não
+   * rodou neste banco.
+   */
+  permissoesIndisponiveis: boolean;
 };
 
 const PainelSessionCtx = createContext<PainelSession | null>(null);
@@ -22,6 +34,7 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
   const sessionData = useSession();
   const [permissoes, setPermissoes] = useState<MatrizPermissoes>({});
   const [permissoesCarregando, setPermissoesCarregando] = useState(true);
+  const [permissoesIndisponiveis, setPermissoesIndisponiveis] = useState(false);
 
   const { usuario } = sessionData;
   const comunidadeId = usuario?.comunidade_id ?? null;
@@ -41,10 +54,25 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
     listarPermissoes(comunidadeId)
       .then((lista) => {
         if (cancelado) return;
+        // Lista vazia conta como indisponível: sem nenhuma linha, a matriz
+        // negaria tudo e o app ficaria sem menu.
+        if (lista.length === 0) {
+          setPermissoes({});
+          setPermissoesIndisponiveis(true);
+          return;
+        }
         setPermissoes(resolverMatriz(lista, perfil, comunidadeId));
+        setPermissoesIndisponiveis(false);
       })
-      .catch(() => {
-        if (!cancelado) setPermissoes({});
+      .catch((err) => {
+        if (cancelado) return;
+        console.warn(
+          '[MissãoApp] Não foi possível ler a matriz de permissões; usando as regras anteriores. ' +
+            'A migration de permissões provavelmente ainda não rodou neste banco.',
+          err
+        );
+        setPermissoes({});
+        setPermissoesIndisponiveis(true);
       })
       .finally(() => {
         if (!cancelado) setPermissoesCarregando(false);
@@ -55,13 +83,16 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
   }, [comunidadeId, perfil, sessionData.carregando]);
 
   const pode = useCallback(
-    (modulo: string, acao: AcaoPermissao) => podeNaMatriz(permissoes, modulo, acao),
-    [permissoes]
+    (modulo: string, acao: AcaoPermissao) =>
+      permissoesIndisponiveis
+        ? podeNoLegado(perfil, modulo, acao)
+        : podeNaMatriz(permissoes, modulo, acao),
+    [permissoes, permissoesIndisponiveis, perfil]
   );
 
   const valor = useMemo(
-    () => ({ ...sessionData, permissoes, pode, permissoesCarregando }),
-    [sessionData, permissoes, pode, permissoesCarregando]
+    () => ({ ...sessionData, permissoes, pode, permissoesCarregando, permissoesIndisponiveis }),
+    [sessionData, permissoes, pode, permissoesCarregando, permissoesIndisponiveis]
   );
 
   return <PainelSessionCtx.Provider value={valor}>{children}</PainelSessionCtx.Provider>;
