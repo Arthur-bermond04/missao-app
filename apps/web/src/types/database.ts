@@ -18,6 +18,28 @@ export interface Usuario {
   dispositivo_id: string | null;
   ultimo_acesso: string | null;
   preferencias_notificacao: Record<string, boolean> | null;
+  supervisor_id: string | null;
+  criado_em: string;
+}
+
+export type AcaoPermissao = 'ver' | 'criar' | 'editar' | 'excluir';
+
+export interface PermissaoModulo {
+  chave: string;
+  nome: string;
+  grupo: string;
+  acoes: AcaoPermissao[];
+  ordem: number;
+}
+
+export interface Permissao {
+  id: string;
+  /** null = default do sistema; preenchido = override da comunidade */
+  comunidade_id: string | null;
+  perfil: Perfil;
+  modulo: string;
+  acao: AcaoPermissao;
+  permitido: boolean;
   criado_em: string;
 }
 

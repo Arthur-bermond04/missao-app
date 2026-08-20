@@ -11,7 +11,7 @@ import { NAV, PERFIL_LABEL_SIDEBAR, iniciais, podeVerItem } from './Sidebar';
 export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { usuario, sair } = usePainelSession();
+  const { usuario, sair, pode } = usePainelSession();
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -32,7 +32,7 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
         </div>
 
         <nav className="mt-2 flex-1 space-y-1 px-3">
-          {NAV.filter((item) => podeVerItem(item, usuario?.perfil)).map((item) => {
+          {NAV.filter((item) => podeVerItem(item, pode)).map((item) => {
             const ativo = pathname === item.href;
             const Icon = item.icon;
             return (

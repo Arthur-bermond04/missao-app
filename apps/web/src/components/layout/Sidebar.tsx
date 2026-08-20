@@ -28,20 +28,24 @@ import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { Logo } from '@/components/ui/Logo';
 import { BuscaGlobal } from '@/components/layout/BuscaGlobal';
-import type { Perfil } from '@/types/database';
+import type { AcaoPermissao, Perfil } from '@/types/database';
 
 interface NavLink {
   href: string;
   label: string;
   icon: LucideIcon;
-  requerPerfil?: Perfil[];
+  /**
+   * Chave em permissoes_modulos. O item só aparece se o perfil logado tiver
+   * a ação "ver" nesse módulo. Antes isso era uma lista fixa de perfis
+   * (requerPerfil); agora quem decide é a matriz de permissões, configurável
+   * por comunidade em Configurações › Permissões.
+   */
+  modulo: string;
 }
 interface NavGrupo {
   titulo: string;
   itens: NavLink[];
 }
-
-const PERFIS_GESTAO_FINANCEIRA: Perfil[] = ['coordenador', 'admin'];
 
 // Estrutura enxuta: cada rota aparece uma única vez, sem submenu — Pessoas,
 // Pastoral e Ministérios já são cadastros de gente, não precisam de duas
@@ -49,40 +53,42 @@ const PERFIS_GESTAO_FINANCEIRA: Perfil[] = ['coordenador', 'admin'];
 export const NAV_GRUPOS: NavGrupo[] = [
   {
     titulo: 'Início',
-    itens: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+    // Dashboard não tem módulo próprio: é a porta de entrada e cada bloco
+    // dentro dele já respeita a permissão do seu módulo.
+    itens: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, modulo: '' }],
   },
   {
     titulo: 'Cadastros',
     itens: [
-      { href: '/pessoas', label: 'Pessoas', icon: IdCard },
-      { href: '/membros', label: 'Membros', icon: Users },
-      { href: '/equipe', label: 'Equipe', icon: Network },
+      { href: '/pessoas', label: 'Pessoas', icon: IdCard, modulo: 'pessoas' },
+      { href: '/membros', label: 'Membros', icon: Users, modulo: 'membros' },
+      { href: '/equipe', label: 'Equipe', icon: Network, modulo: 'equipe' },
     ],
   },
   {
     titulo: 'Missão',
     itens: [
-      { href: '/funil', label: 'Funil', icon: Filter },
-      { href: '/retiros', label: 'Retiros', icon: Tent },
-      { href: '/ministerios', label: 'Ministérios', icon: HandHeart },
-      { href: '/celulas', label: 'Células', icon: Users2 },
-      { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake },
-      { href: '/pastoral/monitoria', label: 'Monitoria pastoral', icon: Gauge, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
-      { href: '/agenda', label: 'Agenda', icon: Calendar },
+      { href: '/funil', label: 'Funil', icon: Filter, modulo: 'funil' },
+      { href: '/retiros', label: 'Retiros', icon: Tent, modulo: 'retiros' },
+      { href: '/ministerios', label: 'Ministérios', icon: HandHeart, modulo: 'ministerios' },
+      { href: '/celulas', label: 'Células', icon: Users2, modulo: 'celulas' },
+      { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake, modulo: 'pastoral' },
+      { href: '/pastoral/monitoria', label: 'Monitoria pastoral', icon: Gauge, modulo: 'monitoria' },
+      { href: '/agenda', label: 'Agenda', icon: Calendar, modulo: 'agenda' },
     ],
   },
   {
     titulo: 'Gestão',
     itens: [
-      { href: '/alertas', label: 'Alertas', icon: Bell, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
-      { href: '/mensagens', label: 'Comunicação', icon: MessageCircle },
-      { href: '/financeiro', label: 'Financeiro', icon: Wallet, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
-      { href: '/relatorios', label: 'Relatórios', icon: BarChart3, requerPerfil: PERFIS_GESTAO_FINANCEIRA },
+      { href: '/alertas', label: 'Alertas', icon: Bell, modulo: 'alertas' },
+      { href: '/mensagens', label: 'Comunicação', icon: MessageCircle, modulo: 'mensagens' },
+      { href: '/financeiro', label: 'Financeiro', icon: Wallet, modulo: 'financeiro' },
+      { href: '/relatorios', label: 'Relatórios', icon: BarChart3, modulo: 'relatorios' },
     ],
   },
   {
     titulo: 'Sistema',
-    itens: [{ href: '/configuracoes', label: 'Configurações', icon: Settings }],
+    itens: [{ href: '/configuracoes', label: 'Configurações', icon: Settings, modulo: 'configuracoes' }],
   },
 ];
 
@@ -97,8 +103,8 @@ export const PERFIL_LABEL_SIDEBAR: Record<Perfil, string> = {
   admin: 'Admin',
 };
 
-export function podeVerItem(item: NavLink, perfil: Perfil | undefined): boolean {
-  return !item.requerPerfil || (!!perfil && item.requerPerfil.includes(perfil));
+export function podeVerItem(item: NavLink, pode: (modulo: string, acao: AcaoPermissao) => boolean): boolean {
+  return !item.modulo || pode(item.modulo, 'ver');
 }
 
 export function iniciais(nome: string) {
@@ -119,7 +125,7 @@ const COR_ATIVO_ICONE = '#22C55E';
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { usuario, sair } = usePainelSession();
+  const { usuario, sair, pode } = usePainelSession();
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
   const [buscaFocada, setBuscaFocada] = useState(false);
@@ -150,12 +156,12 @@ export function Sidebar() {
     router.replace('/login');
   }
 
-  // Esconde da navegação os itens que o perfil logado não pode acessar
-  // (Financeiro/Relatórios são coordenador/admin) — grupos que ficam
-  // vazios depois do filtro simplesmente não aparecem.
+  // Esconde da navegação os itens cujo módulo o perfil logado não pode ver,
+  // segundo a matriz de permissões da comunidade — grupos que ficam vazios
+  // depois do filtro simplesmente não aparecem.
   const gruposVisiveis = NAV_GRUPOS.map((grupo) => ({
     ...grupo,
-    itens: grupo.itens.filter((item) => podeVerItem(item, usuario?.perfil)),
+    itens: grupo.itens.filter((item) => podeVerItem(item, pode)),
   })).filter((grupo) => grupo.itens.length > 0);
 
   return (

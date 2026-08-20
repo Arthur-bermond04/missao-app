@@ -27,7 +27,7 @@ export async function listarMembros(comunidadeId: string): Promise<MembroComCont
 
 export async function atualizarMembro(
   id: string,
-  campos: Partial<Pick<Usuario, 'nome' | 'telefone' | 'perfil' | 'ativo' | 'dispositivo_id'>>
+  campos: Partial<Pick<Usuario, 'nome' | 'telefone' | 'perfil' | 'ativo' | 'dispositivo_id' | 'supervisor_id'>>
 ) {
   const { error } = await supabase.from('usuarios').update(campos).eq('id', id);
   if (error) throw error;
@@ -39,6 +39,28 @@ export async function desativarMembro(id: string) {
 
 export async function reativarMembro(id: string) {
   await atualizarMembro(id, { ativo: true });
+}
+
+/**
+ * Candidatos a supervisor de um membro: qualquer outro membro ativo da
+ * comunidade, menos os que já estão abaixo dele na hierarquia — senão o
+ * trigger do banco (usuarios_valida_supervisor) recusa por ciclo.
+ */
+export function candidatosASupervisor(membros: Usuario[], membroId: string): Usuario[] {
+  const abaixo = new Set<string>();
+  const fila = [membroId];
+
+  while (fila.length > 0) {
+    const atual = fila.shift() as string;
+    for (const m of membros) {
+      if (m.supervisor_id === atual && !abaixo.has(m.id)) {
+        abaixo.add(m.id);
+        fila.push(m.id);
+      }
+    }
+  }
+
+  return membros.filter((m) => m.id !== membroId && m.ativo && !abaixo.has(m.id));
 }
 
 export const PERFIL_LABEL: Record<Perfil, string> = {

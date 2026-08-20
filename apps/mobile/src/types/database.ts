@@ -42,6 +42,7 @@ export interface Usuario {
   ativo: boolean;
   dispositivo_id: string | null;
   ultimo_acesso: string | null;
+  supervisor_id: string | null;
   criado_em: string;
 }
 

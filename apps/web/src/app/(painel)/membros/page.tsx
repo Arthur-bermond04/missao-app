@@ -146,6 +146,7 @@ export default function MembrosPage() {
       />
       <EditarMembroModal
         membro={membroEditando}
+        membros={membros}
         onClose={() => setMembroEditando(null)}
         onSalvo={(id, campos) => setMembros((atual) => atual.map((m) => (m.id === id ? { ...m, ...campos } : m)))}
       />

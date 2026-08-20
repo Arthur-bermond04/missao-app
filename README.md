@@ -55,6 +55,40 @@ cp .env.example .env.local   # preencha com as chaves do Supabase
 npm run dev
 ```
 
+## Permissões
+
+O acesso é decidido no banco, pelo RLS. A regra não está mais escrita como
+literal dentro de cada policy — existe uma tabela `permissoes`
+(perfil × módulo × ação) que as policies consultam via `auth_pode(modulo, acao)`.
+
+- **Defaults do sistema**: linhas com `comunidade_id = null`. Não são editáveis
+  pelo app e reproduzem exatamente as regras que valiam antes da tabela existir.
+- **Override por comunidade**: linhas com `comunidade_id` preenchido, editadas
+  em *Configurações › Permissões* (só admin). O override vence o default; se o
+  valor escolhido coincidir com o default, o override é apagado e a comunidade
+  volta a acompanhar mudanças futuras.
+- **Módulos com sufixo `_todas` / `_todos`** (`pessoas_todas`, `pastoral_todas`,
+  `funil_todos`) são o escopo ampliado: agir sobre registros de outras pessoas.
+  O módulo sem sufixo é o escopo próprio, e é ele que controla a visibilidade do
+  item no menu.
+- A ação **ver** só tem efeito no RLS em `funil`, `financeiro`, `pessoas`,
+  `pastoral`, `monitoria` e nos módulos `_todas`. Nos demais ela controla apenas
+  o menu — a leitura dessas tabelas continua liberada para a comunidade porque
+  elas aparecem em joins e subqueries espalhados pelo app.
+- A gestão da própria tabela de permissões continua exigindo `perfil = 'admin'`
+  como literal, de propósito: se dependesse de `auth_pode()`, um admin poderia
+  se trancar para fora desmarcando a própria permissão.
+
+### Hierarquia de supervisão
+
+`usuarios.supervisor_id` define a quem cada membro se reporta (editável em
+*Membros › Editar*). O supervisor enxerga, em cascata, as pessoas e as ovelhas
+de quem está abaixo dele. **Os encontros pastorais continuam restritos ao próprio
+pastor** — o supervisor vê que o acompanhamento existe e como vai (métricas da
+view `pastoral_ovelhas_resumo`), nunca o relato, os temas ou o nível de abertura.
+
+Um trigger (`usuarios_valida_supervisor`) recusa ciclos na hierarquia.
+
 ## Verificação (CI)
 
 O workflow `.github/workflows/ci.yml` roda em todo push na `main` e em todo PR:
@@ -98,3 +132,5 @@ Nunca commitar chaves reais. Use sempre `.env` / `.env.local` (já ignorados no 
 - Controle de dispositivo único (anti-compartilhamento de conta) descrito no briefing original ainda não foi implementado.
 - `npm run lint --workspace web` não roda direto num clone limpo: o npm faz hoist do `eslint-config-next` para a raiz do monorepo, mas mantém o `next` aninhado em `apps/web/node_modules` (conflito de peer do React entre web `19.2.4` e mobile `19.1.0`), e da raiz o config não resolve o `next`. Contorno (o mesmo que o CI usa): `npm install --no-save --prefix apps/web eslint-config-next@16.2.10`.
 - 60 erros de lint pré-existentes no web — por isso o job de lint do CI ainda é advisory.
+- Um usuário ainda pertence a uma única comunidade (`auth_comunidade_id()` retorna um `uuid`). O plano `diocese`, que pressupõe uma pessoa supervisionando várias paróquias, exige transformar esse vínculo em N:N — a hierarquia de `supervisor_id` resolve a cascata *dentro* de uma comunidade, não entre comunidades.
+- Não há teste automatizado das políticas de RLS. Como a matriz de permissões agora é dado (e não código), uma suíte que autentique como cada perfil e confira o que ele enxerga seria o próximo passo natural.

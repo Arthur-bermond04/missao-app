@@ -11,10 +11,19 @@ import { AbaIntegracoes } from '@/components/configuracoes/AbaIntegracoes';
 import { AbaNotificacoes } from '@/components/configuracoes/AbaNotificacoes';
 import { AbaSeguranca } from '@/components/configuracoes/AbaSeguranca';
 import { AbaDuplicatas } from '@/components/configuracoes/AbaDuplicatas';
+import { AbaPermissoes } from '@/components/configuracoes/AbaPermissoes';
 import { buscarComunidade } from '@/lib/comunidades';
 import type { Comunidade, Usuario } from '@/types/database';
 
-type Aba = 'comunidade' | 'plano' | 'financeiro' | 'integracoes' | 'notificacoes' | 'seguranca' | 'duplicatas';
+type Aba =
+  | 'comunidade'
+  | 'plano'
+  | 'financeiro'
+  | 'integracoes'
+  | 'notificacoes'
+  | 'seguranca'
+  | 'permissoes'
+  | 'duplicatas';
 
 const ABAS: { valor: Aba; label: string }[] = [
   { valor: 'comunidade', label: 'Comunidade' },
@@ -44,8 +53,12 @@ export default function ConfiguracoesPage() {
     buscarComunidade(usuario.comunidade_id).then(setComunidade);
   }, [usuario?.comunidade_id]);
 
+  // Permissões aparece para todos (quem não é admin vê em modo leitura, para
+  // entender por que um menu sumiu); Duplicatas continua só para admin.
   const abasVisiveis =
-    usuario?.perfil === 'admin' ? [...ABAS, { valor: 'duplicatas' as const, label: 'Duplicatas' }] : ABAS;
+    usuario?.perfil === 'admin'
+      ? [...ABAS, { valor: 'permissoes' as const, label: 'Permissões' }, { valor: 'duplicatas' as const, label: 'Duplicatas' }]
+      : [...ABAS, { valor: 'permissoes' as const, label: 'Permissões' }];
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -86,6 +99,12 @@ export default function ConfiguracoesPage() {
               usuario={usuarioLocal}
               onAtualizado={(campos) => setUsuarioLocal((atual) => (atual ? { ...atual, ...campos } : atual))}
             />
+          ) : (
+            <p className="text-sm text-text-secondary">Carregando...</p>
+          ))}
+        {aba === 'permissoes' &&
+          (usuario?.comunidade_id ? (
+            <AbaPermissoes comunidadeId={usuario.comunidade_id} ehAdmin={usuario.perfil === 'admin'} />
           ) : (
             <p className="text-sm text-text-secondary">Carregando...</p>
           ))}

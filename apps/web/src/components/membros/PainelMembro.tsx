@@ -24,6 +24,18 @@ export function PainelMembro({
   const [contatosRecentes, setContatosRecentes] = useState<Contato[]>([]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
+  const [nomeSupervisor, setNomeSupervisor] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNomeSupervisor(null);
+    if (!membro?.supervisor_id) return;
+    supabase
+      .from('usuarios')
+      .select('nome')
+      .eq('id', membro.supervisor_id)
+      .single()
+      .then(({ data }) => setNomeSupervisor((data as { nome: string } | null)?.nome ?? null));
+  }, [membro?.supervisor_id]);
 
   useEffect(() => {
     if (!membro) return;
@@ -61,6 +73,10 @@ export function PainelMembro({
             <p className="font-medium text-text-primary">
               {membro.ultimo_acesso ? new Date(membro.ultimo_acesso).toLocaleDateString('pt-BR') : 'Nunca'}
             </p>
+          </div>
+          <div>
+            <p className="text-xs text-text-secondary">Supervisor</p>
+            <p className="font-medium text-text-primary">{nomeSupervisor ?? '—'}</p>
           </div>
         </div>
 
