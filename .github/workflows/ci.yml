@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: typecheck (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web, mobile]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck --workspace ${{ matrix.app }}
+
+  lint:
+    name: lint (web)
+    runs-on: ubuntu-latest
+    # Advisory por enquanto: o codigo tem 60 erros de lint pre-existentes
+    # (react-hooks/set-state-in-effect e @typescript-eslint/no-explicit-any na maioria).
+    # Remover este continue-on-error assim que a divida for zerada, para o lint
+    # passar a barrar PRs de verdade.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # npm faz hoist do eslint-config-next para a raiz do monorepo, mas mantem o
+      # next aninhado em apps/web/node_modules (conflito de peer do React entre web
+      # e mobile). Da raiz, o eslint-config-next nao consegue resolver o next e o
+      # eslint morre com "Cannot find module next/dist/compiled/babel/eslint-parser".
+      # Instalar uma copia dentro de apps/web resolve o lookup.
+      - name: Corrige resolucao do eslint-config-next no monorepo
+        run: npm install --no-save --prefix apps/web eslint-config-next@16.2.10
+      - run: npm run lint --workspace web

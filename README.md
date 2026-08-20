@@ -10,7 +10,9 @@ missao-app/
 │   ├── mobile/   → App React Native (Expo, TypeScript) — uso do missionário no campo
 │   └── web/      → Painel admin (Next.js, TypeScript) — uso do líder/coordenador/admin
 └── supabase/
-    └── schema.sql → Schema do banco (tabelas + RLS)
+    ├── migrations/  → Migrations em ordem (ver migrations/README.md)
+    ├── reset.sql    → Derruba o schema (só desenvolvimento)
+    └── seed_usuario_teste.sql
 ```
 
 ## Stack
@@ -29,7 +31,8 @@ missao-app/
 ### 1. Supabase
 
 1. Crie um projeto em https://supabase.com
-2. Rode o conteúdo de `supabase/schema.sql` no SQL Editor
+2. Rode os arquivos de `supabase/migrations/` **em ordem alfabética** no SQL Editor
+   (o prefixo de timestamp já é a ordem de execução — ver `supabase/migrations/README.md`)
 3. Copie a URL e a `anon key` do projeto
 
 ### 2. Mobile (apps/mobile)
@@ -51,6 +54,22 @@ npm install
 cp .env.example .env.local   # preencha com as chaves do Supabase
 npm run dev
 ```
+
+## Verificação (CI)
+
+O workflow `.github/workflows/ci.yml` roda em todo push na `main` e em todo PR:
+
+```bash
+npm ci
+npm run typecheck --workspace web      # tsc --noEmit
+npm run typecheck --workspace mobile   # tsc --noEmit
+npm run lint --workspace web           # eslint (advisory, ver abaixo)
+```
+
+O job de lint está como `continue-on-error` porque o código tem 60 erros de lint
+pré-existentes (a maioria `react-hooks/set-state-in-effect` e
+`@typescript-eslint/no-explicit-any`). Assim que essa dívida for zerada, remova o
+`continue-on-error` para o lint passar a barrar PRs.
 
 ## Variáveis de ambiente
 
@@ -77,3 +96,5 @@ Nunca commitar chaves reais. Use sempre `.env` / `.env.local` (já ignorados no 
 - `SUPABASE_SERVICE_ROLE_KEY` não configurada em `apps/web/.env.local` — sem ela, o formulário público de inscrição em retiro (`/inscricao/[retiroId]`) não funciona (as rotas de API que o suportam usam o service role para contornar o RLS).
 - Envio real de mensagens (push/WhatsApp/e-mail) ainda não está integrado com FCM, Z-API e Resend — hoje o Módulo 4 só registra a mensagem no banco.
 - Controle de dispositivo único (anti-compartilhamento de conta) descrito no briefing original ainda não foi implementado.
+- `npm run lint --workspace web` não roda direto num clone limpo: o npm faz hoist do `eslint-config-next` para a raiz do monorepo, mas mantém o `next` aninhado em `apps/web/node_modules` (conflito de peer do React entre web `19.2.4` e mobile `19.1.0`), e da raiz o config não resolve o `next`. Contorno (o mesmo que o CI usa): `npm install --no-save --prefix apps/web eslint-config-next@16.2.10`.
+- 60 erros de lint pré-existentes no web — por isso o job de lint do CI ainda é advisory.
