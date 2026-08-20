@@ -30,23 +30,41 @@ function Caixa({ estado, onClick }: { estado: EstadoGrupo; onClick?: () => void 
   const marcado = estado === 'todos';
   const parcial = estado === 'parcial';
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!onClick}
-      aria-checked={parcial ? 'mixed' : marcado}
-      role="checkbox"
-      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
-        marcado || parcial ? 'border-primary bg-primary text-white' : 'border-border bg-white'
-      } ${onClick ? 'cursor-pointer' : 'cursor-default opacity-70'}`}
-    >
+  const classes = `flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+    marcado || parcial ? 'border-primary bg-primary text-white' : 'border-border bg-white'
+  }`;
+
+  const miolo = (
+    <>
       {marcado && (
         <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5}>
           <path d="M2.5 6.5 5 9l4.5-5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
       {parcial && <Minus size={10} />}
+    </>
+  );
+
+  // Sem onClick a caixa é só indicador — e precisa ser <span>, não <button>
+  // desabilitado: a do cabeçalho do grupo fica dentro do botão que expande a
+  // seção, e botão dentro de botão é HTML inválido (quebra a hidratação).
+  if (!onClick) {
+    return (
+      <span role="checkbox" aria-checked={parcial ? 'mixed' : marcado} aria-disabled="true" className={`${classes} opacity-70`}>
+        {miolo}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-checked={parcial ? 'mixed' : marcado}
+      role="checkbox"
+      className={`${classes} cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-1`}
+    >
+      {miolo}
     </button>
   );
 }
@@ -257,20 +275,23 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
                         />
                         <span className="text-sm text-text-primary">{m.nome}</span>
                       </span>
+                      {/* Rótulo em <span>, não <label>: não está ligado a um
+                          campo de formulário — quem carrega o estado e o clique
+                          é a própria Caixa. */}
                       <span className="flex flex-wrap gap-3">
                         {m.acoes.map((acao) => (
-                          <label
+                          <span
                             key={acao}
                             className={`flex items-center gap-1.5 text-xs ${
-                              ehAdmin ? 'cursor-pointer' : 'cursor-default'
-                            } ${salvando === `${m.chave}.${acao}` ? 'opacity-50' : ''}`}
+                              salvando === `${m.chave}.${acao}` ? 'opacity-50' : ''
+                            }`}
                           >
                             <Caixa
                               estado={podeNaMatriz(matriz, m.chave, acao) ? 'todos' : 'nenhum'}
                               onClick={ehAdmin ? () => alternar(m.chave, acao) : undefined}
                             />
                             <span className="text-text-secondary">{ACAO_LABEL[acao]}</span>
-                          </label>
+                          </span>
                         ))}
                       </span>
                     </div>
