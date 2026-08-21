@@ -38,11 +38,21 @@ const ABAS: { valor: Aba; label: string }[] = [
 // UPDATE por admin, então avisamos quem não é admin antes de tentar salvar.
 const ABAS_SOMENTE_ADMIN_EDITA: Aba[] = ['comunidade', 'financeiro', 'integracoes'];
 
+const ABAS_VALIDAS = new Set<string>(['comunidade', 'plano', 'financeiro', 'integracoes', 'notificacoes', 'seguranca', 'permissoes', 'duplicatas']);
+
 export default function ConfiguracoesPage() {
   const { usuario } = usePainelSession();
   const [aba, setAba] = useState<Aba>('comunidade');
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [usuarioLocal, setUsuarioLocal] = useState<Usuario | null>(usuario ?? null);
+
+  // Abre direto numa aba via /configuracoes#seguranca — usado pelo atalho
+  // "Trocar senha" do menu do usuário. Lê o hash em vez de useSearchParams
+  // pra não precisar de Suspense boundary só por isso.
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (ABAS_VALIDAS.has(hash)) setAba(hash as Aba);
+  }, []);
 
   useEffect(() => {
     setUsuarioLocal(usuario ?? null);

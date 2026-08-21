@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, LogOut } from 'lucide-react';
+import { Search, LogOut, KeyRound, Settings } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { useTerminologia } from '@/lib/terminologia';
@@ -37,6 +37,16 @@ export function Sidebar() {
   const terminologia = useTerminologia();
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
+  const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
+  const menuUsuarioRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickFora(e: MouseEvent) {
+      if (menuUsuarioRef.current && !menuUsuarioRef.current.contains(e.target as Node)) setMenuUsuarioAberto(false);
+    }
+    document.addEventListener('mousedown', onClickFora);
+    return () => document.removeEventListener('mousedown', onClickFora);
+  }, []);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -138,8 +148,42 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-sidebar-border px-4 py-4">
-        <div className="flex items-center justify-center gap-2 lg:justify-start">
+      <div className="relative border-t border-sidebar-border px-4 py-4" ref={menuUsuarioRef}>
+        {menuUsuarioAberto && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 overflow-hidden rounded-md border border-sidebar-border bg-sidebar-bg-hover shadow-hover">
+            <Link
+              href="/configuracoes#seguranca"
+              onClick={() => setMenuUsuarioAberto(false)}
+              className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-sidebar-text-active transition-colors hover:bg-white/10"
+            >
+              <KeyRound size={15} className="shrink-0 text-sidebar-text" />
+              Trocar senha
+            </Link>
+            <Link
+              href="/configuracoes"
+              onClick={() => setMenuUsuarioAberto(false)}
+              className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-sidebar-text-active transition-colors hover:bg-white/10"
+            >
+              <Settings size={15} className="shrink-0 text-sidebar-text" />
+              Configurações
+            </Link>
+            <button
+              onClick={handleSair}
+              className="flex w-full items-center gap-2.5 border-t border-sidebar-border px-3 py-2.5 text-left text-sm text-sidebar-text-active transition-colors hover:bg-white/10 hover:text-danger"
+            >
+              <LogOut size={15} className="shrink-0" />
+              Sair
+            </button>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setMenuUsuarioAberto((v) => !v)}
+          aria-expanded={menuUsuarioAberto}
+          aria-haspopup="menu"
+          className="flex w-full items-center justify-center gap-2 rounded-md p-1 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green lg:justify-start"
+        >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
             {usuario ? iniciais(usuario.nome) : ''}
           </div>
@@ -147,14 +191,6 @@ export function Sidebar() {
             <p className="truncate text-[13px] font-medium text-sidebar-text-active">{usuario?.nome}</p>
             <p className="text-[11px] text-sidebar-text">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
           </div>
-        </div>
-        <button
-          onClick={handleSair}
-          title="Sair"
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-sidebar-border px-2 py-1.5 text-xs text-sidebar-text transition-colors hover:border-danger hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start"
-        >
-          <LogOut size={14} />
-          <span className="hidden lg:inline">Sair</span>
         </button>
       </div>
     </aside>
