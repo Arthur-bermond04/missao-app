@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Users2, Search, Plus, MapPin, Clock, UserRound, X } from 'lucide-react';
+import { Users2, Search, Plus, MapPin, Clock, UserRound, X, CalendarPlus } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -12,6 +12,8 @@ import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Combobox } from '@/components/ui/Combobox';
+import { RegistrarEncontroCelulaModal } from '@/components/celulas/RegistrarEncontroCelulaModal';
+import { HistoricoEncontrosCelula } from '@/components/celulas/HistoricoEncontrosCelula';
 import {
   atualizarCelula,
   criarCelula,
@@ -213,9 +215,10 @@ export default function CelulasPage() {
       )}
 
       {/* Painel de detalhe */}
-      {detalhe && (
+      {detalhe && usuario && (
         <DetalheCelula
           celula={detalhe}
+          usuario={usuario}
           podeGerir={podeGerir}
           onClose={() => setDetalhe(null)}
           onEditar={() => {
@@ -332,6 +335,7 @@ function CelulaModal({
 // ---------------------------------------------------------------------------
 function DetalheCelula({
   celula,
+  usuario,
   podeGerir,
   onClose,
   onEditar,
@@ -339,13 +343,19 @@ function DetalheCelula({
   onReativar,
 }: {
   celula: CelulaComInfo;
+  usuario: Usuario;
   podeGerir: boolean;
   onClose: () => void;
   onEditar: () => void;
   onDesativar: () => void;
   onReativar: () => void;
 }) {
+  const [aba, setAba] = useState<'membros' | 'encontros'>('membros');
   const [membros, setMembros] = useState<MembroCelula[]>([]);
+  const [modalEncontro, setModalEncontro] = useState(false);
+  // Incrementado a cada encontro registrado, pra forçar o histórico a
+  // recarregar sem precisar levantar o estado dos encontros até esta função.
+  const [recarregarChave, setRecarregarChave] = useState(0);
 
   useEffect(() => {
     listarMembrosDaCelula(celula.id).then(setMembros).catch(() => setMembros([]));
@@ -388,24 +398,68 @@ function DetalheCelula({
           </dl>
 
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-text-secondary">
-              Membros vinculados ({membros.length})
-            </h3>
-            {membros.length === 0 ? (
-              <p className="mt-2 text-sm text-text-secondary">
-                Ninguém vinculado ainda. Atribua uma célula ao cargo de alguém em <span className="font-medium">Equipe</span>.
-              </p>
-            ) : (
-              <div className="mt-2 space-y-1.5">
-                {membros.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-                    <span className="text-sm font-medium text-text-primary">{m.nome}</span>
-                    <span className="text-xs text-text-secondary">{m.cargo}</span>
-                  </div>
-                ))}
+            <div className="flex items-center justify-between gap-2 border-b border-border">
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setAba('membros')}
+                  className={`border-b-2 px-1 pb-2 text-xs font-bold uppercase tracking-wide transition-colors ${
+                    aba === 'membros' ? 'border-primary text-primary' : 'border-transparent text-text-secondary'
+                  }`}
+                >
+                  Membros ({membros.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAba('encontros')}
+                  className={`border-b-2 px-1 pb-2 text-xs font-bold uppercase tracking-wide transition-colors ${
+                    aba === 'encontros' ? 'border-primary text-primary' : 'border-transparent text-text-secondary'
+                  }`}
+                >
+                  Encontros
+                </button>
               </div>
-            )}
+              {aba === 'encontros' && podeGerir && (
+                <Button size="sm" icon={CalendarPlus} onClick={() => setModalEncontro(true)}>
+                  Registrar
+                </Button>
+              )}
+            </div>
+
+            <div className="pt-3">
+              {aba === 'membros' ? (
+                membros.length === 0 ? (
+                  <p className="text-sm text-text-secondary">
+                    Ninguém vinculado ainda. Atribua uma célula ao cargo de alguém em{' '}
+                    <span className="font-medium">Equipe</span>.
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {membros.map((m) => (
+                      <div key={m.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                        <span className="text-sm font-medium text-text-primary">{m.nome}</span>
+                        <span className="text-xs text-text-secondary">{m.cargo}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                <HistoricoEncontrosCelula celulaId={celula.id} recarregarChave={recarregarChave} />
+              )}
+            </div>
           </div>
+
+          {usuario.comunidade_id && (
+            <RegistrarEncontroCelulaModal
+              open={modalEncontro}
+              onClose={() => setModalEncontro(false)}
+              celulaId={celula.id}
+              comunidadeId={usuario.comunidade_id}
+              usuarioId={usuario.id}
+              membrosConhecidos={membros}
+              onRegistrado={() => setRecarregarChave((c) => c + 1)}
+            />
+          )}
 
           {podeGerir && (
             <div className="flex gap-2">

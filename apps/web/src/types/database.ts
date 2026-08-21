@@ -163,6 +163,28 @@ export interface Celula {
   criado_em: string;
 }
 
+export type StatusEncontroCelula = 'agendado' | 'realizado' | 'cancelado';
+
+export interface CelulaEncontro {
+  id: string;
+  celula_id: string;
+  data: string;
+  horario: string | null;
+  local: string | null;
+  observacoes: string | null;
+  status: StatusEncontroCelula;
+  criado_em: string;
+}
+
+export interface CelulaPresenca {
+  id: string;
+  encontro_id: string;
+  usuario_id: string | null;
+  pessoa_id: string | null;
+  presente: boolean;
+  criado_em: string;
+}
+
 export interface Financeiro {
   id: string;
   comunidade_id: string;
