@@ -5,8 +5,18 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { buscaGlobal, LABEL_SECAO, type ResultadoBusca, type TipoResultadoBusca } from '@/lib/busca';
+import { montarNavGrupos } from '@/lib/navegacao';
+import { useTerminologia } from '@/lib/terminologia';
 
 const ORDEM_SECOES: TipoResultadoBusca[] = ['pessoa', 'contato', 'ovelha', 'membro', 'retiro', 'ministerio', 'financeiro'];
+
+interface ResultadoTela {
+  tipo: 'tela';
+  id: string;
+  titulo: string;
+  subtitulo: string;
+  href: string;
+}
 
 export function BuscaGlobal({
   open,
@@ -18,6 +28,7 @@ export function BuscaGlobal({
   comunidadeId: string;
 }) {
   const router = useRouter();
+  const terminologia = useTerminologia();
   const inputRef = useRef<HTMLInputElement>(null);
   const [termo, setTermo] = useState('');
   const [resultados, setResultados] = useState<ResultadoBusca[]>([]);
@@ -47,15 +58,43 @@ export function BuscaGlobal({
     return () => clearTimeout(t);
   }, [termo, comunidadeId, open]);
 
+  // Índice de telas — síncrono, sem rede: casa o termo contra grupo, rótulo e
+  // descrição de cada item do menu (o mesmo campo `descricao` adicionado à
+  // navegação). Aparece antes dos resultados de dado, como "Grupo › Tela" no
+  // Athenas, porque não depende de round-trip nenhum.
+  const resultadosTela = useMemo<ResultadoTela[]>(() => {
+    const q = termo.trim().toLowerCase();
+    if (q.length < 2) return [];
+    const grupos = montarNavGrupos(terminologia);
+    const itens: ResultadoTela[] = [];
+    for (const grupo of grupos) {
+      for (const item of grupo.itens) {
+        const alvo = `${grupo.titulo} ${item.label} ${item.descricao}`.toLowerCase();
+        if (!alvo.includes(q)) continue;
+        itens.push({
+          tipo: 'tela',
+          id: item.href,
+          titulo: item.label,
+          subtitulo: `${grupo.titulo} › ${item.label}`,
+          href: item.href,
+        });
+      }
+    }
+    return itens;
+  }, [termo, terminologia]);
+
   const secoes = useMemo(() => {
     return ORDEM_SECOES.map((tipo) => ({ tipo, itens: resultados.filter((r) => r.tipo === tipo) })).filter(
       (s) => s.itens.length > 0
     );
   }, [resultados]);
 
-  const listaAchatada = useMemo(() => secoes.flatMap((s) => s.itens), [secoes]);
+  const listaAchatada = useMemo(
+    () => [...resultadosTela, ...secoes.flatMap((s) => s.itens)],
+    [resultadosTela, secoes]
+  );
 
-  function abrirResultado(r: ResultadoBusca) {
+  function abrirResultado(r: ResultadoBusca | ResultadoTela) {
     router.push(r.href);
     onClose();
   }
@@ -104,35 +143,66 @@ export function BuscaGlobal({
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {termo.trim().length < 2 ? (
             <p className="px-3 py-6 text-center text-sm text-text-secondary">Digite ao menos 2 letras para buscar.</p>
-          ) : buscando ? (
-            <p className="px-3 py-6 text-center text-sm text-text-secondary">Buscando...</p>
-          ) : listaAchatada.length === 0 ? (
-            <p className="px-3 py-6 text-center text-sm text-text-secondary">Nenhum resultado para &ldquo;{termo}&rdquo;.</p>
           ) : (
-            secoes.map((secao) => (
-              <div key={secao.tipo} className="mb-2">
-                <p className="px-3 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">
-                  {LABEL_SECAO[secao.tipo]}
+            <>
+              {/* Telas casam na hora, sem round-trip — aparecem mesmo enquanto a
+                  busca por dado ainda está em voo. */}
+              {resultadosTela.length > 0 && (
+                <div className="mb-2">
+                  <p className="px-3 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">Telas</p>
+                  {resultadosTela.map((item) => {
+                    indiceGlobal += 1;
+                    const ativo = indiceGlobal === indiceAtivo;
+                    return (
+                      <button
+                        key={`tela-${item.id}`}
+                        onClick={() => abrirResultado(item)}
+                        onMouseEnter={() => setIndiceAtivo(indiceGlobal)}
+                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
+                          ativo ? 'bg-primary-xlight text-primary' : 'text-text-primary hover:bg-bg-page'
+                        }`}
+                      >
+                        <span className="font-medium">{item.titulo}</span>
+                        <span className="text-xs text-text-secondary">{item.subtitulo}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {buscando ? (
+                <p className="px-3 py-6 text-center text-sm text-text-secondary">Buscando...</p>
+              ) : listaAchatada.length === 0 ? (
+                <p className="px-3 py-6 text-center text-sm text-text-secondary">
+                  Nenhum resultado para &ldquo;{termo}&rdquo;.
                 </p>
-                {secao.itens.map((item) => {
-                  indiceGlobal += 1;
-                  const ativo = indiceGlobal === indiceAtivo;
-                  return (
-                    <button
-                      key={`${item.tipo}-${item.id}`}
-                      onClick={() => abrirResultado(item)}
-                      onMouseEnter={() => setIndiceAtivo(indiceGlobal)}
-                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
-                        ativo ? 'bg-primary-xlight text-primary' : 'text-text-primary hover:bg-bg-page'
-                      }`}
-                    >
-                      <span className="font-medium">{item.titulo}</span>
-                      {!!item.subtitulo && <span className="text-xs text-text-secondary">{item.subtitulo}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            ))
+              ) : (
+                secoes.map((secao) => (
+                  <div key={secao.tipo} className="mb-2">
+                    <p className="px-3 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">
+                      {LABEL_SECAO[secao.tipo]}
+                    </p>
+                    {secao.itens.map((item) => {
+                      indiceGlobal += 1;
+                      const ativo = indiceGlobal === indiceAtivo;
+                      return (
+                        <button
+                          key={`${item.tipo}-${item.id}`}
+                          onClick={() => abrirResultado(item)}
+                          onMouseEnter={() => setIndiceAtivo(indiceGlobal)}
+                          className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
+                            ativo ? 'bg-primary-xlight text-primary' : 'text-text-primary hover:bg-bg-page'
+                          }`}
+                        >
+                          <span className="font-medium">{item.titulo}</span>
+                          {!!item.subtitulo && <span className="text-xs text-text-secondary">{item.subtitulo}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </>
           )}
         </div>
 

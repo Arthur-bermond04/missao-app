@@ -7,7 +7,8 @@ import { LogOut, X } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { useTerminologia } from '@/lib/terminologia';
 import { Logo } from '@/components/ui/Logo';
-import { montarNavGrupos, PERFIL_LABEL_SIDEBAR, iniciais, podeVerItem } from './Sidebar';
+import { montarNavGrupos } from '@/lib/navegacao';
+import { PERFIL_LABEL_SIDEBAR, iniciais, podeVerItem } from './Sidebar';
 
 export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();

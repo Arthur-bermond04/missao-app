@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { ChevronRight, Menu } from 'lucide-react';
-import { montarNavGrupos } from './Sidebar';
+import { montarNavGrupos } from '@/lib/navegacao';
 import { useTerminologia } from '@/lib/terminologia';
 import { NotificacoesBell } from './NotificacoesBell';
 import { ParaFazerBell } from './ParaFazerBell';
