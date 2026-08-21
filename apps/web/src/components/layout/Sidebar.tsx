@@ -27,13 +27,16 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
+import { useTerminologia } from '@/lib/terminologia';
 import { Logo } from '@/components/ui/Logo';
 import { BuscaGlobal } from '@/components/layout/BuscaGlobal';
-import type { AcaoPermissao, Perfil } from '@/types/database';
+import type { AcaoPermissao, Perfil, Terminologia } from '@/types/database';
 
-interface NavLink {
+export interface NavLink {
   href: string;
   label: string;
+  /** Uma linha explicando o que o módulo faz — tooltip e, depois, índice de busca por tela. */
+  descricao: string;
   icon: LucideIcon;
   /**
    * Chave em permissoes_modulos. O item só aparece se o perfil logado tiver
@@ -48,56 +51,120 @@ interface NavGrupo {
   itens: NavLink[];
 }
 
-// Estrutura enxuta: cada rota aparece uma única vez, sem submenu — Pessoas,
-// Pastoral e Ministérios já são cadastros de gente, não precisam de duas
-// portas de entrada diferentes pra mesma tela.
-export const NAV_GRUPOS: NavGrupo[] = [
-  {
-    titulo: 'Início',
-    // Dashboard não tem módulo próprio: é a porta de entrada e cada bloco
-    // dentro dele já respeita a permissão do seu módulo.
-    itens: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, modulo: '' }],
-  },
-  {
-    titulo: 'Cadastros',
-    itens: [
-      { href: '/pessoas', label: 'Pessoas', icon: IdCard, modulo: 'pessoas' },
-      { href: '/membros', label: 'Membros', icon: Users, modulo: 'membros' },
-      { href: '/equipe', label: 'Equipe', icon: Network, modulo: 'equipe' },
-    ],
-  },
-  {
-    titulo: 'Missão',
-    itens: [
-      { href: '/funil', label: 'Funil', icon: Filter, modulo: 'funil' },
-      { href: '/retiros', label: 'Retiros', icon: Tent, modulo: 'retiros' },
-      { href: '/ministerios', label: 'Ministérios', icon: HandHeart, modulo: 'ministerios' },
-      { href: '/celulas', label: 'Células', icon: Users2, modulo: 'celulas' },
-      { href: '/pastoral', label: 'Pastoral', icon: HeartHandshake, modulo: 'pastoral' },
-      { href: '/pastoral/monitoria', label: 'Monitoria pastoral', icon: Gauge, modulo: 'monitoria' },
-      { href: '/agenda', label: 'Agenda', icon: Calendar, modulo: 'agenda' },
-    ],
-  },
-  {
-    titulo: 'Gestão',
-    itens: [
-      { href: '/alertas', label: 'Alertas', icon: Bell, modulo: 'alertas' },
-      { href: '/mensagens', label: 'Comunicação', icon: MessageCircle, modulo: 'mensagens' },
-      { href: '/financeiro', label: 'Financeiro', icon: Wallet, modulo: 'financeiro' },
-      { href: '/relatorios', label: 'Relatórios', icon: BarChart3, modulo: 'relatorios' },
-    ],
-  },
-  {
-    titulo: 'Sistema',
-    itens: [
-      { href: '/configuracoes', label: 'Configurações', icon: Settings, modulo: 'configuracoes' },
-      { href: '/auditoria', label: 'Auditoria', icon: ScrollText, modulo: 'auditoria' },
-    ],
-  },
-];
-
-// Lista achatada — usada pelo breadcrumb da Topbar e pelo drawer mobile.
-export const NAV: NavLink[] = NAV_GRUPOS.flatMap((g) => g.itens);
+// Monta a navegação com os rótulos da terminologia da comunidade — os hrefs e
+// as chaves de módulo (usadas pelo RLS) nunca mudam, só o texto exibido.
+// Reagrupado por natureza do dado, não por "quem usa": evangelização é o
+// funil de primeiro contato; grupo é o encontro coletivo semanal; acompanhamento
+// é o cuidado individual (pastor_id só seu) — ver pastoral_ovelhas no schema.
+export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
+  return [
+    {
+      titulo: 'Início',
+      // Dashboard não tem módulo próprio: é a porta de entrada e cada bloco
+      // dentro dele já respeita a permissão do seu módulo.
+      itens: [
+        { href: '/dashboard', label: 'Dashboard', descricao: 'Visão geral da missão', icon: LayoutDashboard, modulo: '' },
+      ],
+    },
+    {
+      titulo: 'Pessoas',
+      itens: [
+        { href: '/pessoas', label: 'Pessoas', descricao: 'Cadastro central de todo mundo', icon: IdCard, modulo: 'pessoas' },
+        { href: '/equipe', label: 'Equipe', descricao: 'Estrutura e cargos da comunidade', icon: Network, modulo: 'equipe' },
+        {
+          href: '/membros',
+          label: terminologia.modulo_membros,
+          descricao: 'Quem tem login no sistema',
+          icon: Users,
+          modulo: 'membros',
+        },
+      ],
+    },
+    {
+      titulo: terminologia.modulo_funil,
+      itens: [
+        {
+          href: '/funil',
+          label: terminologia.modulo_funil,
+          descricao: 'Abordagens e primeiros contatos',
+          icon: Filter,
+          modulo: 'funil',
+        },
+      ],
+    },
+    {
+      titulo: 'Grupos e encontros',
+      itens: [
+        {
+          href: '/celulas',
+          label: terminologia.modulo_celulas,
+          descricao: 'Encontros semanais em grupo, com presença coletiva',
+          icon: Users2,
+          modulo: 'celulas',
+        },
+        {
+          href: '/ministerios',
+          label: 'Ministérios',
+          descricao: 'Times de serviço e formação',
+          icon: HandHeart,
+          modulo: 'ministerios',
+        },
+        { href: '/agenda', label: 'Agenda', descricao: 'Eventos da comunidade', icon: Calendar, modulo: 'agenda' },
+      ],
+    },
+    {
+      titulo: terminologia.modulo_pastoral,
+      itens: [
+        {
+          href: '/pastoral',
+          label: terminologia.modulo_pastoral,
+          descricao: `${terminologia.nome_pastor}es acompanham ${terminologia.nome_ovelha.toLowerCase()}s específicas, uma a uma`,
+          icon: HeartHandshake,
+          modulo: 'pastoral',
+        },
+        {
+          href: '/pastoral/monitoria',
+          label: terminologia.modulo_monitoria,
+          descricao: 'Métricas agregadas para quem coordena — sem acesso ao conteúdo dos encontros',
+          icon: Gauge,
+          modulo: 'monitoria',
+        },
+      ],
+    },
+    {
+      titulo: 'Eventos',
+      itens: [{ href: '/retiros', label: 'Retiros', descricao: 'Inscrição, vagas e presença', icon: Tent, modulo: 'retiros' }],
+    },
+    {
+      titulo: 'Gestão',
+      itens: [
+        { href: '/alertas', label: 'Alertas', descricao: 'O que precisa de atenção agora', icon: Bell, modulo: 'alertas' },
+        {
+          href: '/mensagens',
+          label: 'Comunicação',
+          descricao: 'Mensagens para a comunidade',
+          icon: MessageCircle,
+          modulo: 'mensagens',
+        },
+        { href: '/financeiro', label: 'Financeiro', descricao: 'Receitas, despesas e metas', icon: Wallet, modulo: 'financeiro' },
+        { href: '/relatorios', label: 'Relatórios', descricao: 'Exportações e consolidados', icon: BarChart3, modulo: 'relatorios' },
+      ],
+    },
+    {
+      titulo: 'Sistema',
+      itens: [
+        {
+          href: '/configuracoes',
+          label: 'Configurações',
+          descricao: 'Comunidade, plano e permissões',
+          icon: Settings,
+          modulo: 'configuracoes',
+        },
+        { href: '/auditoria', label: 'Auditoria', descricao: 'Quem alterou o quê, quando', icon: ScrollText, modulo: 'auditoria' },
+      ],
+    },
+  ];
+}
 
 export const PERFIL_LABEL_SIDEBAR: Record<Perfil, string> = {
   missionario: 'Missionário',
@@ -121,6 +188,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { usuario, sair, pode } = usePainelSession();
+  const terminologia = useTerminologia();
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
 
@@ -153,10 +221,12 @@ export function Sidebar() {
   // Esconde da navegação os itens cujo módulo o perfil logado não pode ver,
   // segundo a matriz de permissões da comunidade — grupos que ficam vazios
   // depois do filtro simplesmente não aparecem.
-  const gruposVisiveis = NAV_GRUPOS.map((grupo) => ({
-    ...grupo,
-    itens: grupo.itens.filter((item) => podeVerItem(item, pode)),
-  })).filter((grupo) => grupo.itens.length > 0);
+  const gruposVisiveis = montarNavGrupos(terminologia)
+    .map((grupo) => ({
+      ...grupo,
+      itens: grupo.itens.filter((item) => podeVerItem(item, pode)),
+    }))
+    .filter((grupo) => grupo.itens.length > 0);
 
   return (
     <aside className="scrollbar-escura fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-sidebar-bg md:flex lg:w-[240px]">
@@ -204,7 +274,7 @@ export function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    title={item.label}
+                    title={`${item.label} — ${item.descricao}`}
                     aria-current={ativo ? 'page' : undefined}
                     className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start ${
                       ativo

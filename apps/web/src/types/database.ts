@@ -54,6 +54,15 @@ export interface Terminologia {
   etapa_cal: string;
   nome_ovelha: string;
   nome_pastor: string;
+  // Nomes dos módulos do menu — cada comunidade pode manter o termo que já
+  // usa (ex: "Célula") mesmo com o padrão de fábrica mudando para algo mais
+  // universal. O valor salvo em contatos/pastoral_ovelhas etc. não muda, só
+  // o rótulo exibido no menu e nos títulos de tela.
+  modulo_celulas: string;
+  modulo_pastoral: string;
+  modulo_monitoria: string;
+  modulo_funil: string;
+  modulo_membros: string;
 }
 
 export const TERMINOLOGIA_PADRAO: Terminologia = {
@@ -61,6 +70,11 @@ export const TERMINOLOGIA_PADRAO: Terminologia = {
   etapa_cal: 'CAL',
   nome_ovelha: 'Ovelha',
   nome_pastor: 'Pastor',
+  modulo_celulas: 'Grupos',
+  modulo_pastoral: 'Acompanhamento',
+  modulo_monitoria: 'Painel da Liderança',
+  modulo_funil: 'Evangelização',
+  modulo_membros: 'Acessos',
 };
 
 export interface Comunidade {

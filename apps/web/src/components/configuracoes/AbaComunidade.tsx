@@ -181,6 +181,56 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
         </div>
       </div>
 
+      <div>
+        <p className="text-xs font-semibold text-text-secondary">Nomes dos módulos no menu</p>
+        <p className="mt-0.5 text-xs text-text-secondary">
+          Se sua comunidade já usa outro termo no dia a dia (ex: "Célula" em vez de "Grupos"), troque aqui — o menu,
+          os títulos de tela e os relatórios passam a usar o nome escolhido.
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          <Input
+            label="Encontros em grupo (ex-Células)"
+            value={terminologia.modulo_celulas}
+            onChange={(e) =>
+              setTerminologia((t) => ({ ...t, modulo_celulas: e.target.value || TERMINOLOGIA_PADRAO.modulo_celulas }))
+            }
+            placeholder="Ex: Células, Grupos de Oração"
+          />
+          <Input
+            label="Cuidado individual (ex-Pastoral)"
+            value={terminologia.modulo_pastoral}
+            onChange={(e) =>
+              setTerminologia((t) => ({ ...t, modulo_pastoral: e.target.value || TERMINOLOGIA_PADRAO.modulo_pastoral }))
+            }
+            placeholder="Ex: Pastoral, Discipulado"
+          />
+          <Input
+            label="Visão geral do cuidado (ex-Monitoria)"
+            value={terminologia.modulo_monitoria}
+            onChange={(e) =>
+              setTerminologia((t) => ({ ...t, modulo_monitoria: e.target.value || TERMINOLOGIA_PADRAO.modulo_monitoria }))
+            }
+            placeholder="Ex: Monitoria Pastoral"
+          />
+          <Input
+            label="Primeiros contatos (ex-Funil)"
+            value={terminologia.modulo_funil}
+            onChange={(e) =>
+              setTerminologia((t) => ({ ...t, modulo_funil: e.target.value || TERMINOLOGIA_PADRAO.modulo_funil }))
+            }
+            placeholder="Ex: Funil, Evangelização"
+          />
+          <Input
+            label="Quem tem login (ex-Membros)"
+            value={terminologia.modulo_membros}
+            onChange={(e) =>
+              setTerminologia((t) => ({ ...t, modulo_membros: e.target.value || TERMINOLOGIA_PADRAO.modulo_membros }))
+            }
+            placeholder="Ex: Membros, Acessos"
+          />
+        </div>
+      </div>
+
       <Button type="submit" loading={salvando}>
         Salvar alterações
       </Button>
