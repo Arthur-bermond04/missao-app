@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, LogOut, KeyRound, Settings } from 'lucide-react';
+import { Search, LogOut, KeyRound, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { useTerminologia } from '@/lib/terminologia';
+import { useSidebarLayout } from '@/lib/SidebarLayoutContext';
 import { montarNavGrupos, type NavLink } from '@/lib/navegacao';
 import { Logo } from '@/components/ui/Logo';
 import { BuscaGlobal } from '@/components/layout/BuscaGlobal';
@@ -35,6 +36,11 @@ export function Sidebar() {
   const router = useRouter();
   const { usuario, sair, pode } = usePainelSession();
   const terminologia = useTerminologia();
+  const { colapsada, alternar } = useSidebarLayout();
+  // Texto/rótulos só aparecem em telas lg+ E quando a sidebar não foi
+  // encolhida manualmente — em md (sempre estreita) o toggle não tem efeito
+  // nenhum, de propósito: não há o que "expandir" abaixo de lg.
+  const mostrarTexto = !colapsada;
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
@@ -85,22 +91,46 @@ export function Sidebar() {
     .filter((grupo) => grupo.itens.length > 0);
 
   return (
-    <aside className="scrollbar-escura fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-sidebar-bg md:flex lg:w-[240px]">
+    <aside
+      className={`scrollbar-escura fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-sidebar-bg md:flex ${
+        colapsada ? '' : 'lg:w-[240px]'
+      }`}
+    >
       {usuario?.comunidade_id && (
         <BuscaGlobal open={buscaAberta} onClose={() => setBuscaAberta(false)} comunidadeId={usuario.comunidade_id} />
       )}
 
-      <div className="px-5 pb-4 pt-6">
-        <div className="flex items-center justify-center lg:hidden">
+      {/*
+        Colapsada (72px em lg): logo e botão empilhados e centralizados —
+        lado a lado eles não cabem na largura estreita. Expandida (240px):
+        lado a lado, botão empurrado pra direita.
+      */}
+      <div className={`flex px-5 pb-4 pt-6 ${colapsada ? 'flex-col items-center gap-3' : 'items-center gap-2'}`}>
+        <div className={`flex items-center justify-center ${mostrarTexto ? 'lg:hidden' : ''}`}>
           <Logo size={32} variant="white" />
         </div>
-        <div className="hidden lg:flex">
-          <Logo size={36} variant="white" showText />
-        </div>
-        {!!nomeComunidade && (
-          <p className="mt-1 hidden truncate text-xs text-sidebar-text lg:block">{nomeComunidade}</p>
+        {mostrarTexto && (
+          <div className="hidden lg:flex">
+            <Logo size={36} variant="white" showText />
+          </div>
         )}
+        {/* Só faz sentido a partir de lg: abaixo disso a sidebar já é
+            estreita pelo breakpoint responsivo, sem nada pra "recolher". */}
+        <button
+          type="button"
+          onClick={alternar}
+          title={colapsada ? 'Expandir menu' : 'Recolher menu'}
+          className={`hidden shrink-0 rounded-md p-1.5 text-sidebar-text transition-colors hover:bg-white/10 hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green lg:block ${
+            colapsada ? '' : 'ml-auto'
+          }`}
+        >
+          {colapsada ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
       </div>
+
+      {mostrarTexto && !!nomeComunidade && (
+        <p className="-mt-3 hidden truncate px-5 pb-4 text-xs text-sidebar-text lg:block">{nomeComunidade}</p>
+      )}
 
       {/* Busca global — abre a mesma paleta de comando (Ctrl+K) usada no resto do app */}
       <div className="px-3 pb-2">
@@ -108,10 +138,12 @@ export function Sidebar() {
           type="button"
           onClick={() => setBuscaAberta(true)}
           title="Buscar (Ctrl+K)"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start"
+          className={`flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+            mostrarTexto ? 'lg:justify-start' : ''
+          }`}
         >
           <Search size={16} />
-          <span className="hidden flex-1 text-left lg:inline">Buscar...</span>
+          <span className={`hidden flex-1 text-left ${mostrarTexto ? 'lg:inline' : ''}`}>Buscar...</span>
         </button>
       </div>
 
@@ -119,7 +151,11 @@ export function Sidebar() {
         {gruposVisiveis.map((grupo, indiceGrupo) => (
           <div key={grupo.titulo}>
             {indiceGrupo > 0 && <div className="mx-3 my-1 h-px bg-sidebar-border" />}
-            <p className="hidden px-3 pb-0.5 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-text/70 lg:block">
+            <p
+              className={`hidden px-3 pb-0.5 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-text/70 ${
+                mostrarTexto ? 'lg:block' : ''
+              }`}
+            >
               {grupo.titulo}
             </p>
             <div>
@@ -132,14 +168,16 @@ export function Sidebar() {
                     href={item.href}
                     title={`${item.label} — ${item.descricao}`}
                     aria-current={ativo ? 'page' : undefined}
-                    className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg lg:justify-start ${
+                    className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+                      mostrarTexto ? 'lg:justify-start' : ''
+                    } ${
                       ativo
                         ? 'bg-sidebar-bg-hover font-medium text-sidebar-text-active'
                         : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
                     }`}
                   >
                     <Icon size={18} className={`shrink-0 ${ativo ? 'text-accent-green' : ''}`} />
-                    <span className="hidden lg:inline">{item.label}</span>
+                    <span className={`hidden ${mostrarTexto ? 'lg:inline' : ''}`}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -182,12 +220,14 @@ export function Sidebar() {
           onClick={() => setMenuUsuarioAberto((v) => !v)}
           aria-expanded={menuUsuarioAberto}
           aria-haspopup="menu"
-          className="flex w-full items-center justify-center gap-2 rounded-md p-1 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green lg:justify-start"
+          className={`flex w-full items-center justify-center gap-2 rounded-md p-1 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green ${
+            mostrarTexto ? 'lg:justify-start' : ''
+          }`}
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
             {usuario ? iniciais(usuario.nome) : ''}
           </div>
-          <div className="hidden min-w-0 lg:block">
+          <div className={`hidden min-w-0 ${mostrarTexto ? 'lg:block' : ''}`}>
             <p className="truncate text-[13px] font-medium text-sidebar-text-active">{usuario?.nome}</p>
             <p className="text-[11px] text-sidebar-text">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
           </div>

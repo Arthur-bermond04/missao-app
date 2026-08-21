@@ -4,18 +4,24 @@ import { usePathname } from 'next/navigation';
 import { ChevronRight, Menu } from 'lucide-react';
 import { montarNavGrupos } from '@/lib/navegacao';
 import { useTerminologia } from '@/lib/terminologia';
+import { useSidebarLayout } from '@/lib/SidebarLayoutContext';
 import { NotificacoesBell } from './NotificacoesBell';
 import { ParaFazerBell } from './ParaFazerBell';
 
 export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; onAbrirDrawer: () => void }) {
   const pathname = usePathname();
   const terminologia = useTerminologia();
+  const { colapsada } = useSidebarLayout();
 
   const nav = montarNavGrupos(terminologia).flatMap((g) => g.itens);
   const secaoAtual = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   return (
-    <div className="sticky top-0 z-20 flex h-12 items-center gap-3 bg-topbar-bg px-4 md:ml-[72px] md:px-6 lg:ml-[240px]">
+    <div
+      className={`sticky top-0 z-20 flex h-12 items-center gap-3 bg-topbar-bg px-4 md:ml-[72px] md:px-6 ${
+        colapsada ? '' : 'lg:ml-[240px]'
+      }`}
+    >
       <button
         onClick={onAbrirDrawer}
         aria-label="Abrir menu"
