@@ -12,11 +12,10 @@ import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal'
 import { buscarComunidade } from '@/lib/comunidades';
 import { gerarAlertasCentral, type AlertaCentral, type NivelAlertaCentral } from '@/lib/alertas';
 import { agruparMetricasPorPastor, listarOvelhasResumo, ovelhaEmAtraso, type MetricasPastor } from '@/lib/monitoria';
-import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import {
-  ETAPAS_FUNIL,
+  ETAPAS_FUNIL_EVANGELIZACAO,
   type Comunidade,
-  type Contato,
   type Pessoa,
   type PessoaInteracao,
   type Retiro,
@@ -46,7 +45,6 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [interacoes, setInteracoes] = useState<PessoaInteracao[]>([]);
-  const [contatos, setContatos] = useState<Contato[]>([]);
   const [membros, setMembros] = useState<Usuario[]>([]);
   const [proximoRetiro, setProximoRetiro] = useState<Retiro | null>(null);
   const [inscritosProximoRetiro, setInscritosProximoRetiro] = useState(0);
@@ -59,10 +57,9 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
     let ativo = true;
     async function carregar() {
       setCarregando(true);
-      const [comunidadeRes, pessoasRes, contatosRes, membrosRes, retirosRes] = await Promise.all([
+      const [comunidadeRes, pessoasRes, membrosRes, retirosRes] = await Promise.all([
         buscarComunidade(comunidadeId).catch(() => null),
         supabase.from('pessoas').select('*').eq('comunidade_id', comunidadeId).eq('ativo', true),
-        supabase.from('contatos').select('*').eq('comunidade_id', comunidadeId),
         supabase.from('usuarios').select('*').eq('comunidade_id', comunidadeId),
         supabase
           .from('retiros')
@@ -77,7 +74,6 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
       const listaPessoas = (pessoasRes.data as Pessoa[]) ?? [];
       setComunidade(comunidadeRes);
       setPessoas(listaPessoas);
-      setContatos((contatosRes.data as Contato[]) ?? []);
       setMembros((membrosRes.data as Usuario[]) ?? []);
 
       const retiro = (retirosRes.data as Retiro[])?.[0] ?? null;
@@ -170,23 +166,28 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
   // -------------------------------------------------------------------------
   // Funil da semana: movimento desta semana vs. semana anterior
   // -------------------------------------------------------------------------
+  const pessoasEvangelizacao = useMemo(() => pessoas.filter((p) => p.origem === 'evangelizacao'), [pessoas]);
+
   const funilSemana = useMemo(() => {
     const corte14 = diasAtras(14);
-    return ETAPAS_FUNIL.map((etapa) => {
-      const nestaSemana = contatos.filter(
-        (c) => c.etapa_jornada === etapa.valor && c.data_abordagem.slice(0, 10) >= corte7
+    return ETAPAS_FUNIL_EVANGELIZACAO.map((valor) => {
+      const nestaSemana = pessoasEvangelizacao.filter(
+        (p) => p.etapa_jornada === valor && p.data_primeiro_contato.slice(0, 10) >= corte7
       ).length;
-      const semanaAnterior = contatos.filter(
-        (c) =>
-          c.etapa_jornada === etapa.valor &&
-          c.data_abordagem.slice(0, 10) >= corte14 &&
-          c.data_abordagem.slice(0, 10) < corte7
+      const semanaAnterior = pessoasEvangelizacao.filter(
+        (p) =>
+          p.etapa_jornada === valor &&
+          p.data_primeiro_contato.slice(0, 10) >= corte14 &&
+          p.data_primeiro_contato.slice(0, 10) < corte7
       ).length;
-      // label do ETAPAS_FUNIL é o padrão fixo — troca pelo dinâmico, senão
-      // a etapa "célula" nunca acompanha o nome escolhido em Configurações.
-      return { ...etapa, label: labelEtapaJornada(etapa.valor, terminologia), nestaSemana, variacao: nestaSemana - semanaAnterior };
+      return {
+        valor,
+        label: labelEtapaJornadaPessoa(valor, terminologia),
+        nestaSemana,
+        variacao: nestaSemana - semanaAnterior,
+      };
     });
-  }, [contatos, corte7, terminologia]);
+  }, [pessoasEvangelizacao, corte7, terminologia]);
 
   // -------------------------------------------------------------------------
   // Missionários: atividade da equipe
@@ -262,7 +263,7 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
       {!!comunidade?.max_contatos && (
         <div className="mt-4">
           <LimiteContatosBanner
-            usados={contatos.length}
+            usados={pessoasEvangelizacao.length}
             limite={comunidade.max_contatos}
             onUpgradeClick={() => setModalUpgrade(true)}
           />

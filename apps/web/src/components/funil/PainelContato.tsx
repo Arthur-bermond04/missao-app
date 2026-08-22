@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, HeartHandshake, IdCard, MessageSquarePlus } from 'lucide-react';
+import { ArrowRight, HeartHandshake, MessageSquarePlus } from 'lucide-react';
 import { SidePanel } from '@/components/ui/SidePanel';
 import { Button } from '@/components/ui/Button';
 import { NovaInteracaoModal } from '@/components/pessoas/NovaInteracaoModal';
-import { supabase } from '@/lib/supabase';
-import { listarInteracoes } from '@/lib/pessoas';
+import { atualizarPessoa, listarInteracoes } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
-import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
-import { ETAPAS_FUNIL, TIPOS_INTERACAO, type Contato, type EtapaJornada, type PessoaInteracao } from '@/types/database';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
+import { ETAPAS_FUNIL_EVANGELIZACAO, TIPOS_INTERACAO, type Pessoa, type PessoaInteracao } from '@/types/database';
 
 const TIPO_LABEL = Object.fromEntries(TIPOS_INTERACAO.map((t) => [t.valor, t.label]));
 
@@ -18,14 +17,12 @@ export function PainelContato({
   contato,
   usuarioId,
   onClose,
-  onCadastrarEmPessoas,
   onAtualizado,
 }: {
-  contato: Contato | null;
+  contato: Pessoa | null;
   usuarioId: string;
   onClose: () => void;
-  onCadastrarEmPessoas: (c: Contato) => Promise<void>;
-  onAtualizado: (c: Contato) => void;
+  onAtualizado: (p: Pessoa) => void;
 }) {
   const terminologia = useTerminologia();
   const [interacoes, setInteracoes] = useState<PessoaInteracao[]>([]);
@@ -33,31 +30,25 @@ export function PainelContato({
   const [avancando, setAvancando] = useState(false);
 
   useEffect(() => {
-    if (contato?.pessoa_id) {
-      listarInteracoes(contato.pessoa_id).then(setInteracoes);
+    if (contato) {
+      listarInteracoes(contato.id).then(setInteracoes);
     } else {
       setInteracoes([]);
     }
-  }, [contato?.pessoa_id]);
+  }, [contato?.id]);
 
   if (!contato) return null;
 
-  const indiceAtual = ETAPAS_FUNIL.findIndex((e) => e.valor === contato.etapa_jornada);
-  const proximaEtapa = ETAPAS_FUNIL[indiceAtual + 1];
-  // ETAPAS_FUNIL guarda o rótulo padrão fixo — o exibido precisa passar pela
-  // terminologia da comunidade, senão "célula" nunca vira o termo escolhido.
-  const labelProximaEtapa = proximaEtapa ? labelEtapaJornada(proximaEtapa.valor, terminologia) : null;
+  const indiceAtual = ETAPAS_FUNIL_EVANGELIZACAO.indexOf(contato.etapa_jornada);
+  const proximaEtapa = indiceAtual >= 0 ? ETAPAS_FUNIL_EVANGELIZACAO[indiceAtual + 1] : undefined;
+  const labelProximaEtapa = proximaEtapa ? labelEtapaJornadaPessoa(proximaEtapa, terminologia) : null;
 
   async function avancarEtapa() {
     if (!contato || !proximaEtapa) return;
     setAvancando(true);
     try {
-      const { error } = await supabase
-        .from('contatos')
-        .update({ etapa_jornada: proximaEtapa.valor as EtapaJornada })
-        .eq('id', contato.id);
-      if (error) throw error;
-      onAtualizado({ ...contato, etapa_jornada: proximaEtapa.valor as EtapaJornada });
+      await atualizarPessoa(contato.id, { etapa_jornada: proximaEtapa }, usuarioId);
+      onAtualizado({ ...contato, etapa_jornada: proximaEtapa });
       toastSuccess(`Avançou para "${labelProximaEtapa}"`);
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao avançar etapa.');
@@ -68,15 +59,13 @@ export function PainelContato({
 
   return (
     <SidePanel open={!!contato} onClose={onClose} title={contato.nome} description="Detalhe do contato">
-      {contato.pessoa_id && (
-        <NovaInteracaoModal
-          open={modalInteracao}
-          onClose={() => setModalInteracao(false)}
-          pessoaId={contato.pessoa_id}
-          usuarioId={usuarioId}
-          onRegistrada={() => listarInteracoes(contato.pessoa_id!).then(setInteracoes)}
-        />
-      )}
+      <NovaInteracaoModal
+        open={modalInteracao}
+        onClose={() => setModalInteracao(false)}
+        pessoaId={contato.id}
+        usuarioId={usuarioId}
+        onRegistrada={() => listarInteracoes(contato.id).then(setInteracoes)}
+      />
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3 text-sm">
@@ -90,11 +79,13 @@ export function PainelContato({
           </div>
           <div>
             <p className="text-xs text-text-secondary">Local da abordagem</p>
-            <p className="font-medium text-text-primary">{contato.local_abordagem ?? '—'}</p>
+            <p className="font-medium text-text-primary">{contato.local_primeiro_contato ?? '—'}</p>
           </div>
           <div>
             <p className="text-xs text-text-secondary">Data</p>
-            <p className="font-medium text-text-primary">{new Date(contato.data_abordagem).toLocaleDateString('pt-BR')}</p>
+            <p className="font-medium text-text-primary">
+              {new Date(contato.data_primeiro_contato).toLocaleDateString('pt-BR')}
+            </p>
           </div>
         </div>
 
@@ -116,30 +107,22 @@ export function PainelContato({
               Avançar para &ldquo;{labelProximaEtapa}&rdquo;
             </Button>
           )}
-          {contato.pessoa_id ? (
-            <Button size="sm" icon={MessageSquarePlus} onClick={() => setModalInteracao(true)}>
-              Registrar interação
-            </Button>
-          ) : (
-            <Button size="sm" icon={IdCard} onClick={() => onCadastrarEmPessoas(contato)}>
-              Cadastrar em Pessoas
-            </Button>
-          )}
+          <Button size="sm" icon={MessageSquarePlus} onClick={() => setModalInteracao(true)}>
+            Registrar interação
+          </Button>
         </div>
 
         <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-          {contato.pessoa_id && (
-            <Link
-              href={`/pessoas/${contato.pessoa_id}`}
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              Ver cadastro completo <ArrowRight size={14} />
-            </Link>
-          )}
+          <Link
+            href={`/pessoas/${contato.id}`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            Ver cadastro completo <ArrowRight size={14} />
+          </Link>
           <Link
             href={`/pastoral?nome=${encodeURIComponent(contato.nome)}${
               contato.telefone ? `&telefone=${encodeURIComponent(contato.telefone)}` : ''
-            }${contato.pessoa_id ? `&pessoaId=${encodeURIComponent(contato.pessoa_id)}` : ''}`}
+            }&pessoaId=${encodeURIComponent(contato.id)}`}
             className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
             <HeartHandshake size={14} /> Iniciar acompanhamento pastoral
@@ -148,9 +131,7 @@ export function PainelContato({
 
         <div>
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">Histórico de interações</p>
-          {!contato.pessoa_id ? (
-            <p className="text-sm text-text-secondary">Cadastre em Pessoas para começar a registrar interações.</p>
-          ) : interacoes.length === 0 ? (
+          {interacoes.length === 0 ? (
             <p className="text-sm text-text-secondary">Nenhuma interação registrada ainda.</p>
           ) : (
             <div className="space-y-2">

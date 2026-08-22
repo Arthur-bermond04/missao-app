@@ -571,6 +571,19 @@ export const ETAPAS_JORNADA_PESSOA: { valor: EtapaJornadaPessoa; label: string; 
   { valor: 'afastado', label: 'Afastado', descricao: 'Se afastou (continua no cadastro)' },
 ];
 
+// Subconjunto de ETAPAS_JORNADA_PESSOA que representa o funil de
+// evangelização (mesmas 5 fases que existiam em ETAPAS_FUNIL/contatos antes
+// da migration 20260822030000 aposentar a criação via `contatos` no web) —
+// usado por Funil, Dashboard e Relatório de Evangelização. 'integrado' e
+// 'afastado' ficam de fora por não fazerem parte da jornada inicial.
+export const ETAPAS_FUNIL_EVANGELIZACAO: EtapaJornadaPessoa[] = [
+  'contato_inicial',
+  'interessado',
+  'participando',
+  'cv',
+  'cal',
+];
+
 export const ORIGENS_PESSOA: { valor: OrigemPessoa; label: string }[] = [
   { valor: 'evangelizacao', label: 'Evangelização na rua' },
   { valor: 'retiro', label: 'Retiro' },

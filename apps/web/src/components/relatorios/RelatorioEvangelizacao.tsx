@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
-import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
-import { ETAPAS_FUNIL, type Contato, type Usuario } from '@/types/database';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
+import { ETAPAS_FUNIL_EVANGELIZACAO, type Pessoa, type Usuario } from '@/types/database';
 
+// Desde a migration 20260822030000, o web não cria mais em `contatos` — o
+// relatório passa a ler `pessoas` (origem evangelização), a mesma fonte que
+// o Funil e o Dashboard já usam, para os três nunca mais divergirem.
 export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string }) {
   const terminologia = useTerminologia();
-  const [contatos, setContatos] = useState<Contato[]>([]);
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [missionarios, setMissionarios] = useState<Usuario[]>([]);
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
@@ -20,39 +23,39 @@ export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string 
 
   useEffect(() => {
     Promise.all([
-      supabase.from('contatos').select('*').eq('comunidade_id', comunidadeId),
+      supabase.from('pessoas').select('*').eq('comunidade_id', comunidadeId).eq('origem', 'evangelizacao'),
       supabase.from('usuarios').select('*').eq('comunidade_id', comunidadeId).eq('perfil', 'missionario'),
-    ]).then(([c, m]) => {
-      setContatos((c.data as Contato[]) ?? []);
+    ]).then(([p, m]) => {
+      setPessoas((p.data as Pessoa[]) ?? []);
       setMissionarios((m.data as Usuario[]) ?? []);
     });
   }, [comunidadeId]);
 
   const filtrados = useMemo(() => {
-    return contatos.filter((c) => {
-      const data = c.data_abordagem.slice(0, 10);
+    return pessoas.filter((p) => {
+      const data = p.data_primeiro_contato.slice(0, 10);
       if (dataInicio && data < dataInicio) return false;
       if (dataFim && data > dataFim) return false;
-      if (missionarioId && c.missionario_id !== missionarioId) return false;
+      if (missionarioId && p.responsavel_id !== missionarioId) return false;
       return true;
     });
-  }, [contatos, dataInicio, dataFim, missionarioId]);
+  }, [pessoas, dataInicio, dataFim, missionarioId]);
 
   const funil = useMemo(
     () =>
-      ETAPAS_FUNIL.map((etapa, index) => ({
-        ...etapa,
-        label: labelEtapaJornada(etapa.valor, terminologia),
-        total: filtrados.filter((c) => ETAPAS_FUNIL.findIndex((e) => e.valor === c.etapa_jornada) >= index).length,
+      ETAPAS_FUNIL_EVANGELIZACAO.map((valor, index) => ({
+        valor,
+        label: labelEtapaJornadaPessoa(valor, terminologia),
+        total: filtrados.filter((p) => ETAPAS_FUNIL_EVANGELIZACAO.indexOf(p.etapa_jornada) >= index).length,
       })),
     [filtrados, terminologia]
   );
 
   const porMissionario = useMemo(() => {
     const mapa = new Map<string, number>();
-    for (const c of filtrados) {
-      if (!c.missionario_id) continue;
-      mapa.set(c.missionario_id, (mapa.get(c.missionario_id) ?? 0) + 1);
+    for (const p of filtrados) {
+      if (!p.responsavel_id) continue;
+      mapa.set(p.responsavel_id, (mapa.get(p.responsavel_id) ?? 0) + 1);
     }
     return missionarios
       .map((m) => ({ nome: m.nome, total: mapa.get(m.id) ?? 0 }))
@@ -61,13 +64,13 @@ export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string 
   }, [filtrados, missionarios]);
 
   function exportarExcel() {
-    const linhas = filtrados.map((c) => ({
-      Nome: c.nome,
-      Telefone: c.telefone ?? '',
-      'Nível de interesse': c.nivel_interesse,
-      'Local da abordagem': c.local_abordagem ?? '',
-      'Data da abordagem': new Date(c.data_abordagem).toLocaleDateString('pt-BR'),
-      'Etapa da jornada': c.etapa_jornada,
+    const linhas = filtrados.map((p) => ({
+      Nome: p.nome,
+      Telefone: p.telefone ?? '',
+      'Nível de interesse': p.nivel_interesse,
+      'Local da abordagem': p.local_primeiro_contato ?? '',
+      'Data da abordagem': new Date(p.data_primeiro_contato).toLocaleDateString('pt-BR'),
+      'Etapa da jornada': p.etapa_jornada,
     }));
     const planilha = XLSX.utils.json_to_sheet(linhas);
     const livro = XLSX.utils.book_new();

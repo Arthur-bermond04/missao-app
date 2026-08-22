@@ -6,17 +6,21 @@ export interface MembroComContagem extends Usuario {
 }
 
 export async function listarMembros(comunidadeId: string): Promise<MembroComContagem[]> {
-  const [{ data: usuarios, error: erroUsuarios }, { data: contatos, error: erroContatos }] = await Promise.all([
+  // Conta por pessoas.responsavel_id (origem evangelização), não mais por
+  // contatos.missionario_id — desde a migration 20260822030000, toda
+  // abordagem (web ou sync do mobile) tem uma pessoa correspondente, e o
+  // web já nem cria mais em contatos. Ler só pessoas evita contar dobrado.
+  const [{ data: usuarios, error: erroUsuarios }, { data: pessoasEvangelizacao, error: erroPessoas }] = await Promise.all([
     supabase.from('usuarios').select('*').eq('comunidade_id', comunidadeId).order('nome', { ascending: true }),
-    supabase.from('contatos').select('missionario_id').eq('comunidade_id', comunidadeId),
+    supabase.from('pessoas').select('responsavel_id').eq('comunidade_id', comunidadeId).eq('origem', 'evangelizacao'),
   ]);
   if (erroUsuarios) throw erroUsuarios;
-  if (erroContatos) throw erroContatos;
+  if (erroPessoas) throw erroPessoas;
 
   const contagemPorMissionario = new Map<string, number>();
-  for (const c of (contatos as { missionario_id: string | null }[]) ?? []) {
-    if (!c.missionario_id) continue;
-    contagemPorMissionario.set(c.missionario_id, (contagemPorMissionario.get(c.missionario_id) ?? 0) + 1);
+  for (const p of (pessoasEvangelizacao as { responsavel_id: string | null }[]) ?? []) {
+    if (!p.responsavel_id) continue;
+    contagemPorMissionario.set(p.responsavel_id, (contagemPorMissionario.get(p.responsavel_id) ?? 0) + 1);
   }
 
   return ((usuarios as Usuario[]) ?? []).map((u) => ({

@@ -17,10 +17,16 @@ export function AbaPlano({ comunidade }: { comunidade: Comunidade }) {
   const [modalAberto, setModalAberto] = useState(false);
 
   useEffect(() => {
+    // Desde a migration 20260822030000, o web não cria mais em `contatos`
+    // (só o mobile, via sync offline) — contar essa tabela aqui deixaria de
+    // refletir o uso real do plano. `pessoas` com origem evangelização é a
+    // contagem única e correta agora (todo contato do mobile também vira
+    // pessoa via trigger, então não há dupla contagem).
     supabase
-      .from('contatos')
+      .from('pessoas')
       .select('id', { count: 'exact', head: true })
       .eq('comunidade_id', comunidade.id)
+      .eq('origem', 'evangelizacao')
       .then(({ count }) => setTotalContatos(count ?? 0));
   }, [comunidade.id]);
 

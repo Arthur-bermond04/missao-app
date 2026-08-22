@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Filter, PartyPopper, HeartHandshake, IdCard, MapPin, UserPlus } from 'lucide-react';
+import { Filter, PartyPopper, HeartHandshake, MapPin, UserPlus } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -15,18 +15,23 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { FunilVisual } from '@/components/funil/FunilVisual';
 import { PainelContato } from '@/components/funil/PainelContato';
-import { promoverContatoParaPessoa, registrarAbordagem } from '@/lib/pessoas';
+import { registrarAbordagemPessoa } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
-import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
-import { ETAPAS_FUNIL, type Contato, type NivelInteresse, type Usuario } from '@/types/database';
+import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
+import { ETAPAS_FUNIL_EVANGELIZACAO, type NivelInteresse, type Pessoa, type Usuario } from '@/types/database';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
+// Desde a migration 20260822030000, o web para de criar em `contatos` — esta
+// tela lê e cria direto em `pessoas` (origem evangelizacao). O app mobile
+// continua escrevendo em `contatos`; o trigger `contatos_gera_pessoa` cria a
+// pessoa correspondente automaticamente, então essa lista já inclui as
+// abordagens feitas em campo pelo mobile também.
 export default function FunilPage() {
   const { usuario } = usePainelSession();
   const terminologia = useTerminologia();
 
-  const [contatos, setContatos] = useState<Contato[]>([]);
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [missionarios, setMissionarios] = useState<Usuario[]>([]);
   const [carregandoDados, setCarregandoDados] = useState(true);
 
@@ -34,7 +39,7 @@ export default function FunilPage() {
   const [dataFim, setDataFim] = useState('');
   const [missionarioId, setMissionarioId] = useState('');
   const [local, setLocal] = useState('');
-  const [contatoSelecionado, setContatoSelecionado] = useState<Contato | null>(null);
+  const [contatoSelecionado, setContatoSelecionado] = useState<Pessoa | null>(null);
   const [modalAbordagem, setModalAbordagem] = useState(false);
 
   useEffect(() => {
@@ -42,92 +47,77 @@ export default function FunilPage() {
     setCarregandoDados(true);
     Promise.all([
       supabase
-        .from('contatos')
+        .from('pessoas')
         .select('*')
         .eq('comunidade_id', usuario.comunidade_id)
-        .order('data_abordagem', { ascending: false }),
+        .eq('origem', 'evangelizacao')
+        .order('data_primeiro_contato', { ascending: false }),
       supabase
         .from('usuarios')
         .select('*')
         .eq('comunidade_id', usuario.comunidade_id)
         .eq('perfil', 'missionario'),
-    ]).then(([contatosRes, missionariosRes]) => {
-      setContatos((contatosRes.data as Contato[]) ?? []);
+    ]).then(([pessoasRes, missionariosRes]) => {
+      setPessoas((pessoasRes.data as Pessoa[]) ?? []);
       setMissionarios((missionariosRes.data as Usuario[]) ?? []);
       setCarregandoDados(false);
     });
   }, [usuario?.comunidade_id]);
 
-  const contatosFiltrados = useMemo(() => {
-    return contatos.filter((c) => {
-      const data = c.data_abordagem.slice(0, 10);
+  const pessoasFiltradas = useMemo(() => {
+    return pessoas.filter((p) => {
+      const data = p.data_primeiro_contato.slice(0, 10);
       if (dataInicio && data < dataInicio) return false;
       if (dataFim && data > dataFim) return false;
-      if (missionarioId && c.missionario_id !== missionarioId) return false;
-      if (local && !(c.local_abordagem ?? '').toLowerCase().includes(local.toLowerCase()))
+      if (missionarioId && p.responsavel_id !== missionarioId) return false;
+      if (local && !(p.local_primeiro_contato ?? '').toLowerCase().includes(local.toLowerCase()))
         return false;
       return true;
     });
-  }, [contatos, dataInicio, dataFim, missionarioId, local]);
+  }, [pessoas, dataInicio, dataFim, missionarioId, local]);
 
   const funil = useMemo(() => {
-    return ETAPAS_FUNIL.map((etapa, index) => {
-      const total = contatosFiltrados.filter((c) => {
-        const indiceContato = ETAPAS_FUNIL.findIndex((e) => e.valor === c.etapa_jornada);
-        return indiceContato >= index;
-      }).length;
-      return { ...etapa, label: labelEtapaJornada(etapa.valor, terminologia), total };
+    return ETAPAS_FUNIL_EVANGELIZACAO.map((valor, index) => {
+      const total = pessoasFiltradas.filter((p) => ETAPAS_FUNIL_EVANGELIZACAO.indexOf(p.etapa_jornada) >= index).length;
+      return { valor, label: labelEtapaJornadaPessoa(valor, terminologia), total };
     });
-  }, [contatosFiltrados, terminologia]);
+  }, [pessoasFiltradas, terminologia]);
 
   const travados = useMemo(() => {
     const agora = Date.now();
-    return contatosFiltrados.filter((c) => {
-      if (c.etapa_jornada !== 'abordagem') return false;
-      const dataAbordagem = new Date(c.data_abordagem).getTime();
+    return pessoasFiltradas.filter((p) => {
+      if (p.etapa_jornada !== 'contato_inicial') return false;
+      const dataAbordagem = new Date(p.data_primeiro_contato).getTime();
       return agora - dataAbordagem > TRINTA_DIAS_MS;
     });
-  }, [contatosFiltrados]);
+  }, [pessoasFiltradas]);
 
   const locaisMaisFrequentes = useMemo(() => {
     const contagem = new Map<string, number>();
-    for (const c of contatosFiltrados) {
-      const local = c.local_abordagem?.trim() || 'Não informado';
+    for (const p of pessoasFiltradas) {
+      const local = p.local_primeiro_contato?.trim() || 'Não informado';
       contagem.set(local, (contagem.get(local) ?? 0) + 1);
     }
     return [...contagem.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
-  }, [contatosFiltrados]);
+  }, [pessoasFiltradas]);
   const maiorContagemLocal = locaisMaisFrequentes[0]?.[1] || 1;
 
   function exportarExcel() {
-    const linhas = contatosFiltrados.map((c) => ({
-      Nome: c.nome,
-      Telefone: c.telefone ?? '',
-      Idade: c.idade ?? '',
-      'Nível de interesse': c.nivel_interesse,
-      'Local da abordagem': c.local_abordagem ?? '',
-      'Data da abordagem': new Date(c.data_abordagem).toLocaleDateString('pt-BR'),
-      'Etapa da jornada': c.etapa_jornada,
-      Tags: c.tags.join(', '),
-      Observações: c.observacoes ?? '',
+    const linhas = pessoasFiltradas.map((p) => ({
+      Nome: p.nome,
+      Telefone: p.telefone ?? '',
+      Idade: p.idade ?? '',
+      'Nível de interesse': p.nivel_interesse,
+      'Local da abordagem': p.local_primeiro_contato ?? '',
+      'Data da abordagem': new Date(p.data_primeiro_contato).toLocaleDateString('pt-BR'),
+      'Etapa da jornada': p.etapa_jornada,
+      Tags: (p.tags ?? []).join(', '),
+      Observações: p.observacoes ?? '',
     }));
     const planilha = XLSX.utils.json_to_sheet(linhas);
     const livro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(livro, planilha, 'Funil de evangelização');
     XLSX.writeFile(livro, 'funil-evangelizacao.xlsx');
-  }
-
-  async function handleCadastrarEmPessoas(c: Contato) {
-    if (!usuario) return;
-    try {
-      const pessoa = await promoverContatoParaPessoa(c, usuario.id);
-      const atualizado = { ...c, pessoa_id: pessoa.id };
-      setContatos((atual) => atual.map((x) => (x.id === c.id ? atualizado : x)));
-      setContatoSelecionado((atual) => (atual && atual.id === c.id ? atualizado : atual));
-      toastSuccess('Cadastrado em Pessoas!');
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Erro ao cadastrar em Pessoas.');
-    }
   }
 
   if (!usuario?.comunidade_id) {
@@ -161,8 +151,8 @@ export default function FunilPage() {
           comunidadeId={usuario.comunidade_id}
           missionarioId={usuario.id}
           onClose={() => setModalAbordagem(false)}
-          onRegistrado={(contato) => {
-            setContatos((atual) => [contato, ...atual]);
+          onRegistrado={(pessoa) => {
+            setPessoas((atual) => [pessoa, ...atual]);
             setModalAbordagem(false);
           }}
         />
@@ -240,39 +230,24 @@ export default function FunilPage() {
           />
         ) : (
           <ul className="mt-3 divide-y divide-border">
-            {travados.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+            {travados.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
                 <button
-                  onClick={() => setContatoSelecionado(c)}
+                  onClick={() => setContatoSelecionado(p)}
                   className="text-left hover:text-primary"
                   title="Ver detalhe do contato"
                 >
-                  <span className="font-medium text-text-primary">{c.nome}</span>
+                  <span className="font-medium text-text-primary">{p.nome}</span>
                   <span className="ml-2 text-text-secondary">
-                    {c.local_abordagem ?? 'Local não informado'} ·{' '}
-                    {new Date(c.data_abordagem).toLocaleDateString('pt-BR')}
+                    {p.local_primeiro_contato ?? 'Local não informado'} ·{' '}
+                    {new Date(p.data_primeiro_contato).toLocaleDateString('pt-BR')}
                   </span>
                 </button>
                 <div className="flex items-center gap-2">
-                  {c.pessoa_id ? (
-                    <Link
-                      href={`/pessoas/${c.pessoa_id}`}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1 text-xs font-medium text-text-secondary hover:bg-bg-page"
-                    >
-                      <IdCard size={13} /> Ver em Pessoas
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => handleCadastrarEmPessoas(c)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1 text-xs font-medium text-text-secondary hover:bg-bg-page"
-                    >
-                      <IdCard size={13} /> Cadastrar em Pessoas
-                    </button>
-                  )}
                   <Link
-                    href={`/pastoral?nome=${encodeURIComponent(c.nome)}${
-                      c.telefone ? `&telefone=${encodeURIComponent(c.telefone)}` : ''
-                    }${c.pessoa_id ? `&pessoaId=${encodeURIComponent(c.pessoa_id)}` : ''}`}
+                    href={`/pastoral?nome=${encodeURIComponent(p.nome)}${
+                      p.telefone ? `&telefone=${encodeURIComponent(p.telefone)}` : ''
+                    }&pessoaId=${encodeURIComponent(p.id)}`}
                     className="inline-flex items-center gap-1 rounded-md border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary-xlight"
                   >
                     <HeartHandshake size={13} /> Iniciar acompanhamento
@@ -288,10 +263,9 @@ export default function FunilPage() {
         contato={contatoSelecionado}
         usuarioId={usuario.id}
         onClose={() => setContatoSelecionado(null)}
-        onCadastrarEmPessoas={handleCadastrarEmPessoas}
-        onAtualizado={(c) => {
-          setContatos((atual) => atual.map((x) => (x.id === c.id ? c : x)));
-          setContatoSelecionado(c);
+        onAtualizado={(p) => {
+          setPessoas((atual) => atual.map((x) => (x.id === p.id ? p : x)));
+          setContatoSelecionado(p);
         }}
       />
     </div>
@@ -316,7 +290,7 @@ function RegistrarAbordagemModal({
   comunidadeId: string;
   missionarioId: string;
   onClose: () => void;
-  onRegistrado: (contato: Contato) => void;
+  onRegistrado: (pessoa: Pessoa) => void;
 }) {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -325,7 +299,6 @@ function RegistrarAbordagemModal({
   const [local, setLocal] = useState('');
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState('');
-  const [criarPessoa, setCriarPessoa] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
   async function handleSalvar(e: React.FormEvent) {
@@ -336,22 +309,19 @@ function RegistrarAbordagemModal({
     }
     setSalvando(true);
     try {
-      const { contato } = await registrarAbordagem(
-        {
-          comunidade_id: comunidadeId,
-          missionario_id: missionarioId,
-          nome: nome.trim(),
-          telefone: telefone.trim() || undefined,
-          idade: idade ? Number(idade) : undefined,
-          nivel_interesse: nivel,
-          local_abordagem: local.trim() || undefined,
-          data_abordagem: data,
-          observacoes: observacoes.trim() || undefined,
-        },
-        criarPessoa
-      );
-      toastSuccess(criarPessoa ? 'Abordagem registrada e cadastrada em Pessoas!' : 'Abordagem registrada!');
-      onRegistrado(contato);
+      const pessoa = await registrarAbordagemPessoa({
+        comunidade_id: comunidadeId,
+        missionario_id: missionarioId,
+        nome: nome.trim(),
+        telefone: telefone.trim() || undefined,
+        idade: idade ? Number(idade) : undefined,
+        nivel_interesse: nivel,
+        local_abordagem: local.trim() || undefined,
+        data_abordagem: data,
+        observacoes: observacoes.trim() || undefined,
+      });
+      toastSuccess('Abordagem registrada!');
+      onRegistrado(pessoa);
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao registrar.');
     } finally {
@@ -399,10 +369,6 @@ function RegistrarAbordagemModal({
           </div>
         </div>
         <Textarea label="Observações (opcional)" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} />
-        <label className="flex cursor-pointer items-center gap-2 rounded-md bg-bg-page px-3 py-2 text-sm text-text-primary">
-          <input type="checkbox" checked={criarPessoa} onChange={(e) => setCriarPessoa(e.target.checked)} />
-          Criar também no cadastro central de Pessoas
-        </label>
         <Button type="submit" fullWidth loading={salvando}>
           Registrar abordagem
         </Button>

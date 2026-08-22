@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { listarMinisteriosDoUsuario } from '@/lib/ministerios';
 import { listarOvelhasDoPastor } from '@/lib/pastoral';
 import { PERFIL_LABEL, type MembroComContagem } from '@/lib/usuarios';
-import type { Contato, Ministerio, PastoralOvelha } from '@/types/database';
+import type { Ministerio, PastoralOvelha, Pessoa } from '@/types/database';
 
 export function PainelMembro({
   membro,
@@ -21,7 +21,7 @@ export function PainelMembro({
   onEditar: (m: MembroComContagem) => void;
   onDesativar: (m: MembroComContagem) => void;
 }) {
-  const [contatosRecentes, setContatosRecentes] = useState<Contato[]>([]);
+  const [contatosRecentes, setContatosRecentes] = useState<Pessoa[]>([]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [nomeSupervisor, setNomeSupervisor] = useState<string | null>(null);
@@ -39,13 +39,17 @@ export function PainelMembro({
 
   useEffect(() => {
     if (!membro) return;
+    // Desde a migration 20260822030000, o web cria abordagens direto em
+    // `pessoas` (não mais em `contatos`) — lê daqui pra bater com a contagem
+    // de listarMembros() em lib/usuarios.ts, que já usa a mesma fonte.
     supabase
-      .from('contatos')
+      .from('pessoas')
       .select('*')
-      .eq('missionario_id', membro.id)
-      .order('data_abordagem', { ascending: false })
+      .eq('responsavel_id', membro.id)
+      .eq('origem', 'evangelizacao')
+      .order('data_primeiro_contato', { ascending: false })
       .limit(5)
-      .then(({ data }) => setContatosRecentes((data as Contato[]) ?? []));
+      .then(({ data }) => setContatosRecentes((data as Pessoa[]) ?? []));
     listarMinisteriosDoUsuario(membro.id).then(setMinisterios);
     listarOvelhasDoPastor(membro.id).then(setOvelhas);
   }, [membro]);

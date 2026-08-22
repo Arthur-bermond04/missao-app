@@ -1,7 +1,5 @@
 import { supabase } from './supabase';
 import type {
-  Contato,
-  EtapaJornada,
   EtapaJornadaPessoa,
   InscricaoRetiro,
   NivelInteresse,
@@ -335,79 +333,39 @@ export interface ResumoPessoas {
 }
 
 // ---------------------------------------------------------------------------
-// Promoção de contato do funil para o cadastro central
+// Registro de abordagem de evangelização (Funil)
 // ---------------------------------------------------------------------------
 
-const ETAPA_FUNIL_PARA_JORNADA: Record<EtapaJornada, EtapaJornadaPessoa> = {
-  abordagem: 'contato_inicial',
-  celula: 'participando',
-  retiro: 'participando',
-  cv: 'cv',
-  cal: 'cal',
-};
-
-// Registra uma abordagem de evangelização direto no painel web (antes só
-// existia no mobile). Cria a linha em `contatos` e, opcionalmente, já cria a
-// pessoa no cadastro central com origem 'evangelizacao', ligando os dois.
-export async function registrarAbordagem(
-  dados: {
-    comunidade_id: string;
-    missionario_id: string;
-    nome: string;
-    telefone?: string;
-    idade?: number;
-    nivel_interesse: NivelInteresse;
-    local_abordagem?: string;
-    data_abordagem: string;
-    observacoes?: string;
-  },
-  criarPessoaTambem: boolean
-): Promise<{ contato: Contato; pessoa: Pessoa | null }> {
-  const { data, error } = await supabase
-    .from('contatos')
-    .insert({
-      comunidade_id: dados.comunidade_id,
-      missionario_id: dados.missionario_id,
-      nome: dados.nome,
-      telefone: dados.telefone || null,
-      idade: dados.idade ?? null,
-      nivel_interesse: dados.nivel_interesse,
-      local_abordagem: dados.local_abordagem || null,
-      data_abordagem: dados.data_abordagem,
-      observacoes: dados.observacoes || null,
-      etapa_jornada: 'abordagem',
-      tags: [],
-    })
-    .select('*')
-    .single();
-  if (error) throw error;
-  const contato = data as Contato;
-
-  if (!criarPessoaTambem) return { contato, pessoa: null };
-
-  const pessoa = await promoverContatoParaPessoa(contato, dados.missionario_id);
-  return { contato: { ...contato, pessoa_id: pessoa.id }, pessoa };
-}
-
-export async function promoverContatoParaPessoa(contato: Contato, cadastradoPor: string): Promise<Pessoa> {
-  const pessoa = await criarPessoa({
-    comunidade_id: contato.comunidade_id,
-    cadastrado_por: cadastradoPor,
-    nome: contato.nome,
-    telefone: contato.telefone ?? undefined,
-    idade: contato.idade ?? undefined,
-    nivel_interesse: contato.nivel_interesse,
+// Registra uma abordagem de evangelização direto no painel web. Desde a
+// migration 20260822030000, o web para de criar em `contatos` (só o app
+// mobile ainda escreve lá, via sync offline) — cria direto no cadastro
+// central de pessoas, com origem 'evangelizacao', para o Funil web (que lê
+// só pessoas) já enxergar a abordagem sem passo de "promoção" manual.
+export async function registrarAbordagemPessoa(dados: {
+  comunidade_id: string;
+  missionario_id: string;
+  nome: string;
+  telefone?: string;
+  idade?: number;
+  nivel_interesse: NivelInteresse;
+  local_abordagem?: string;
+  data_abordagem: string;
+  observacoes?: string;
+}): Promise<Pessoa> {
+  return criarPessoa({
+    comunidade_id: dados.comunidade_id,
+    cadastrado_por: dados.missionario_id,
+    nome: dados.nome,
+    telefone: dados.telefone,
+    idade: dados.idade,
+    nivel_interesse: dados.nivel_interesse,
     origem: 'evangelizacao',
-    local_primeiro_contato: contato.local_abordagem ?? undefined,
-    data_primeiro_contato: contato.data_abordagem.slice(0, 10),
-    etapa_jornada: ETAPA_FUNIL_PARA_JORNADA[contato.etapa_jornada],
-    responsavel_id: contato.missionario_id ?? cadastradoPor,
-    observacoes: contato.observacoes ?? undefined,
-    tags: contato.tags,
+    local_primeiro_contato: dados.local_abordagem,
+    data_primeiro_contato: dados.data_abordagem,
+    etapa_jornada: 'contato_inicial',
+    responsavel_id: dados.missionario_id,
+    observacoes: dados.observacoes,
   });
-  const { error } = await supabase.from('contatos').update({ pessoa_id: pessoa.id }).eq('id', contato.id);
-  if (error) throw error;
-  return pessoa;
 }
 
 export async function promoverInscricaoParaPessoa(
