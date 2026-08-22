@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, CalendarClock, HandHeart, HeartHandshake, Link2, Plus, Target } from 'lucide-react';
+import { AlertTriangle, CalendarClock, HandHeart, HeartHandshake, Link2, Plus, Target, Users2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { frequenciaMinisteriosDaPessoa, type FrequenciaMinisterio } from '@/lib/ministerios';
+import { frequenciaCelulasDaPessoa, type FrequenciaCelula } from '@/lib/celulas';
 import { atualizarPessoa, proximoContatoVencido } from '@/lib/pessoas';
-import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
+import { labelEtapaJornadaPessoa, useTermosCelula, useTerminologia } from '@/lib/terminologia';
 import { toastError, toastSuccess } from '@/lib/toast';
 import {
   ETAPAS_JORNADA_PESSOA,
@@ -48,6 +49,7 @@ export function AbaResumo({
 }) {
   const { usuario } = usePainelSession();
   const terminologia = useTerminologia();
+  const t = useTermosCelula();
   const [proximaVisita, setProximaVisita] = useState(pessoa.proxima_visita ?? '');
   const [frequencia, setFrequencia] = useState<FrequenciaAcompanhamentoPessoa>(
     pessoa.frequencia_acompanhamento ?? 'mensal'
@@ -55,9 +57,13 @@ export function AbaResumo({
   const [etapa, setEtapa] = useState<EtapaJornadaPessoa>(pessoa.etapa_jornada);
   const [salvando, setSalvando] = useState(false);
   const [frequencias, setFrequencias] = useState<FrequenciaMinisterio[]>([]);
+  const [celulas, setCelulas] = useState<FrequenciaCelula[]>([]);
 
   useEffect(() => {
     frequenciaMinisteriosDaPessoa(pessoa.id).then(setFrequencias).catch(() => setFrequencias([]));
+    // Vínculo com célula/grupo inferido de presença + cargo, não uma tabela
+    // de vínculo formal — ver comentário em lib/celulas.ts.
+    frequenciaCelulasDaPessoa(pessoa.id).then(setCelulas).catch(() => setCelulas([]));
   }, [pessoa.id]);
 
   const vencido = proximoContatoVencido(pessoa);
@@ -160,6 +166,37 @@ export function AbaResumo({
             >
               <Plus size={14} />
               Não participa de nenhum ministério ainda
+            </Link>
+          )}
+          {/* "Pertence à célula" é inferido de presença/cargo, não uma tabela
+              de vínculo formal — ver frequenciaCelulasDaPessoa em lib/celulas.ts. */}
+          {celulas.length > 0 ? (
+            <div className="space-y-1.5 rounded-md border border-border px-3 py-2">
+              {celulas.map((f) => (
+                <div key={f.celula.id} className="flex flex-wrap items-center gap-2">
+                  <Users2 size={14} className="text-primary" />
+                  <Link
+                    href="/celulas"
+                    className="rounded-full bg-primary-xlight px-2 py-0.5 text-xs font-medium text-primary"
+                  >
+                    {f.celula.nome}
+                  </Link>
+                  <span className="text-xs text-text-secondary">
+                    {f.percentual != null
+                      ? `Presença: ${f.percentual}% (${f.presentes}/${f.presencasRegistradas})`
+                      : 'Sem presenças registradas'}
+                    {f.ultimoEncontro ? ` · Último encontro: ${new Date(f.ultimoEncontro).toLocaleDateString('pt-BR')}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Link
+              href="/celulas"
+              className="flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-sm text-text-secondary hover:border-primary hover:text-primary"
+            >
+              <Plus size={14} />
+              Sem presença registrada em {t.nenhum.toLowerCase()} {t.singularMin} ainda
             </Link>
           )}
         </div>

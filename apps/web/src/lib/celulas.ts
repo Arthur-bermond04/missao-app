@@ -293,3 +293,78 @@ export function calcularFrequenciaCelula(
   }
   return frequencia;
 }
+
+// ---------------------------------------------------------------------------
+// Vínculo pessoa ↔ célula, calculado a partir de dado que já existe (presença
+// e cargo) — sem tabela nova de vínculo. Usado na aba Resumo do perfil de
+// Pessoa, no mesmo espírito de frequenciaMinisteriosDaPessoa em
+// lib/ministerios.ts: dado que entra em Grupos aparece em Pessoas.
+//
+// "Pertence à célula" aqui é inferido, não declarado: ou a pessoa tem cargo
+// ativo vinculado (equipe_cargos.celula_id — geralmente liderança), ou tem ao
+// menos uma presença registrada num encontro daquela célula. Uma pessoa que
+// só apareceu uma vez como visitante já aparece aqui — é dado de frequência,
+// não uma afirmação de pertencimento formal (esse é o problema que o
+// redesenho de vínculos/acompanhamentos, ainda não implementado, resolveria
+// de verdade).
+// ---------------------------------------------------------------------------
+
+export interface FrequenciaCelula {
+  celula: Celula;
+  presencasRegistradas: number;
+  presentes: number;
+  percentual: number | null;
+  ultimoEncontro: string | null;
+}
+
+export async function frequenciaCelulasDaPessoa(pessoaId: string): Promise<FrequenciaCelula[]> {
+  const [{ data: cargos, error: erroCargo }, { data: presencas, error: erroPres }] = await Promise.all([
+    supabase.from('equipe_cargos').select('celula_id').eq('pessoa_id', pessoaId).eq('ativo', true).not('celula_id', 'is', null),
+    supabase.from('celula_presencas').select('encontro_id, presente').eq('pessoa_id', pessoaId),
+  ]);
+  if (erroCargo) throw erroCargo;
+  if (erroPres) throw erroPres;
+
+  const listaPresencas = (presencas as { encontro_id: string; presente: boolean }[]) ?? [];
+  const idsEncontros = [...new Set(listaPresencas.map((p) => p.encontro_id))];
+
+  const { data: encontros, error: erroEnc } =
+    idsEncontros.length > 0
+      ? await supabase.from('celula_encontros').select('id, celula_id, data').in('id', idsEncontros)
+      : { data: [] as { id: string; celula_id: string; data: string }[], error: null };
+  if (erroEnc) throw erroEnc;
+
+  const listaEncontros = (encontros as { id: string; celula_id: string; data: string }[]) ?? [];
+  const encontroParaCelula = new Map(listaEncontros.map((e) => [e.id, e.celula_id]));
+
+  const porCelula = new Map<string, { registradas: number; presentes: number }>();
+  for (const p of listaPresencas) {
+    const celulaId = encontroParaCelula.get(p.encontro_id);
+    if (!celulaId) continue;
+    const atual = porCelula.get(celulaId) ?? { registradas: 0, presentes: 0 };
+    atual.registradas += 1;
+    if (p.presente) atual.presentes += 1;
+    porCelula.set(celulaId, atual);
+  }
+
+  const idsCargo = ((cargos as { celula_id: string }[]) ?? []).map((c) => c.celula_id);
+  const idsCelulas = [...new Set([...porCelula.keys(), ...idsCargo])];
+  if (idsCelulas.length === 0) return [];
+
+  const { data: celulasData, error: erroCel } = await supabase.from('celulas').select('*').in('id', idsCelulas);
+  if (erroCel) throw erroCel;
+
+  return ((celulasData as Celula[]) ?? []).map((c) => {
+    const stats = porCelula.get(c.id) ?? { registradas: 0, presentes: 0 };
+    const ultimoEncontro = listaEncontros
+      .filter((e) => e.celula_id === c.id)
+      .reduce<string | null>((max, e) => (max === null || e.data > max ? e.data : max), null);
+    return {
+      celula: c,
+      presencasRegistradas: stats.registradas,
+      presentes: stats.presentes,
+      percentual: stats.registradas > 0 ? Math.round((stats.presentes / stats.registradas) * 100) : null,
+      ultimoEncontro,
+    };
+  });
+}
