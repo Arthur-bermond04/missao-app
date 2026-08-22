@@ -168,6 +168,7 @@ export default function PastoralPage() {
             setPrefill(null);
           }}
           comunidadeId={comunidadeId}
+          usuarioId={usuario.id}
           pastorId={usuario.id}
           usuarios={usuarios}
           pessoas={pessoas}

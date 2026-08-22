@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, UserPlus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { criarOvelha } from '@/lib/pastoral';
+import { criarPessoa } from '@/lib/pessoas';
 import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
 import { labelEtapaFormacao, useTerminologia } from '@/lib/terminologia';
@@ -25,6 +26,7 @@ interface NovaOvelhaModalProps {
   open: boolean;
   onClose: () => void;
   comunidadeId: string;
+  usuarioId: string;
   pastorId: string;
   usuarios: Usuario[];
   pessoas: Pessoa[];
@@ -32,10 +34,16 @@ interface NovaOvelhaModalProps {
   onCriada: () => void;
 }
 
+// pessoa_id é obrigatório desde a migration 20260822020000 — não dá mais pra
+// criar um registro de acompanhamento digitando nome/telefone soltos (era a
+// duplicação que o cadastro central de Pessoas deveria evitar). Quem ainda
+// não tem cadastro é resolvido aqui mesmo, com o mesmo padrão do check-in de
+// Grupos: busca em Pessoas ou "+ Nova pessoa" cria e já seleciona.
 export function NovaOvelhaModal({
   open,
   onClose,
   comunidadeId,
+  usuarioId,
   pastorId,
   usuarios,
   pessoas,
@@ -43,68 +51,74 @@ export function NovaOvelhaModal({
   onCriada,
 }: NovaOvelhaModalProps) {
   const terminologia = useTerminologia();
-  const [usuarioId, setUsuarioId] = useState('');
+  const [membroId, setMembroId] = useState('');
   const [pessoaId, setPessoaId] = useState('');
-  const [nome, setNome] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [idade, setIdade] = useState('');
+  const [pessoasDisponiveis, setPessoasDisponiveis] = useState<Pessoa[]>(pessoas);
+  const [novaPessoaAberta, setNovaPessoaAberta] = useState(false);
+  const [nomeNovaPessoa, setNomeNovaPessoa] = useState('');
+  const [telefoneNovaPessoa, setTelefoneNovaPessoa] = useState('');
+  const [criandoPessoa, setCriandoPessoa] = useState(false);
   const [etapa, setEtapa] = useState<EtapaFormacao>('inicio');
   const [frequencia, setFrequencia] = useState<FrequenciaAcompanhamento>('mensal');
   const [objetivo, setObjetivo] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  // aplica o pré-preenchimento (vindo de contato/retiro/pessoa) ao abrir
   useEffect(() => {
-    if (open && prefill) {
-      setNome(prefill.nome ?? '');
-      setTelefone(prefill.telefone ?? '');
-      if (prefill.pessoaId) setPessoaId(prefill.pessoaId);
-    }
-  }, [open, prefill]);
+    if (!open) return;
+    setPessoasDisponiveis(pessoas);
+    setMembroId('');
+    setPessoaId(prefill?.pessoaId ?? '');
+    setNovaPessoaAberta(false);
+    setNomeNovaPessoa(prefill?.nome ?? '');
+    setTelefoneNovaPessoa(prefill?.telefone ?? '');
+    setEtapa('inicio');
+    setFrequencia('mensal');
+    setObjetivo('');
+  }, [open, prefill, pessoas]);
 
-  function selecionarMembro(id: string) {
-    setUsuarioId(id);
-    const u = usuarios.find((x) => x.id === id);
-    if (u) {
-      setNome(u.nome);
-      if (u.telefone) setTelefone(u.telefone);
+  async function handleCriarPessoa() {
+    const nome = nomeNovaPessoa.trim();
+    if (!nome) {
+      toastError('Digite o nome da pessoa.');
+      return;
     }
-  }
-
-  function selecionarPessoa(id: string) {
-    setPessoaId(id);
-    const p = pessoas.find((x) => x.id === id);
-    if (p) {
-      setNome(p.nome);
-      if (p.telefone) setTelefone(p.telefone);
-      if (p.idade) setIdade(String(p.idade));
+    setCriandoPessoa(true);
+    try {
+      const pessoa = await criarPessoa({
+        comunidade_id: comunidadeId,
+        cadastrado_por: usuarioId,
+        nome,
+        telefone: telefoneNovaPessoa.trim() || undefined,
+        responsavel_id: pastorId,
+      });
+      setPessoasDisponiveis((atual) => [...atual, pessoa]);
+      setPessoaId(pessoa.id);
+      setNovaPessoaAberta(false);
+      toastSuccess(`${pessoa.nome} cadastrado(a).`);
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao cadastrar pessoa.');
+    } finally {
+      setCriandoPessoa(false);
     }
   }
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
+    if (!pessoaId) {
+      toastError('Selecione ou cadastre a pessoa antes de continuar.');
+      return;
+    }
     setSalvando(true);
     try {
       await criarOvelha({
         comunidade_id: comunidadeId,
         pastor_id: pastorId,
-        nome: nome.trim(),
-        usuario_id: usuarioId || undefined,
-        pessoa_id: pessoaId || undefined,
-        telefone: telefone.trim() || undefined,
-        idade: idade ? Number(idade) : undefined,
+        pessoa_id: pessoaId,
+        usuario_id: membroId || undefined,
         etapa_formacao: etapa,
         frequencia_acompanhamento: frequencia,
         objetivo_atual: objetivo.trim() || undefined,
       });
-      setUsuarioId('');
-      setPessoaId('');
-      setNome('');
-      setTelefone('');
-      setIdade('');
-      setObjetivo('');
-      setEtapa('inicio');
-      setFrequencia('mensal');
       onCriada();
       onClose();
       toastSuccess('Pessoa adicionada ao acompanhamento!');
@@ -123,30 +137,52 @@ export function NovaOvelhaModal({
       </p>
       <form onSubmit={handleSalvar} className="space-y-3">
         <Combobox
-          label="Vincular a pessoa cadastrada (opcional)"
+          label="Pessoa"
           value={pessoaId}
-          onChange={selecionarPessoa}
+          onChange={setPessoaId}
           placeholder="Buscar em Pessoas..."
-          emptyMessage="Nenhuma pessoa encontrada"
-          options={pessoas.map((p) => ({ value: p.id, label: p.nome, sublabel: p.telefone ?? undefined }))}
+          emptyMessage="Ninguém encontrado — cadastre abaixo"
+          options={pessoasDisponiveis.map((p) => ({ value: p.id, label: p.nome, sublabel: p.telefone ?? undefined }))}
         />
+
+        {novaPessoaAberta ? (
+          <div className="rounded-md border border-border p-3">
+            <p className="mb-2 text-xs font-semibold text-text-secondary">Nova pessoa</p>
+            <div className="flex flex-wrap gap-2">
+              <div className="min-w-[160px] flex-1">
+                <Input placeholder="Nome" value={nomeNovaPessoa} onChange={(e) => setNomeNovaPessoa(e.target.value)} />
+              </div>
+              <div className="min-w-[140px] flex-1">
+                <Input
+                  placeholder="Telefone (opcional)"
+                  value={telefoneNovaPessoa}
+                  onChange={(e) => setTelefoneNovaPessoa(e.target.value)}
+                />
+              </div>
+              <Button type="button" size="md" loading={criandoPessoa} onClick={handleCriarPessoa}>
+                Cadastrar
+              </Button>
+              <Button type="button" variant="ghost" size="md" onClick={() => setNovaPessoaAberta(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          !pessoaId && (
+            <Button type="button" variant="secondary" size="sm" icon={UserPlus} onClick={() => setNovaPessoaAberta(true)}>
+              Pessoa não cadastrada ainda
+            </Button>
+          )
+        )}
+
         <Combobox
           label="Vincular a membro do app (opcional)"
-          value={usuarioId}
-          onChange={selecionarMembro}
+          value={membroId}
+          onChange={setMembroId}
           placeholder="Buscar membro..."
           emptyMessage="Nenhum membro encontrado"
           options={usuarios.map((u) => ({ value: u.id, label: u.nome, sublabel: PERFIL_LABEL[u.perfil] }))}
         />
-        <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Input label="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
-          </div>
-          <div className="w-24">
-            <Input label="Idade" type="number" value={idade} onChange={(e) => setIdade(e.target.value)} />
-          </div>
-        </div>
         <div className="flex gap-2">
           <div className="w-1/2">
             <Select
@@ -171,7 +207,7 @@ export function NovaOvelhaModal({
           onChange={(e) => setObjetivo(e.target.value)}
           rows={2}
         />
-        <Button type="submit" fullWidth loading={salvando}>
+        <Button type="submit" fullWidth loading={salvando} disabled={!pessoaId}>
           Adicionar
         </Button>
       </form>

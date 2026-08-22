@@ -60,29 +60,40 @@ export async function buscarOvelhaPorPessoa(pessoaId: string): Promise<PastoralO
 export async function criarOvelha(dados: {
   comunidade_id: string;
   pastor_id: string;
-  nome: string;
+  // Obrigatório desde a migration 20260822020000 (trigger no banco recusa
+  // insert sem isso) — evita a duplicação de cadastro que existia antes:
+  // nome/telefone/idade digitados soltos, sem nunca vincular a pessoas.
+  pessoa_id: string;
   usuario_id?: string;
-  pessoa_id?: string;
-  telefone?: string;
-  email?: string;
-  idade?: number;
   etapa_formacao?: string;
   estado_espiritual?: EstadoEspiritual;
   frequencia_acompanhamento?: string;
   objetivo_atual?: string;
   proxima_reuniao?: string;
 }): Promise<PastoralOvelha> {
+  // nome/telefone/idade continuam existindo em pastoral_ovelhas (várias
+  // telas leem essas colunas direto, sem join, para não pagar uma consulta
+  // extra) mas passam a ser sempre uma cópia da pessoa vinculada, nunca
+  // texto livre — nascem sincronizados; só divergem se a pessoa for
+  // renomeada depois, e nada aqui propaga essa mudança automaticamente.
+  const { data: pessoa, error: erroPessoa } = await supabase
+    .from('pessoas')
+    .select('nome, telefone, idade')
+    .eq('id', dados.pessoa_id)
+    .single();
+  if (erroPessoa) throw erroPessoa;
+  const { nome, telefone, idade } = pessoa as { nome: string; telefone: string | null; idade: number | null };
+
   const { data, error } = await supabase
     .from('pastoral_ovelhas')
     .insert({
       comunidade_id: dados.comunidade_id,
       pastor_id: dados.pastor_id,
-      nome: dados.nome,
+      nome,
       usuario_id: dados.usuario_id || null,
-      pessoa_id: dados.pessoa_id || null,
-      telefone: dados.telefone || null,
-      email: dados.email || null,
-      idade: dados.idade ?? null,
+      pessoa_id: dados.pessoa_id,
+      telefone,
+      idade,
       etapa_formacao: dados.etapa_formacao ?? 'inicio',
       estado_espiritual: dados.estado_espiritual ?? 'estavel',
       frequencia_acompanhamento: dados.frequencia_acompanhamento ?? 'mensal',
