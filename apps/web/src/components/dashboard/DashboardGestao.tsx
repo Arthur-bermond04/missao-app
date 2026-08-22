@@ -12,6 +12,7 @@ import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal'
 import { buscarComunidade } from '@/lib/comunidades';
 import { gerarAlertasCentral, type AlertaCentral, type NivelAlertaCentral } from '@/lib/alertas';
 import { agruparMetricasPorPastor, listarOvelhasResumo, ovelhaEmAtraso, type MetricasPastor } from '@/lib/monitoria';
+import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
 import {
   ETAPAS_FUNIL,
   type Comunidade,
@@ -39,6 +40,7 @@ const NIVEL_CONFIG: Record<NivelAlertaCentral, { label: string; icone: typeof Sh
 };
 
 export function DashboardGestao({ usuario }: { usuario: Usuario }) {
+  const terminologia = useTerminologia();
   const comunidadeId = usuario.comunidade_id as string;
 
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
@@ -180,9 +182,11 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
           c.data_abordagem.slice(0, 10) >= corte14 &&
           c.data_abordagem.slice(0, 10) < corte7
       ).length;
-      return { ...etapa, nestaSemana, variacao: nestaSemana - semanaAnterior };
+      // label do ETAPAS_FUNIL é o padrão fixo — troca pelo dinâmico, senão
+      // a etapa "célula" nunca acompanha o nome escolhido em Configurações.
+      return { ...etapa, label: labelEtapaJornada(etapa.valor, terminologia), nestaSemana, variacao: nestaSemana - semanaAnterior };
     });
-  }, [contatos, corte7]);
+  }, [contatos, corte7, terminologia]);
 
   // -------------------------------------------------------------------------
   // Missionários: atividade da equipe

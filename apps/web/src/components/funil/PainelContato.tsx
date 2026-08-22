@@ -9,6 +9,7 @@ import { NovaInteracaoModal } from '@/components/pessoas/NovaInteracaoModal';
 import { supabase } from '@/lib/supabase';
 import { listarInteracoes } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { labelEtapaJornada, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_FUNIL, TIPOS_INTERACAO, type Contato, type EtapaJornada, type PessoaInteracao } from '@/types/database';
 
 const TIPO_LABEL = Object.fromEntries(TIPOS_INTERACAO.map((t) => [t.valor, t.label]));
@@ -26,6 +27,7 @@ export function PainelContato({
   onCadastrarEmPessoas: (c: Contato) => Promise<void>;
   onAtualizado: (c: Contato) => void;
 }) {
+  const terminologia = useTerminologia();
   const [interacoes, setInteracoes] = useState<PessoaInteracao[]>([]);
   const [modalInteracao, setModalInteracao] = useState(false);
   const [avancando, setAvancando] = useState(false);
@@ -42,6 +44,9 @@ export function PainelContato({
 
   const indiceAtual = ETAPAS_FUNIL.findIndex((e) => e.valor === contato.etapa_jornada);
   const proximaEtapa = ETAPAS_FUNIL[indiceAtual + 1];
+  // ETAPAS_FUNIL guarda o rótulo padrão fixo — o exibido precisa passar pela
+  // terminologia da comunidade, senão "célula" nunca vira o termo escolhido.
+  const labelProximaEtapa = proximaEtapa ? labelEtapaJornada(proximaEtapa.valor, terminologia) : null;
 
   async function avancarEtapa() {
     if (!contato || !proximaEtapa) return;
@@ -53,7 +58,7 @@ export function PainelContato({
         .eq('id', contato.id);
       if (error) throw error;
       onAtualizado({ ...contato, etapa_jornada: proximaEtapa.valor as EtapaJornada });
-      toastSuccess(`Avançou para "${proximaEtapa.label}"`);
+      toastSuccess(`Avançou para "${labelProximaEtapa}"`);
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao avançar etapa.');
     } finally {
@@ -108,7 +113,7 @@ export function PainelContato({
         <div className="flex flex-wrap gap-2">
           {proximaEtapa && (
             <Button size="sm" variant="secondary" onClick={avancarEtapa} loading={avancando}>
-              Avançar para &ldquo;{proximaEtapa.label}&rdquo;
+              Avançar para &ldquo;{labelProximaEtapa}&rdquo;
             </Button>
           )}
           {contato.pessoa_id ? (

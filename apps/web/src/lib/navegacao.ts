@@ -18,6 +18,7 @@ import {
   Users2,
   type LucideIcon,
 } from 'lucide-react';
+import { pluralizar } from '@/lib/terminologia';
 import type { Terminologia } from '@/types/database';
 
 export interface NavLink {
@@ -92,7 +93,9 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
       itens: [
         {
           href: '/celulas',
-          label: terminologia.modulo_celulas,
+          // modulo_celulas guarda o singular (concorda com "Novo"/"Nova" na
+          // tela de Grupos) — o menu precisa do plural.
+          label: pluralizar(terminologia.modulo_celulas),
           descricao: 'Encontros semanais em grupo, com presença coletiva',
           icon: Users2,
           modulo: 'celulas',

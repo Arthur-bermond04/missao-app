@@ -49,6 +49,8 @@ export interface HorarioMissa {
   local: string;
 }
 
+export type GeneroGramatical = 'm' | 'f';
+
 export interface Terminologia {
   etapa_cv: string;
   etapa_cal: string;
@@ -58,7 +60,15 @@ export interface Terminologia {
   // usa (ex: "Célula") mesmo com o padrão de fábrica mudando para algo mais
   // universal. O valor salvo em contatos/pastoral_ovelhas etc. não muda, só
   // o rótulo exibido no menu e nos títulos de tela.
+  //
+  // modulo_celulas é o ÚNICO destes campos guardado no SINGULAR (ex: "Grupo",
+  // "Célula") — é o único que aparece tanto no menu (plural, pluralizado
+  // automaticamente por pluralizar() em lib/terminologia.ts) quanto em frases
+  // com concordância de gênero ("Nova célula", "Novo grupo"). Os outros
+  // quatro campos são usados só como rótulo direto do menu, sem essa dupla
+  // exigência, e continuam como o texto final mesmo (sem singular/plural).
   modulo_celulas: string;
+  modulo_celulas_genero: GeneroGramatical;
   modulo_pastoral: string;
   modulo_monitoria: string;
   modulo_funil: string;
@@ -70,7 +80,8 @@ export const TERMINOLOGIA_PADRAO: Terminologia = {
   etapa_cal: 'CAL',
   nome_ovelha: 'Ovelha',
   nome_pastor: 'Pastor',
-  modulo_celulas: 'Grupos',
+  modulo_celulas: 'Grupo',
+  modulo_celulas_genero: 'm',
   modulo_pastoral: 'Acompanhamento',
   modulo_monitoria: 'Painel da Liderança',
   modulo_funil: 'Evangelização',

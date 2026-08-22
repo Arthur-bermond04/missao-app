@@ -188,14 +188,32 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
           os títulos de tela e os relatórios passam a usar o nome escolhido.
         </p>
         <div className="mt-2 grid grid-cols-2 gap-3">
-          <Input
-            label="Encontros em grupo (ex-Células)"
-            value={terminologia.modulo_celulas}
-            onChange={(e) =>
-              setTerminologia((t) => ({ ...t, modulo_celulas: e.target.value || TERMINOLOGIA_PADRAO.modulo_celulas }))
-            }
-            placeholder="Ex: Células, Grupos de Oração"
-          />
+          <div className="col-span-2 flex gap-3 sm:col-span-1">
+            <div className="flex-1">
+              <Input
+                label="Encontros em grupo — no singular (ex-Célula)"
+                value={terminologia.modulo_celulas}
+                onChange={(e) =>
+                  setTerminologia((t) => ({ ...t, modulo_celulas: e.target.value || TERMINOLOGIA_PADRAO.modulo_celulas }))
+                }
+                placeholder="Ex: Célula, Grupo de Oração"
+                hint="No singular — aparece em frases como &quot;Nova ___&quot;. O menu pluraliza sozinho."
+              />
+            </div>
+            <div className="w-32">
+              <Select
+                label="Gênero"
+                value={terminologia.modulo_celulas_genero}
+                onChange={(e) =>
+                  setTerminologia((t) => ({ ...t, modulo_celulas_genero: e.target.value as 'm' | 'f' }))
+                }
+                options={[
+                  { value: 'm', label: 'O (masc.)' },
+                  { value: 'f', label: 'A (fem.)' },
+                ]}
+              />
+            </div>
+          </div>
           <Input
             label="Cuidado individual (ex-Pastoral)"
             value={terminologia.modulo_pastoral}

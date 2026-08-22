@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Combobox } from '@/components/ui/Combobox';
 import { registrarEncontroCelula, type MembroCelula } from '@/lib/celulas';
 import { buscarPessoasParaCombobox, criarPessoa } from '@/lib/pessoas';
+import { useTermosCelula } from '@/lib/terminologia';
 import { toastError, toastSuccess } from '@/lib/toast';
 import type { Pessoa } from '@/types/database';
 
@@ -46,6 +47,7 @@ export function RegistrarEncontroCelulaModal({
   membrosConhecidos,
   onRegistrado,
 }: RegistrarEncontroCelulaModalProps) {
+  const t = useTermosCelula();
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
   const [horario, setHorario] = useState('');
   const [local, setLocal] = useState('');
@@ -208,7 +210,7 @@ export function RegistrarEncontroCelulaModal({
 
           {chipsConhecidos.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1.5 text-xs text-text-secondary">Toque para adicionar quem já é do grupo:</p>
+              <p className="mb-1.5 text-xs text-text-secondary">Toque para adicionar quem já é {t.de} {t.singularMin}:</p>
               <div className="flex flex-wrap gap-2">
                 {chipsConhecidos.map((m) => (
                   <button

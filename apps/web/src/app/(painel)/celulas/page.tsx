@@ -27,6 +27,7 @@ import {
   type MembroCelula,
 } from '@/lib/celulas';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { useTermosCelula, type TermosCelula } from '@/lib/terminologia';
 import type { Usuario } from '@/types/database';
 
 const PERFIS_GESTAO = ['lider', 'coordenador', 'admin'];
@@ -34,6 +35,7 @@ const PERFIS_GESTAO = ['lider', 'coordenador', 'admin'];
 export default function CelulasPage() {
   const { usuario } = usePainelSession();
   const podeGerir = usuario ? PERFIS_GESTAO.includes(usuario.perfil) : false;
+  const t = useTermosCelula();
 
   const [celulas, setCelulas] = useState<CelulaComInfo[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -83,7 +85,7 @@ export default function CelulasPage() {
     if (!paraDesativar) return;
     try {
       await desativarCelula(paraDesativar.id);
-      toastSuccess('Célula desativada.');
+      toastSuccess(`${t.singular} ${t.desativado}.`);
       setParaDesativar(null);
       setDetalhe(null);
       carregar();
@@ -95,7 +97,7 @@ export default function CelulasPage() {
   async function handleReativar(c: CelulaComInfo) {
     try {
       await reativarCelula(c.id);
-      toastSuccess('Célula reativada.');
+      toastSuccess(`${t.singular} ${t.reativado}.`);
       carregar();
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao reativar.');
@@ -106,12 +108,12 @@ export default function CelulasPage() {
     <div className="mx-auto max-w-5xl">
       <PageHeader
         icon={Users2}
-        title="Células"
-        subtitle={`${ativas} célula(s) ativa(s) na comunidade`}
+        title={t.plural}
+        subtitle={`${ativas} ${t.singularMin}(s) ${t.ativo}(s) na comunidade`}
         actions={
           podeGerir ? (
             <Button icon={Plus} onClick={() => setModalNova(true)}>
-              Nova célula
+              {t.novo} {t.singular}
             </Button>
           ) : undefined
         }
@@ -122,6 +124,7 @@ export default function CelulasPage() {
           comunidadeId={usuario.comunidade_id}
           usuarios={usuarios}
           celula={editando}
+          t={t}
           onClose={() => {
             setModalNova(false);
             setEditando(null);
@@ -138,8 +141,8 @@ export default function CelulasPage() {
         open={!!paraDesativar}
         onClose={() => setParaDesativar(null)}
         onConfirm={handleDesativar}
-        title="Desativar célula"
-        description={`${paraDesativar?.nome ?? 'Esta célula'} deixará de aparecer na lista de ativas. O histórico e os vínculos são mantidos.`}
+        title={`Desativar ${t.singularMin}`}
+        description={`${paraDesativar?.nome ?? `${t.este} ${t.singular}`} deixará de aparecer na lista de ${t.ativosLabel.toLowerCase()}. O histórico e os vínculos são mantidos.`}
         confirmLabel="Desativar"
         variant="primary"
       />
@@ -153,22 +156,22 @@ export default function CelulasPage() {
           value={filtro}
           onChange={(e) => setFiltro(e.target.value as typeof filtro)}
           options={[
-            { value: 'ativas', label: 'Ativas' },
-            { value: 'inativas', label: 'Inativas' },
+            { value: 'ativas', label: t.ativosLabel },
+            { value: 'inativas', label: t.inativosLabel },
             { value: 'todas', label: 'Todas' },
           ]}
         />
       </div>
 
       {carregando ? (
-        <p className="mt-6 text-sm text-text-secondary">Carregando células...</p>
+        <p className="mt-6 text-sm text-text-secondary">Carregando {t.pluralMin}...</p>
       ) : filtradas.length === 0 ? (
         <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
           <EmptyState
             icon={Users2}
-            title="Nenhuma célula"
-            description="Cadastre as células (pequenos grupos) da sua comunidade para organizar membros e reuniões."
-            action={podeGerir ? { label: 'Nova célula', onClick: () => setModalNova(true) } : undefined}
+            title={`${t.nenhum} ${t.singular}`}
+            description={`Cadastre ${t.artigoPlural} ${t.pluralMin} da sua comunidade para organizar membros e reuniões.`}
+            action={podeGerir ? { label: `${t.novo} ${t.singular}`, onClick: () => setModalNova(true) } : undefined}
           />
         </div>
       ) : (
@@ -188,7 +191,7 @@ export default function CelulasPage() {
                     c.ativa ? 'bg-primary-xlight text-primary' : 'bg-bg-page text-text-secondary'
                   }`}
                 >
-                  {c.ativa ? 'Ativa' : 'Inativa'}
+                  {c.ativa ? t.ativoLabel : t.inativoLabel}
                 </span>
               </div>
               <div className="mt-2 space-y-1 text-xs text-text-secondary">
@@ -220,6 +223,7 @@ export default function CelulasPage() {
           celula={detalhe}
           usuario={usuario}
           podeGerir={podeGerir}
+          t={t}
           onClose={() => setDetalhe(null)}
           onEditar={() => {
             setEditando(detalhe);
@@ -243,12 +247,14 @@ function CelulaModal({
   comunidadeId,
   usuarios,
   celula,
+  t,
   onClose,
   onSalvo,
 }: {
   comunidadeId: string;
   usuarios: Usuario[];
   celula: CelulaComInfo | null;
+  t: TermosCelula;
   onClose: () => void;
   onSalvo: () => void;
 }) {
@@ -263,7 +269,7 @@ function CelulaModal({
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
     if (!nome.trim()) {
-      toastError('Informe o nome da célula.');
+      toastError(`Informe o nome ${t.de} ${t.singularMin}.`);
       return;
     }
     setSalvando(true);
@@ -276,7 +282,7 @@ function CelulaModal({
           horario: horario || null,
           endereco: endereco.trim() || null,
         });
-        toastSuccess('Célula atualizada!');
+        toastSuccess(`${t.singular} ${t.atualizado}!`);
       } else {
         await criarCelula({
           comunidade_id: comunidadeId,
@@ -286,7 +292,7 @@ function CelulaModal({
           horario: horario || undefined,
           endereco: endereco.trim() || undefined,
         });
-        toastSuccess('Célula criada!');
+        toastSuccess(`${t.singular} ${t.criado}!`);
       }
       onSalvo();
     } catch (err) {
@@ -297,9 +303,9 @@ function CelulaModal({
   }
 
   return (
-    <Modal open onClose={onClose} title={editando ? 'Editar célula' : 'Nova célula'}>
+    <Modal open onClose={onClose} title={editando ? `Editar ${t.singularMin}` : `${t.novo} ${t.singular}`}>
       <form onSubmit={handleSalvar} className="space-y-3">
-        <Input label="Nome da célula" value={nome} onChange={(e) => setNome(e.target.value)} required />
+        <Input label={`Nome ${t.de} ${t.singularMin}`} value={nome} onChange={(e) => setNome(e.target.value)} required />
         <Combobox
           label="Líder responsável"
           value={liderId}
@@ -321,9 +327,14 @@ function CelulaModal({
             <Input label="Horário" type="time" value={horario} onChange={(e) => setHorario(e.target.value)} />
           </div>
         </div>
-        <Input label="Endereço" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Onde a célula se reúne" />
+        <Input
+          label="Endereço"
+          value={endereco}
+          onChange={(e) => setEndereco(e.target.value)}
+          placeholder={`Onde ${t.artigo} ${t.singularMin} se reúne`}
+        />
         <Button type="submit" fullWidth loading={salvando}>
-          {editando ? 'Salvar alterações' : 'Criar célula'}
+          {editando ? 'Salvar alterações' : `Criar ${t.singularMin}`}
         </Button>
       </form>
     </Modal>
@@ -337,6 +348,7 @@ function DetalheCelula({
   celula,
   usuario,
   podeGerir,
+  t,
   onClose,
   onEditar,
   onDesativar,
@@ -345,6 +357,7 @@ function DetalheCelula({
   celula: CelulaComInfo;
   usuario: Usuario;
   podeGerir: boolean;
+  t: TermosCelula;
   onClose: () => void;
   onEditar: () => void;
   onDesativar: () => void;
@@ -368,7 +381,9 @@ function DetalheCelula({
         <div className="flex items-start justify-between border-b border-border p-5">
           <div>
             <h2 className="text-lg font-bold text-text-primary">{celula.nome}</h2>
-            <p className="text-sm text-text-secondary">{celula.ativa ? 'Célula ativa' : 'Célula inativa'}</p>
+            <p className="text-sm text-text-secondary">
+              {t.singular} {celula.ativa ? t.ativo : t.inativo}
+            </p>
           </div>
           <button onClick={onClose} className="rounded-md p-1.5 text-text-secondary hover:bg-bg-page">
             <X size={18} />
@@ -430,7 +445,7 @@ function DetalheCelula({
               {aba === 'membros' ? (
                 membros.length === 0 ? (
                   <p className="text-sm text-text-secondary">
-                    Ninguém vinculado ainda. Atribua uma célula ao cargo de alguém em{' '}
+                    Ninguém vinculado ainda. Atribua {t.artigoIndef} {t.singularMin} ao cargo de alguém em{' '}
                     <span className="font-medium">Equipe</span>.
                   </p>
                 ) : (
