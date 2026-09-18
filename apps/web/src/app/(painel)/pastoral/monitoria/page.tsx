@@ -26,8 +26,6 @@ import { toastError, toastSuccess } from '@/lib/toast';
 import { useTerminologia } from '@/lib/terminologia';
 import type { Canal } from '@/types/database';
 
-const PERFIS_GESTAO = ['coordenador', 'admin'];
-
 const STATUS_CONFIG: Record<StatusPastor, { label: string; cor: string; icone: string }> = {
   ativo: { label: 'Pastor ativo', cor: 'text-accent', icone: '✓' },
   atencao: { label: 'Atenção', cor: 'text-warning', icone: '⚠' },
@@ -35,33 +33,55 @@ const STATUS_CONFIG: Record<StatusPastor, { label: string; cor: string; icone: s
 };
 
 export default function MonitoriaPastoralPage() {
-  const { usuario } = usePainelSession();
+  const { usuario, pode } = usePainelSession();
   const terminologia = useTerminologia();
 
   const [ovelhas, setOvelhas] = useState<OvelhaResumo[]>([]);
-  const [pastores, setPastores] = useState<{ id: string; nome: string }[]>([]);
+  const [pastores, setPastores] = useState<{ id: string; nome: string; supervisor_id: string | null }[]>([]);
+  const [pastoresCarregados, setPastoresCarregados] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [filtroPastor, setFiltroPastor] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [detalhe, setDetalhe] = useState<MetricasPastor | null>(null);
   const [lembretePara, setLembretePara] = useState<MetricasPastor | null>(null);
 
-  const podeAcessar = usuario ? PERFIS_GESTAO.includes(usuario.perfil) : false;
+  // A lista de usuarios (id/nome/supervisor_id) e leve e sempre visivel a
+  // quem esta logado na comunidade (mesma RLS que a tela de Equipe usa) —
+  // carrega antes de decidir o acesso, porque o acesso de supervisor depende
+  // dela (ver podeAcessar abaixo).
+  useEffect(() => {
+    if (!usuario?.comunidade_id) return;
+    supabase
+      .from('usuarios')
+      .select('id, nome, supervisor_id')
+      .eq('comunidade_id', usuario.comunidade_id)
+      .order('nome', { ascending: true })
+      .then(({ data }) => {
+        setPastores((data as { id: string; nome: string; supervisor_id: string | null }[]) ?? []);
+        setPastoresCarregados(true);
+      });
+  }, [usuario?.comunidade_id]);
+
+  // Espelha a condicao de acesso da RLS de pastoral_ovelhas_resumo
+  // (auth_pode('monitoria', 'ver') or auth_supervisiona(pastor_id)): antes só
+  // checava o perfil por um array fixo, então um supervisor de rede que o
+  // banco já deixa ver os pastores abaixo dele nunca chegava a ver a tela —
+  // o gate do componente barrava antes de qualquer chamada ao Supabase.
+  // "supervisiona alguém" aqui é só checar subordinado direto: se existe
+  // algum encadeamento indireto, o elo intermediário já é um subordinado
+  // direto, então a checagem direta já cobre os dois casos.
+  const podeAcessar = useMemo(() => {
+    if (!usuario) return false;
+    if (pode('monitoria', 'ver')) return true;
+    return pastores.some((p) => p.supervisor_id === usuario.id);
+  }, [usuario, pode, pastores]);
 
   const carregar = useCallback(async () => {
     if (!usuario?.comunidade_id) return;
     setCarregando(true);
     try {
-      const [resumo, { data: usuariosData }] = await Promise.all([
-        listarOvelhasResumo(usuario.comunidade_id),
-        supabase
-          .from('usuarios')
-          .select('id, nome')
-          .eq('comunidade_id', usuario.comunidade_id)
-          .order('nome', { ascending: true }),
-      ]);
+      const resumo = await listarOvelhasResumo(usuario.comunidade_id);
       setOvelhas(resumo);
-      setPastores((usuariosData as { id: string; nome: string }[]) ?? []);
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao carregar métricas.');
     } finally {
@@ -70,11 +90,23 @@ export default function MonitoriaPastoralPage() {
   }, [usuario?.comunidade_id]);
 
   useEffect(() => {
+    if (!pastoresCarregados) return;
     if (podeAcessar) carregar();
     else setCarregando(false);
-  }, [podeAcessar, carregar]);
+  }, [pastoresCarregados, podeAcessar, carregar]);
 
-  const metricas = useMemo(() => agruparMetricasPorPastor(ovelhas, pastores), [ovelhas, pastores]);
+  // Um supervisor sem o módulo liberado só deve ver, na tabela, os pastores
+  // que de fato supervisiona (a RLS já limitou `ovelhas` a eles) — um
+  // coordenador/admin com acesso pleno continua vendo todos, mesmo os que
+  // ainda não têm nenhuma ovelha ativa.
+  const pastoresVisiveis = useMemo(() => {
+    if (!usuario) return [];
+    if (pode('monitoria', 'ver')) return pastores;
+    const idsComOvelhaVisivel = new Set(ovelhas.map((o) => o.pastor_id));
+    return pastores.filter((p) => p.id === usuario.id || idsComOvelhaVisivel.has(p.id));
+  }, [usuario, pode, pastores, ovelhas]);
+
+  const metricas = useMemo(() => agruparMetricasPorPastor(ovelhas, pastoresVisiveis), [ovelhas, pastoresVisiveis]);
 
   const metricasFiltradas = useMemo(() => {
     return metricas.filter((m) => {
@@ -113,7 +145,9 @@ export default function MonitoriaPastoralPage() {
     );
   }
 
-  if (!podeAcessar) {
+  // Só decide "acesso restrito" depois que a lista de supervisor_id chegou —
+  // antes disso, um coordenador legítimo veria a tela de bloqueio piscar.
+  if (pastoresCarregados && !podeAcessar) {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader icon={Gauge} title="Monitoria Pastoral" subtitle="Acesso restrito" />
@@ -121,7 +155,7 @@ export default function MonitoriaPastoralPage() {
           <EmptyState
             icon={Lock}
             title="Acesso restrito"
-            description="A monitoria pastoral é visível apenas para coordenadores e administradores."
+            description="A monitoria pastoral é visível apenas para quem tem o módulo liberado ou supervisiona algum pastor."
           />
         </div>
       </div>

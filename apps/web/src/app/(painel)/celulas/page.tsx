@@ -30,11 +30,13 @@ import { toastError, toastSuccess } from '@/lib/toast';
 import { useTermosCelula, type TermosCelula } from '@/lib/terminologia';
 import type { Usuario } from '@/types/database';
 
-const PERFIS_GESTAO = ['lider', 'coordenador', 'admin'];
-
 export default function CelulasPage() {
-  const { usuario } = usePainelSession();
-  const podeGerir = usuario ? PERFIS_GESTAO.includes(usuario.perfil) : false;
+  const { usuario, pode } = usePainelSession();
+  // Espelha auth_pode('celulas', ...) — antes checava um array fixo de
+  // perfis direto no componente, então um override de permissão em
+  // Configurações (por exemplo liberando 'missionario' para criar) não tinha
+  // efeito nenhum nesta tela.
+  const podeGerir = pode('celulas', 'criar') || pode('celulas', 'editar');
   const t = useTermosCelula();
 
   const [celulas, setCelulas] = useState<CelulaComInfo[]>([]);

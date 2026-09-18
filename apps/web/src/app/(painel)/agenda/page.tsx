@@ -28,8 +28,6 @@ import {
 import { toastError, toastSuccess } from '@/lib/toast';
 import type { Comunidade } from '@/types/database';
 
-const PERFIS_GESTAO = ['coordenador', 'padre', 'admin'];
-
 const ICONE_TIPO: Record<TipoEventoAgenda, typeof HandHeart> = {
   ministerio: HandHeart,
   pastoral: HeartHandshake,
@@ -54,8 +52,12 @@ const LABEL_TIPO: Record<TipoEventoAgenda, string> = {
 };
 
 export default function AgendaPage() {
-  const { usuario } = usePainelSession();
-  const podeGerir = usuario ? PERFIS_GESTAO.includes(usuario.perfil) : false;
+  const { usuario, pode } = usePainelSession();
+  // Espelha auth_pode('agenda', ...) — antes checava um array fixo de perfis
+  // direto no componente, então um override de permissão em Configurações
+  // não tinha efeito nenhum nesta tela (RLS já barrava a escrita, mas o
+  // botão continuava aparecendo ou sumindo do jeito errado).
+  const podeGerir = pode('agenda', 'criar') || pode('agenda', 'excluir');
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [eventos, setEventos] = useState<EventoAgenda[]>([]);
   const [carregando, setCarregando] = useState(true);
