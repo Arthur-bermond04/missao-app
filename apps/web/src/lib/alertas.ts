@@ -13,7 +13,7 @@ import type { PastoralOvelha, Pessoa, Usuario } from '../types/database';
 
 export type NivelAlertaCentral = 'urgente' | 'atencao' | 'informativo';
 
-export type ModuloAlerta = 'Pastoral' | 'Pessoas' | 'Retiros' | 'Ministérios' | 'Financeiro' | 'Funil';
+export type ModuloAlerta = 'Pastoral' | 'Pessoas' | 'Retiros' | 'Ministérios' | 'Financeiro' | 'Funil' | 'Comunicação';
 
 export interface AlertaCentral {
   id: string;
@@ -372,6 +372,20 @@ export async function gerarAlertasCentral(comunidadeId: string, usuario: Usuario
     }
   }
 
+  // Mensagens agendadas para hoje — mensagens.ver é liberado pra comunidade
+  // toda por padrão (não é módulo de gestão), então nenhum gate de perfil
+  // aqui, igual ao antigo resumoNotificacoes().
+  const mensagensHoje = await contarMensagensAgendadasHoje(comunidadeId);
+  if (mensagensHoje > 0) {
+    alertas.push({
+      id: `mensagens-agendadas-${hoje}`,
+      nivel: 'atencao',
+      modulo: 'Comunicação',
+      mensagem: `${mensagensHoje} mensagem${mensagensHoje === 1 ? '' : 's'} agendada${mensagensHoje === 1 ? '' : 's'} para hoje`,
+      href: '/mensagens',
+    });
+  }
+
   // ---------------- INFORMATIVO ----------------
 
   // Pessoas novas esta semana
@@ -423,6 +437,30 @@ export async function gerarAlertasCentral(comunidadeId: string, usuario: Usuario
 
   const ordem: Record<NivelAlertaCentral, number> = { urgente: 0, atencao: 1, informativo: 2 };
   return alertas.sort((a, b) => ordem[a.nivel] - ordem[b.nivel]);
+}
+
+// Uma mensagem conta como "agendada" (e não "enviada na hora") quando o
+// horário de envio foi marcado bem depois da criação do registro — envios
+// imediatos gravam enviado_em ≈ criado_em. Movida do antigo notificacoes.ts.
+async function contarMensagensAgendadasHoje(comunidadeId: string): Promise<number> {
+  const hojeInicio = new Date();
+  hojeInicio.setHours(0, 0, 0, 0);
+  const hojeFim = new Date();
+  hojeFim.setHours(23, 59, 59, 999);
+
+  const { data, error } = await supabase
+    .from('mensagens_enviadas')
+    .select('criado_em, enviado_em')
+    .eq('comunidade_id', comunidadeId)
+    .gte('enviado_em', hojeInicio.toISOString())
+    .lte('enviado_em', hojeFim.toISOString());
+  if (error) throw error;
+
+  const CINCO_MINUTOS_MS = 5 * 60 * 1000;
+  return ((data as { criado_em: string; enviado_em: string | null }[]) ?? []).filter((m) => {
+    if (!m.enviado_em) return false;
+    return new Date(m.enviado_em).getTime() - new Date(m.criado_em).getTime() > CINCO_MINUTOS_MS;
+  }).length;
 }
 
 // ---------------------------------------------------------------------------

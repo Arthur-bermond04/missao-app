@@ -32,6 +32,7 @@ const FILTROS: { valor: Filtro; label: string }[] = [
   { valor: 'Pessoas', label: 'Pessoas' },
   { valor: 'Ministérios', label: 'Ministérios' },
   { valor: 'Financeiro', label: 'Financeiro' },
+  { valor: 'Comunicação', label: 'Comunicação' },
 ];
 
 export default function AlertasPage() {
