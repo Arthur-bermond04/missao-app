@@ -16,8 +16,10 @@ export interface OvelhaResumo {
   ativo: boolean;
   total_encontros: number;
   encontros_ultimo_mes: number;
+  encontros_mes_anterior: number;
   ultimo_encontro: string | null;
   dias_sem_encontro: number | null;
+  dias_sem_atualizar_objetivo: number | null;
 }
 
 const DIAS_FREQUENCIA: Record<FrequenciaAcompanhamento, number> = {
@@ -33,6 +35,18 @@ export function ovelhaEmAtraso(o: OvelhaResumo): boolean {
   const limite = DIAS_FREQUENCIA[o.frequencia_acompanhamento] ?? 30;
   if (o.dias_sem_encontro == null) return true;
   return o.dias_sem_encontro > limite;
+}
+
+// Sem uma "frequência combinada" pra objetivos (diferente de encontros), usa
+// um limite fixo de 30 dias — mesma janela já usada em outros "parado há
+// mais de X dias" do app (ex: funil travado). Nunca ter tido um objetivo
+// registrado conta como parado, pelo mesmo motivo de dias_sem_encontro nulo
+// contar como atraso.
+const DIAS_OBJETIVO_PARADO = 30;
+
+export function objetivoParado(o: OvelhaResumo): boolean {
+  if (o.dias_sem_atualizar_objetivo == null) return true;
+  return o.dias_sem_atualizar_objetivo > DIAS_OBJETIVO_PARADO;
 }
 
 export async function listarOvelhasResumo(comunidadeId: string): Promise<OvelhaResumo[]> {
@@ -53,6 +67,8 @@ export interface MetricasPastor {
   emRisco: number;
   emAtraso: number;
   encontrosMes: number;
+  encontrosMesAnterior: number;
+  objetivosParados: number;
   ultimoRegistro: string | null;
   // taxa de cumprimento: encontros no mês / ovelhas ativas (1 esperado por
   // ovelha/mês como referência), limitada a 100%
@@ -87,13 +103,27 @@ export function agruparMetricasPorPastor(
       const ovelhasAtivas = lista.length;
       const emRisco = lista.filter((o) => o.estado_espiritual === 'risco').length;
       const emAtraso = lista.filter(ovelhaEmAtraso).length;
+      const objetivosParados = lista.filter(objetivoParado).length;
       const encontrosMes = lista.reduce((s, o) => s + (o.encontros_ultimo_mes ?? 0), 0);
+      const encontrosMesAnterior = lista.reduce((s, o) => s + (o.encontros_mes_anterior ?? 0), 0);
       const ultimoRegistro = lista.reduce<string | null>(
         (max, o) => (o.ultimo_encontro && (max === null || o.ultimo_encontro > max) ? o.ultimo_encontro : max),
         null
       );
       const taxaCumprimento = ovelhasAtivas > 0 ? Math.min(100, Math.round((encontrosMes / ovelhasAtivas) * 100)) : 0;
-      return { pastorId: p.id, pastorNome: p.nome, ovelhasAtivas, emRisco, emAtraso, encontrosMes, ultimoRegistro, taxaCumprimento, ovelhas: lista };
+      return {
+        pastorId: p.id,
+        pastorNome: p.nome,
+        ovelhasAtivas,
+        emRisco,
+        emAtraso,
+        encontrosMes,
+        encontrosMesAnterior,
+        objetivosParados,
+        ultimoRegistro,
+        taxaCumprimento,
+        ovelhas: lista,
+      };
     })
     .filter((m) => m.ovelhasAtivas > 0)
     .sort((a, b) => a.taxaCumprimento - b.taxaCumprimento);

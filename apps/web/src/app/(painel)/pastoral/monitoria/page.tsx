@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Gauge, Lock, Send, ShieldAlert, Users, X } from 'lucide-react';
+import { Gauge, Lock, Send, ShieldAlert, Target, Users, X } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -16,6 +16,7 @@ import { enviarMensagem } from '@/lib/mensagens';
 import {
   agruparMetricasPorPastor,
   listarOvelhasResumo,
+  objetivoParado,
   ovelhaEmAtraso,
   statusPastor,
   type MetricasPastor,
@@ -122,6 +123,7 @@ export default function MonitoriaPastoralPage() {
       ovelhasAtivas: ovelhas.length,
       emAtraso: ovelhas.filter(ovelhaEmAtraso).length,
       emRisco: ovelhas.filter((o) => o.estado_espiritual === 'risco').length,
+      objetivosParados: ovelhas.filter(objetivoParado).length,
     };
   }, [metricas, ovelhas]);
 
@@ -132,8 +134,10 @@ export default function MonitoriaPastoralPage() {
         { header: 'Pastor', render: (m) => m.pastorNome },
         { header: 'Ovelhas ativas', render: (m) => m.ovelhasAtivas },
         { header: 'Encontros no mês', render: (m) => m.encontrosMes },
+        { header: 'Encontros no mês anterior', render: (m) => m.encontrosMesAnterior },
         { header: 'Em atraso', render: (m) => m.emAtraso },
         { header: 'Em risco', render: (m) => m.emRisco },
+        { header: 'Objetivos parados', render: (m) => m.objetivosParados },
         {
           header: 'Último registro',
           render: (m) => (m.ultimoRegistro ? new Date(m.ultimoRegistro).toLocaleDateString('pt-BR') : 'nunca'),
@@ -187,7 +191,7 @@ export default function MonitoriaPastoralPage() {
       ) : (
         <>
           {/* Cards de resumo */}
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
             <MetricCard icon={Users} iconColor="primary" label="Total de pastores" value={resumoGeral.totalPastores} />
             <MetricCard
               icon={Users}
@@ -206,6 +210,12 @@ export default function MonitoriaPastoralPage() {
               iconColor={resumoGeral.emRisco > 0 ? 'danger' : 'accent'}
               label="Em risco"
               value={resumoGeral.emRisco}
+            />
+            <MetricCard
+              icon={Target}
+              iconColor={resumoGeral.objetivosParados > 0 ? 'warning' : 'accent'}
+              label="Objetivos parados"
+              value={resumoGeral.objetivosParados}
             />
           </div>
 
@@ -245,6 +255,7 @@ export default function MonitoriaPastoralPage() {
                       <th className="px-3 py-2 font-semibold">Enc./mês</th>
                       <th className="px-3 py-2 font-semibold">Em atraso</th>
                       <th className="px-3 py-2 font-semibold">Em risco</th>
+                      <th className="px-3 py-2 font-semibold">Objetivos parados</th>
                       <th className="px-3 py-2 font-semibold">Último registro</th>
                       <th className="px-3 py-2 font-semibold">Taxa</th>
                     </tr>
@@ -253,6 +264,7 @@ export default function MonitoriaPastoralPage() {
                     {metricasFiltradas.map((m) => {
                       const status = statusPastor(m.taxaCumprimento);
                       const cfg = STATUS_CONFIG[status];
+                      const variacao = m.encontrosMes - m.encontrosMesAnterior;
                       return (
                         <tr
                           key={m.pastorId}
@@ -261,12 +273,22 @@ export default function MonitoriaPastoralPage() {
                         >
                           <td className="px-3 py-2.5 font-medium text-text-primary">{m.pastorNome}</td>
                           <td className="px-3 py-2.5 text-text-primary">{m.ovelhasAtivas}</td>
-                          <td className="px-3 py-2.5 text-text-primary">{m.encontrosMes}</td>
+                          <td className="px-3 py-2.5 text-text-primary">
+                            {m.encontrosMes}
+                            {variacao !== 0 && (
+                              <span className={`ml-1 text-xs font-medium ${variacao > 0 ? 'text-accent' : 'text-danger'}`}>
+                                ({variacao > 0 ? '▲' : '▼'} {Math.abs(variacao)} vs mês ant.)
+                              </span>
+                            )}
+                          </td>
                           <td className={`px-3 py-2.5 ${m.emAtraso > 0 ? 'font-semibold text-warning' : 'text-text-primary'}`}>
                             {m.emAtraso}
                           </td>
                           <td className={`px-3 py-2.5 ${m.emRisco > 0 ? 'font-semibold text-danger' : 'text-text-primary'}`}>
                             {m.emRisco}
+                          </td>
+                          <td className={`px-3 py-2.5 ${m.objetivosParados > 0 ? 'font-semibold text-warning' : 'text-text-primary'}`}>
+                            {m.objetivosParados}
                           </td>
                           <td className="px-3 py-2.5 text-text-secondary">
                             {m.ultimoRegistro ? new Date(m.ultimoRegistro).toLocaleDateString('pt-BR') : 'nunca'}
@@ -351,6 +373,16 @@ function PainelPastor({
                 <p className="text-xs text-text-secondary">Encontros realizados</p>
                 <p className="mt-1 text-lg font-bold text-text-primary">
                   {metricas.encontrosMes} de {metricas.ovelhasAtivas}
+                  {metricas.encontrosMes !== metricas.encontrosMesAnterior && (
+                    <span
+                      className={`ml-1.5 text-xs font-medium ${
+                        metricas.encontrosMes > metricas.encontrosMesAnterior ? 'text-accent' : 'text-danger'
+                      }`}
+                    >
+                      {metricas.encontrosMes > metricas.encontrosMesAnterior ? '▲' : '▼'}{' '}
+                      {Math.abs(metricas.encontrosMes - metricas.encontrosMesAnterior)} vs mês ant.
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-text-secondary">{metricas.taxaCumprimento}% de cumprimento</p>
               </div>
@@ -358,6 +390,12 @@ function PainelPastor({
                 <p className="text-xs text-text-secondary">Ovelhas em atraso</p>
                 <p className={`mt-1 text-lg font-bold ${metricas.emAtraso > 0 ? 'text-warning' : 'text-text-primary'}`}>
                   {metricas.emAtraso}
+                </p>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <p className="text-xs text-text-secondary">Objetivos parados</p>
+                <p className={`mt-1 text-lg font-bold ${metricas.objetivosParados > 0 ? 'text-warning' : 'text-text-primary'}`}>
+                  {metricas.objetivosParados}
                 </p>
               </div>
             </div>
@@ -369,6 +407,7 @@ function PainelPastor({
             <div className="mt-2 space-y-2">
               {metricas.ovelhas.map((o) => {
                 const atraso = ovelhaEmAtraso(o);
+                const parado = objetivoParado(o);
                 return (
                   <div key={o.id} className="rounded-md border border-border p-3">
                     <div className="flex items-center justify-between gap-2">
@@ -385,6 +424,7 @@ function PainelPastor({
                         {o.proxima_reuniao ? new Date(o.proxima_reuniao).toLocaleDateString('pt-BR') : 'não agendada'}
                       </span>
                       {atraso && <span className="font-semibold text-warning">⚠ em atraso</span>}
+                      {parado && <span className="font-semibold text-warning">🎯 objetivo parado</span>}
                     </div>
                   </div>
                 );

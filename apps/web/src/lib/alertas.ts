@@ -86,8 +86,10 @@ async function resumoDeOvelhas(comunidadeId: string, ovelhas: PastoralOvelha[]):
       ...o,
       total_encontros: 0,
       encontros_ultimo_mes: 0,
+      encontros_mes_anterior: 0,
       ultimo_encontro: ultimo,
       dias_sem_encontro: ultimo ? diasEntre(ultimo, hoje) : null,
+      dias_sem_atualizar_objetivo: null,
     } as OvelhaResumo);
   }
 
