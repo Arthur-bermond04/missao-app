@@ -13,7 +13,7 @@ import {
 } from '../types/database';
 
 // Lê comunidades.terminologia da comunidade do usuário logado. Cada tela que
-// mostra "CV"/"CAL"/"Ovelha"/"Pastor" deve usar esse hook em vez de string
+// mostra o nome de uma etapa, de "Ovelha" ou de "Pastor" deve usar esse hook em vez de string
 // fixa — sem ele, trocar o nome em Configurações não reflete em lugar nenhum.
 export function useTerminologia(): Terminologia {
   const { usuario } = usePainelSession();

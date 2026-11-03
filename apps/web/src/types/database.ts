@@ -76,8 +76,8 @@ export interface Terminologia {
 }
 
 export const TERMINOLOGIA_PADRAO: Terminologia = {
-  etapa_cv: 'CV',
-  etapa_cal: 'CAL',
+  etapa_cv: 'Formação',
+  etapa_cal: 'Aprofundamento',
   nome_ovelha: 'Ovelha',
   nome_pastor: 'Pastor',
   modulo_celulas: 'Grupo',

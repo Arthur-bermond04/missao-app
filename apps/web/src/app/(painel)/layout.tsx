@@ -44,7 +44,7 @@ function PainelShell({ children }: { children: React.ReactNode }) {
       )}
 
       <main
-        className={`min-h-screen bg-content-bg p-4 md:ml-[72px] md:p-6 lg:p-8 ${colapsada ? '' : 'lg:ml-[240px]'}`}
+        className={`min-h-screen bg-content-bg p-4 md:ml-[72px] md:p-6 lg:p-8 ${colapsada ? '' : 'lg:ml-[264px]'}`}
       >
         {children}
       </main>

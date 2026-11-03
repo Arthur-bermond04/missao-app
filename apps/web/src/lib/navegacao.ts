@@ -16,6 +16,7 @@ import {
   Gauge,
   ScrollText,
   Users2,
+  BookOpen,
   type LucideIcon,
 } from 'lucide-react';
 import { pluralizar } from '@/lib/terminologia';
@@ -60,6 +61,9 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
       // dentro dele já respeita a permissão do seu módulo.
       itens: [
         { href: '/dashboard', label: 'Dashboard', descricao: 'Visão geral da missão', icon: LayoutDashboard, modulo: '' },
+        // Sem módulo próprio: todo perfil vê o guia, mas cada seção dele só
+        // aparece para quem pode acessar o módulo correspondente.
+        { href: '/guia', label: 'Guia', descricao: 'Passo a passo para conhecer cada módulo', icon: BookOpen, modulo: '' },
       ],
     },
     {

@@ -150,7 +150,7 @@ export function AbaDadosPessoais({
         label="Objetivo atual do acompanhamento"
         value={objetivoAtual}
         onChange={(e) => setObjetivoAtual(e.target.value)}
-        placeholder="Ex: aproximar da célula, iniciar CV..."
+        placeholder="Ex: convidar para o próximo encontro..."
       />
 
       <Textarea label="Observações" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={3} />

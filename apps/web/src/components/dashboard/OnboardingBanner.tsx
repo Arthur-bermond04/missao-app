@@ -62,6 +62,9 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
         >
           Começar pelo passo 1 <ArrowRight size={16} />
         </Link>
+        <Link href="/guia" className="text-sm text-white/80 underline hover:text-white">
+          Ver o guia completo
+        </Link>
         <button onClick={pular} className="text-sm text-white/80 hover:text-white">
           Pular introdução
         </button>

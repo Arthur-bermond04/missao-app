@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Search, LogOut, KeyRound, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { useTerminologia } from '@/lib/terminologia';
@@ -33,26 +33,15 @@ export function iniciais(nome: string) {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { usuario, sair, pode } = usePainelSession();
+  const { usuario, pode } = usePainelSession();
   const terminologia = useTerminologia();
-  const { colapsada, alternar } = useSidebarLayout();
+  const { colapsada } = useSidebarLayout();
   // Texto/rótulos só aparecem em telas lg+ E quando a sidebar não foi
   // encolhida manualmente — em md (sempre estreita) o toggle não tem efeito
   // nenhum, de propósito: não há o que "expandir" abaixo de lg.
   const mostrarTexto = !colapsada;
   const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
-  const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
-  const menuUsuarioRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClickFora(e: MouseEvent) {
-      if (menuUsuarioRef.current && !menuUsuarioRef.current.contains(e.target as Node)) setMenuUsuarioAberto(false);
-    }
-    document.addEventListener('mousedown', onClickFora);
-    return () => document.removeEventListener('mousedown', onClickFora);
-  }, []);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -75,11 +64,6 @@ export function Sidebar() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  async function handleSair() {
-    await sair();
-    router.replace('/login');
-  }
-
   // Esconde da navegação os itens cujo módulo o perfil logado não pode ver,
   // segundo a matriz de permissões da comunidade — grupos que ficam vazios
   // depois do filtro simplesmente não aparecem.
@@ -93,7 +77,7 @@ export function Sidebar() {
   return (
     <aside
       className={`scrollbar-escura fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-sidebar-bg md:flex ${
-        colapsada ? '' : 'lg:w-[240px]'
+        colapsada ? '' : 'lg:w-[264px]'
       }`}
     >
       {usuario?.comunidade_id && (
@@ -102,7 +86,7 @@ export function Sidebar() {
 
       {/*
         Colapsada (72px em lg): logo e botão empilhados e centralizados —
-        lado a lado eles não cabem na largura estreita. Expandida (240px):
+        lado a lado eles não cabem na largura estreita. Expandida (264px):
         lado a lado, botão empurrado pra direita.
       */}
       <div className={`flex px-5 pb-4 pt-6 ${colapsada ? 'flex-col items-center gap-3' : 'items-center gap-2'}`}>
@@ -114,18 +98,6 @@ export function Sidebar() {
             <Logo size={36} variant="white" showText />
           </div>
         )}
-        {/* Só faz sentido a partir de lg: abaixo disso a sidebar já é
-            estreita pelo breakpoint responsivo, sem nada pra "recolher". */}
-        <button
-          type="button"
-          onClick={alternar}
-          title={colapsada ? 'Expandir menu' : 'Recolher menu'}
-          className={`hidden shrink-0 rounded-md p-1.5 text-sidebar-text transition-colors hover:bg-white/10 hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green lg:block ${
-            colapsada ? '' : 'ml-auto'
-          }`}
-        >
-          {colapsada ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        </button>
       </div>
 
       {mostrarTexto && !!nomeComunidade && (
@@ -138,7 +110,7 @@ export function Sidebar() {
           type="button"
           onClick={() => setBuscaAberta(true)}
           title="Buscar (Ctrl+K)"
-          className={`flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+          className={`flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2.5 text-[15px] text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
             mostrarTexto ? 'lg:justify-start' : ''
           }`}
         >
@@ -152,7 +124,7 @@ export function Sidebar() {
           <div key={grupo.titulo}>
             {indiceGrupo > 0 && <div className="mx-3 my-1 h-px bg-sidebar-border" />}
             <p
-              className={`hidden px-3 pb-0.5 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-text/70 ${
+              className={`hidden px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-text/70 ${
                 mostrarTexto ? 'lg:block' : ''
               }`}
             >
@@ -168,7 +140,7 @@ export function Sidebar() {
                     href={item.href}
                     title={`${item.label} — ${item.descricao}`}
                     aria-current={ativo ? 'page' : undefined}
-                    className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+                    className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2.5 text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
                       mostrarTexto ? 'lg:justify-start' : ''
                     } ${
                       ativo
@@ -176,7 +148,7 @@ export function Sidebar() {
                         : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
                     }`}
                   >
-                    <Icon size={18} className={`shrink-0 ${ativo ? 'text-accent-green' : ''}`} />
+                    <Icon size={21} className={`shrink-0 ${ativo ? 'text-accent-green' : ''}`} />
                     <span className={`hidden ${mostrarTexto ? 'lg:inline' : ''}`}>{item.label}</span>
                   </Link>
                 );
@@ -186,53 +158,6 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="relative border-t border-sidebar-border px-4 py-4" ref={menuUsuarioRef}>
-        {menuUsuarioAberto && (
-          <div className="absolute bottom-full left-3 right-3 mb-2 overflow-hidden rounded-md border border-sidebar-border bg-sidebar-bg-hover shadow-hover">
-            <Link
-              href="/configuracoes#seguranca"
-              onClick={() => setMenuUsuarioAberto(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-sidebar-text-active transition-colors hover:bg-white/10"
-            >
-              <KeyRound size={15} className="shrink-0 text-sidebar-text" />
-              Trocar senha
-            </Link>
-            <Link
-              href="/configuracoes"
-              onClick={() => setMenuUsuarioAberto(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-sidebar-text-active transition-colors hover:bg-white/10"
-            >
-              <Settings size={15} className="shrink-0 text-sidebar-text" />
-              Configurações
-            </Link>
-            <button
-              onClick={handleSair}
-              className="flex w-full items-center gap-2.5 border-t border-sidebar-border px-3 py-2.5 text-left text-sm text-sidebar-text-active transition-colors hover:bg-white/10 hover:text-danger"
-            >
-              <LogOut size={15} className="shrink-0" />
-              Sair
-            </button>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setMenuUsuarioAberto((v) => !v)}
-          aria-expanded={menuUsuarioAberto}
-          aria-haspopup="menu"
-          className={`flex w-full items-center justify-center gap-2 rounded-md p-1 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green ${
-            mostrarTexto ? 'lg:justify-start' : ''
-          }`}
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
-            {usuario ? iniciais(usuario.nome) : ''}
-          </div>
-          <div className={`hidden min-w-0 ${mostrarTexto ? 'lg:block' : ''}`}>
-            <p className="truncate text-[13px] font-medium text-sidebar-text-active">{usuario?.nome}</p>
-            <p className="text-[11px] text-sidebar-text">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
-          </div>
-        </button>
-      </div>
     </aside>
   );
 }

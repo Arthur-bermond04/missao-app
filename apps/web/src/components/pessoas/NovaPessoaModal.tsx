@@ -292,7 +292,7 @@ export function NovaPessoaModal({
               label="Objetivo atual do acompanhamento (opcional)"
               value={objetivoAtual}
               onChange={(e) => setObjetivoAtual(e.target.value)}
-              placeholder="Ex: aproximar da célula, iniciar CV..."
+              placeholder="Ex: convidar para o próximo encontro..."
             />
             <Textarea
               label="Observações (opcional)"

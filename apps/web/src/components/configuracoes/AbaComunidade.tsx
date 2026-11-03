@@ -150,21 +150,21 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
       <div>
         <p className="text-xs font-semibold text-text-secondary">Terminologia</p>
         <p className="mt-0.5 text-xs text-text-secondary">
-          Sua comunidade pode usar nomes diferentes dos padrões da Shalom — os valores abaixo trocam os rótulos em
+          Sua comunidade pode usar nomes diferentes dos padrões do sistema — os valores abaixo trocam os rótulos em
           todo o app (o que é salvo no banco não muda, só como aparece na tela).
         </p>
         <div className="mt-2 grid grid-cols-2 gap-3">
           <Input
-            label='Nome da etapa "CV"'
+            label="Nome da 4ª etapa da jornada"
             value={terminologia.etapa_cv}
             onChange={(e) => setTerminologia((t) => ({ ...t, etapa_cv: e.target.value || TERMINOLOGIA_PADRAO.etapa_cv }))}
-            placeholder="Ex: Formação, Catecúmeno"
+            placeholder="Ex: Formação, Preparação"
           />
           <Input
-            label='Nome da etapa "CAL"'
+            label="Nome da 5ª etapa da jornada"
             value={terminologia.etapa_cal}
             onChange={(e) => setTerminologia((t) => ({ ...t, etapa_cal: e.target.value || TERMINOLOGIA_PADRAO.etapa_cal }))}
-            placeholder="Ex: Aliança, Batismo"
+            placeholder="Ex: Aprofundamento, Envio"
           />
           <Input
             label="Nome do acompanhamento pastoral"
