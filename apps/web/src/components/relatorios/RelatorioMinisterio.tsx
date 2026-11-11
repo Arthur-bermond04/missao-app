@@ -17,6 +17,7 @@ import {
   type LancamentoDetalhe,
 } from '@/lib/ministerios';
 import type { Ministerio, MinisterioEncontro } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) {
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
@@ -24,7 +25,8 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
   const [encontros, setEncontros] = useState<MinisterioEncontro[]>([]);
   const [frequencias, setFrequencias] = useState<{ nome: string; freq: number }[]>([]);
   const [lancamentos, setLancamentos] = useState<LancamentoDetalhe[]>([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregadoPara, setCarregadoPara] = useState('');
+  const carregando = !!ministerioId && carregadoPara !== ministerioId;
 
   useEffect(() => {
     listarMinisterios(comunidadeId).then((lista) => {
@@ -35,7 +37,7 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
 
   useEffect(() => {
     if (!ministerioId) return;
-    setCarregando(true);
+    let ativo = true;
     Promise.all([
       listarEncontros(ministerioId),
       listarPresencasDoMinisterio(ministerioId),
@@ -44,6 +46,7 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
       listarFinanceiroMinisterio(ministerioId),
     ])
       .then(([enc, pres, membros, membrosPessoa, fin]) => {
+        if (!ativo) return;
         setEncontros(enc);
         const freq = calcularFrequencia(enc, pres);
         const todosMembros = [...membros, ...membrosPessoa].filter((m) => m.ativo);
@@ -54,7 +57,12 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
         );
         setLancamentos(fin);
       })
-      .finally(() => setCarregando(false));
+      .finally(() => {
+        if (ativo) setCarregadoPara(ministerioId);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [ministerioId]);
 
   const ministerio = ministerios.find((m) => m.id === ministerioId);
@@ -100,9 +108,7 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
   }
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -164,22 +170,22 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Frequência média (90 dias)</p>
-              <p className="text-2xl font-extrabold text-text-primary">{freqMedia}%</p>
+              <p className="text-2xl font-semibold text-text-primary">{freqMedia}%</p>
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Receitas do caixa</p>
-              <p className="text-2xl font-extrabold text-accent">R$ {caixa.receitas.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-accent">R$ {caixa.receitas.toFixed(2)}</p>
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Saldo do caixa</p>
-              <p className={`text-2xl font-extrabold ${caixa.saldo >= 0 ? 'text-accent' : 'text-danger'}`}>
+              <p className={`text-2xl font-semibold ${caixa.saldo >= 0 ? 'text-accent' : 'text-danger'}`}>
                 R$ {caixa.saldo.toFixed(2)}
               </p>
             </div>
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-bold text-text-primary">Frequência por membro</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Frequência por membro</h3>
             {frequencias.length === 0 ? (
               <p className="text-sm text-text-secondary">Sem membros ativos.</p>
             ) : (
@@ -195,7 +201,7 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-bold text-text-primary">Doadores</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Doadores</h3>
             {doadores.length === 0 ? (
               <p className="text-sm text-text-secondary">Nenhum doador registrado.</p>
             ) : (

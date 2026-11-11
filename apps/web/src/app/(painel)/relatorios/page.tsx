@@ -9,6 +9,7 @@ import { RelatorioRetiro } from '@/components/relatorios/RelatorioRetiro';
 import { RelatorioMinisterio } from '@/components/relatorios/RelatorioMinisterio';
 import { RelatorioPastoral } from '@/components/relatorios/RelatorioPastoral';
 import { RelatorioFinanceiro } from '@/components/relatorios/RelatorioFinanceiro';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
 type TipoRelatorio = 'evangelizacao' | 'retiro' | 'ministerio' | 'pastoral' | 'financeiro';
 
@@ -29,10 +30,10 @@ export default function RelatoriosPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader icon={BarChart3} title="Relatórios" subtitle="Análises e exportações da comunidade" />
+      <PageHeader icon={BarChart3} tom="azul" title="Relatórios" subtitle="Análises e exportações da comunidade" />
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
-        <div className="rounded-lg bg-bg-card p-3 shadow-card lg:h-fit">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-3 shadow-card lg:h-fit">
           <div className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
             {RELATORIOS.map((r) => {
               const Icon = r.icon;
@@ -41,11 +42,11 @@ export default function RelatoriosPage() {
                 <button
                   key={r.valor}
                   onClick={() => setTipo(r.valor)}
-                  className={`flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors lg:w-full ${
+                  className={`flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors lg:w-full ${
                     ativo ? 'bg-primary-xlight text-primary' : 'text-text-secondary hover:bg-bg-page'
                   }`}
                 >
-                  <Icon size={16} />
+                  <IconeCaixa icon={Icon} tamanho="xs" tom={ativo ? 'branco' : 'neutro'} />
                   {r.label}
                 </button>
               );
@@ -53,7 +54,7 @@ export default function RelatoriosPage() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           {tipo === 'evangelizacao' && <RelatorioEvangelizacao comunidadeId={comunidadeId} />}
           {tipo === 'retiro' && <RelatorioRetiro comunidadeId={comunidadeId} />}
           {tipo === 'ministerio' && <RelatorioMinisterio comunidadeId={comunidadeId} />}

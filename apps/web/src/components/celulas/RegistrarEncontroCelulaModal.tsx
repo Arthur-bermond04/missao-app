@@ -1,5 +1,6 @@
 'use client';
 
+import { useAoMudar } from '@/lib/hooksEstado';
 import { useEffect, useMemo, useState } from 'react';
 import { UserPlus, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
@@ -61,7 +62,7 @@ export function RegistrarEncontroCelulaModal({
   const [salvando, setSalvando] = useState(false);
   const [criandoVisitante, setCriandoVisitante] = useState(false);
 
-  useEffect(() => {
+  useAoMudar([open, comunidadeId], () => {
     if (!open) return;
     setData(new Date().toISOString().slice(0, 10));
     setHorario('');
@@ -72,6 +73,10 @@ export function RegistrarEncontroCelulaModal({
     setNovoVisitanteAberto(false);
     setNomeVisitante('');
     setTelefoneVisitante('');
+  });
+
+  useEffect(() => {
+    if (!open) return;
     buscarPessoasParaCombobox(comunidadeId)
       .then(setPessoasComunidade)
       .catch(() => setPessoasComunidade([]));
@@ -108,13 +113,12 @@ export function RegistrarEncontroCelulaModal({
     setPresentes((atual) => atual.filter((p) => p.chave !== chave));
   }
 
-  useEffect(() => {
-    if (!buscaId) return;
-    const pessoa = pessoasComunidade.find((p) => p.id === buscaId);
+  // Escolher alguém na lista já o adiciona; o campo volta a ficar vazio.
+  function escolherPessoa(id: string) {
+    if (!id) return;
+    const pessoa = pessoasComunidade.find((p) => p.id === id);
     if (pessoa) adicionar({ chave: pessoa.id, nome: pessoa.nome, pessoa_id: pessoa.id });
-    setBuscaId('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buscaId]);
+  }
 
   async function handleAdicionarVisitante() {
     const nome = nomeVisitante.trim();
@@ -229,7 +233,7 @@ export function RegistrarEncontroCelulaModal({
           <Combobox
             label="Buscar outra pessoa cadastrada"
             value={buscaId}
-            onChange={setBuscaId}
+            onChange={escolherPessoa}
             placeholder="Digite o nome..."
             emptyMessage="Ninguém encontrado — cadastre como visitante abaixo"
             options={opcoesBusca}

@@ -7,12 +7,14 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { listarInscritos, listarRetiros } from '@/lib/retiros';
 import type { InscricaoRetiro, Retiro } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 export function RelatorioRetiro({ comunidadeId }: { comunidadeId: string }) {
   const [retiros, setRetiros] = useState<Retiro[]>([]);
   const [retiroId, setRetiroId] = useState('');
   const [inscritos, setInscritos] = useState<InscricaoRetiro[]>([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregadoPara, setCarregadoPara] = useState('');
+  const carregando = !!retiroId && carregadoPara !== retiroId;
 
   useEffect(() => {
     listarRetiros(comunidadeId).then((lista) => {
@@ -23,10 +25,17 @@ export function RelatorioRetiro({ comunidadeId }: { comunidadeId: string }) {
 
   useEffect(() => {
     if (!retiroId) return;
-    setCarregando(true);
+    let ativo = true;
     listarInscritos(retiroId)
-      .then(setInscritos)
-      .finally(() => setCarregando(false));
+      .then((lista) => {
+        if (ativo) setInscritos(lista);
+      })
+      .finally(() => {
+        if (ativo) setCarregadoPara(retiroId);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [retiroId]);
 
   const retiro = retiros.find((r) => r.id === retiroId);
@@ -70,9 +79,7 @@ export function RelatorioRetiro({ comunidadeId }: { comunidadeId: string }) {
   }
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -131,22 +138,22 @@ export function RelatorioRetiro({ comunidadeId }: { comunidadeId: string }) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Taxa de presença</p>
-              <p className="text-2xl font-extrabold text-text-primary">
+              <p className="text-2xl font-semibold text-text-primary">
                 {resumo.totalPresentes}/{resumo.totalInscritos} ({resumo.taxaPresenca}%)
               </p>
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Arrecadado</p>
-              <p className="text-2xl font-extrabold text-accent">R$ {resumo.arrecadado.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-accent">R$ {resumo.arrecadado.toFixed(2)}</p>
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Valor esperado</p>
-              <p className="text-2xl font-extrabold text-text-primary">R$ {resumo.esperado.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-text-primary">R$ {resumo.esperado.toFixed(2)}</p>
             </div>
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-bold text-text-primary">Distribuição por grupo</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Distribuição por grupo</h3>
             {porGrupo.length === 0 ? (
               <p className="text-sm text-text-secondary">Nenhum inscrito.</p>
             ) : (

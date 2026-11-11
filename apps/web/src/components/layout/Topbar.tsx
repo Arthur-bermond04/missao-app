@@ -1,48 +1,106 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { ChevronRight, Menu } from 'lucide-react';
+import { Calendar, ChevronRight, Menu } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useDataHoje } from '@/lib/hooksEstado';
 import { montarNavGrupos } from '@/lib/navegacao';
 import { useTerminologia } from '@/lib/terminologia';
 import { useSidebarLayout } from '@/lib/SidebarLayoutContext';
+import { usePainelSession } from '@/lib/PainelSessionContext';
 import { NotificacoesBell } from './NotificacoesBell';
 import { ParaFazerBell } from './ParaFazerBell';
+import { UserMenu } from './UserMenu';
+
+const PLANO_LABEL: Record<string, string> = { semente: 'Semente', missao: 'Missão', diocese: 'Diocese' };
+
+function iniciaisComunidade(nome: string) {
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  return (palavras.length > 1 ? palavras[0][0] + palavras[1][0] : (palavras[0] ?? '').slice(0, 2)).toUpperCase();
+}
 
 export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; onAbrirDrawer: () => void }) {
   const pathname = usePathname();
   const terminologia = useTerminologia();
-  const { colapsada } = useSidebarLayout();
+  const { colapsada, alternar } = useSidebarLayout();
+  const { usuario } = usePainelSession();
+  const [comunidade, setComunidade] = useState<{ nome: string; plano: string } | null>(null);
+  const hoje = useDataHoje();
+
+  useEffect(() => {
+    supabase
+      .from('comunidades')
+      .select('nome, plano')
+      .eq('id', comunidadeId)
+      .single()
+      .then(({ data }) => setComunidade((data as { nome: string; plano: string } | null) ?? null));
+  }, [comunidadeId]);
 
   const nav = montarNavGrupos(terminologia).flatMap((g) => g.itens);
   const secaoAtual = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
+  const botaoMenu =
+    'rounded-md p-2 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green';
+
   return (
     <div
-      className={`sticky top-0 z-20 flex h-12 items-center gap-3 bg-topbar-bg px-4 md:ml-[72px] md:px-6 ${
-        colapsada ? '' : 'lg:ml-[240px]'
+      className={`sticky top-0 z-20 flex h-14 items-center gap-3 bg-topbar-bg px-3 md:ml-[72px] md:px-5 ${
+        colapsada ? '' : 'lg:ml-[264px]'
       }`}
     >
+      {/* Mobile: abre a gaveta. Desktop (lg+): recolhe/expande o menu lateral. */}
+      <button type="button" onClick={onAbrirDrawer} aria-label="Abrir menu" className={`${botaoMenu} md:hidden`}>
+        <Menu size={22} />
+      </button>
       <button
-        onClick={onAbrirDrawer}
-        aria-label="Abrir menu"
-        className="rounded-md p-1.5 text-sidebar-text transition-colors hover:bg-sidebar-bg-hover hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green md:hidden"
+        type="button"
+        onClick={alternar}
+        aria-label={colapsada ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+        aria-pressed={colapsada}
+        title={colapsada ? 'Expandir menu' : 'Recolher menu'}
+        className={`${botaoMenu} hidden lg:block`}
       >
-        <Menu size={20} />
+        <Menu size={22} />
       </button>
 
-      <nav aria-label="Trilha de navegação" className="flex items-center gap-1 text-sm">
-        <span className="hidden text-sidebar-text md:inline">MissãoApp</span>
+      {comunidade && (
+        <div className="flex min-w-0 items-center gap-2 rounded-md border border-sidebar-border bg-white/5 py-1 pl-1 pr-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-destaque text-[9px] font-semibold text-destaque-texto">
+            {iniciaisComunidade(comunidade.nome)}
+          </span>
+          <span className="hidden min-w-0 sm:block">
+            <span className="block max-w-[240px] truncate text-[12px] font-semibold leading-tight text-sidebar-text-active">
+              {comunidade.nome}
+            </span>
+            <span className="block truncate text-[10px] leading-tight text-sidebar-text">
+              Plano {PLANO_LABEL[comunidade.plano] ?? comunidade.plano}
+              {usuario ? ` · ${usuario.nome.split(' ')[0]}` : ''}
+            </span>
+          </span>
+        </div>
+      )}
+
+      <nav aria-label="Trilha de navegação" className="hidden items-center gap-1 pl-2 text-sm xl:flex">
         {!!secaoAtual && (
           <>
-            <ChevronRight size={14} className="hidden text-sidebar-text/60 md:inline" />
+            <ChevronRight size={14} className="text-sidebar-text/60" />
             <span className="font-medium text-sidebar-text-active">{secaoAtual.label}</span>
           </>
         )}
       </nav>
 
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-1 md:gap-2">
+        {!!hoje && (
+          <span className="hidden items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-sidebar-text-active md:inline-flex">
+            <Calendar size={16} className="text-sidebar-text" />
+            {hoje}
+          </span>
+        )}
         <ParaFazerBell />
         <NotificacoesBell comunidadeId={comunidadeId} />
+        <span className="mx-1 hidden h-8 w-px bg-sidebar-border md:block" aria-hidden />
+        <UserMenu />
       </div>
     </div>
   );

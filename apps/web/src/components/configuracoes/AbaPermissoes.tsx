@@ -13,6 +13,7 @@ import {
   listarPermissoes,
   podeNaMatriz,
   resolverMatriz,
+  rotuloModulo,
   type EstadoGrupo,
   type MatrizPermissoes,
 } from '@/lib/permissoes';
@@ -26,7 +27,7 @@ const OPCOES_PERFIL = (Object.entries(PERFIL_LABEL) as [Perfil, string][]).map((
  * ações marcadas — é o mesmo vocabulário da tela de permissões do Athenas
  * (habilitado / habilitado parcialmente / não habilitado).
  */
-function Caixa({ estado, onClick }: { estado: EstadoGrupo; onClick?: () => void }) {
+export function Caixa({ estado, onClick }: { estado: EstadoGrupo; onClick?: () => void }) {
   const marcado = estado === 'todos';
   const parcial = estado === 'parcial';
 
@@ -79,7 +80,6 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
 
   useEffect(() => {
     let cancelado = false;
-    setCarregando(true);
     Promise.all([listarModulos(), listarPermissoes(comunidadeId)])
       .then(([m, p]) => {
         if (cancelado) return;
@@ -249,7 +249,7 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
         </span>
       </div>
 
-      <div className="divide-y divide-border rounded-md border border-border">
+      <div className="divide-y divide-border-soft rounded-md border border-border">
         {grupos.map(([grupo, modulosDoGrupo]) => {
           const aberto = gruposAbertos.has(grupo);
           return (
@@ -261,7 +261,7 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
               >
                 {aberto ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 <Caixa estado={estadoDoGrupo(modulosDoGrupo, matriz)} />
-                <span className="text-sm font-medium text-text-primary">{grupo}</span>
+                <span className="text-sm font-medium text-text-primary">{rotuloModulo(grupo)}</span>
               </button>
 
               {aberto && (
@@ -273,7 +273,7 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
                           estado={estadoDoGrupo([m], matriz)}
                           onClick={ehAdmin ? () => alternarModulo(m) : undefined}
                         />
-                        <span className="text-sm text-text-primary">{m.nome}</span>
+                        <span className="text-sm text-text-primary">{rotuloModulo(m.nome)}</span>
                       </span>
                       {/* Rótulo em <span>, não <label>: não está ligado a um
                           campo de formulário — quem carrega o estado e o clique

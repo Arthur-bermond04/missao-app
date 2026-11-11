@@ -78,7 +78,7 @@ export function AbaPresenca({ membros, membrosPessoa = [], encontros, presencas 
     <div className="space-y-8">
       {/* Barras de frequência (últimos 6 encontros) */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary">Frequência nos últimos {ultimos6.length} encontros</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Frequência nos últimos {ultimos6.length} encontros</h3>
         <div className="mt-3 space-y-3">
           {todosMembros.map((m) => {
             const chave = chaveMembroMinisterio(m);
@@ -110,11 +110,11 @@ export function AbaPresenca({ membros, membrosPessoa = [], encontros, presencas 
 
       {/* Tabela comparativa membro × encontro */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary">Comparativo por encontro</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Comparativo por encontro</h3>
         <div className="mt-3 overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-border bg-bg-page text-xs uppercase text-text-secondary">
+              <tr className="border-b border-border-soft bg-bg-page text-xs uppercase text-text-secondary">
                 <th className="px-3 py-2">Membro</th>
                 {ultimos6.map((e) => (
                   <th key={e.id} className="px-2 py-2 text-center">
@@ -127,7 +127,7 @@ export function AbaPresenca({ membros, membrosPessoa = [], encontros, presencas 
               {todosMembros.map((m) => {
                 const chave = chaveMembroMinisterio(m);
                 return (
-                  <tr key={chave} className="border-b border-border last:border-b-0">
+                  <tr key={chave} className="border-b border-border-soft last:border-b-0">
                     <td className="px-3 py-2 text-text-primary">{m.nome}</td>
                     {ultimos6.map((e) => {
                       const p = mapa.get(`${e.id}:${chave}`);

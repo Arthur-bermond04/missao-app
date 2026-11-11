@@ -9,19 +9,18 @@ import { listarOvelhas } from '@/lib/pastoral';
 import { supabase } from '@/lib/supabase';
 import { useTerminologia } from '@/lib/terminologia';
 import type { PastoralOvelha, Usuario } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: string; isAdmin: boolean }) {
   const terminologia = useTerminologia();
   const nomeOvelha = terminologia.nome_ovelha.toLowerCase();
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [pastores, setPastores] = useState<Usuario[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const [carregandoDados, setCarregando] = useState(true);
+  const carregando = carregandoDados && isAdmin;
 
   useEffect(() => {
-    if (!isAdmin) {
-      setCarregando(false);
-      return;
-    }
+    if (!isAdmin) return;
     Promise.all([
       listarOvelhas(comunidadeId),
       supabase.from('usuarios').select('*').eq('comunidade_id', comunidadeId),
@@ -49,9 +48,7 @@ export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: str
   }, [ovelhas, pastores]);
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -103,7 +100,7 @@ export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: str
         <div className="space-y-6">
           {porPastor.map((grupo) => (
             <div key={grupo.pastor}>
-              <h3 className="mb-2 text-sm font-bold text-text-primary">
+              <h3 className="mb-2 text-sm font-semibold text-text-primary">
                 {grupo.pastor} <span className="font-normal text-text-secondary">({grupo.ovelhas.length})</span>
               </h3>
               <div className="space-y-2">

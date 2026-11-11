@@ -69,7 +69,7 @@ export default function InscricaoPage({ params }: { params: Promise<{ retiroId: 
     return (
       <div className="flex min-h-screen items-center justify-center bg-[--color-primary-xlight] px-6">
         <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm">
-          <h1 className="text-xl font-extrabold text-[--color-success]">Inscrição confirmada! 🎉</h1>
+          <h1 className="text-xl font-semibold text-[--color-success]">Inscrição confirmada!</h1>
           <p className="mt-2 text-sm text-zinc-600">
             {nome}, sua inscrição para <strong>{retiro.nome}</strong> foi registrada. Em breve a
             organização entrará em contato com mais detalhes.
@@ -82,7 +82,7 @@ export default function InscricaoPage({ params }: { params: Promise<{ retiroId: 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[--color-primary-xlight] px-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="text-center text-xl font-extrabold text-[--color-primary]">{retiro.nome}</h1>
+        <h1 className="text-center text-xl font-semibold text-[--color-primary]">{retiro.nome}</h1>
         <p className="mt-1 text-center text-sm text-zinc-500">
           {new Date(retiro.data_inicio).toLocaleDateString('pt-BR')} a{' '}
           {new Date(retiro.data_fim).toLocaleDateString('pt-BR')}
@@ -115,7 +115,7 @@ export default function InscricaoPage({ params }: { params: Promise<{ retiroId: 
         <button
           type="submit"
           disabled={enviando}
-          className="mt-6 w-full rounded-xl bg-[--color-primary] py-3 text-sm font-bold text-white disabled:opacity-60"
+          className="mt-6 w-full rounded-xl bg-[--color-primary] py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {enviando ? 'Enviando...' : 'Confirmar inscrição'}
         </button>

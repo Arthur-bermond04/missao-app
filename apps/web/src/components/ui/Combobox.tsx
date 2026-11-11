@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { ChevronDown, Search } from 'lucide-react';
 
 export interface ComboboxOption {
@@ -54,9 +55,9 @@ export function Combobox({
     return () => document.removeEventListener('mousedown', onClickFora);
   }, []);
 
-  useEffect(() => {
+  useAoMudar([busca, aberto], () => {
     setIndiceAtivo(0);
-  }, [busca, aberto]);
+  });
 
   function selecionar(opt: ComboboxOption) {
     onChange(opt.value);
@@ -110,7 +111,7 @@ export function Combobox({
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-bg-card shadow-hover"
+          className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border-soft bg-bg-card shadow-pop"
         >
           {filtradas.length === 0 ? (
             <li className="px-3 py-3 text-sm text-text-secondary">{emptyMessage}</li>
@@ -130,7 +131,7 @@ export function Combobox({
                   i === indiceAtivo ? 'bg-primary-xlight' : ''
                 }`}
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                   {iniciais(opt.label)}
                 </span>
                 <span className="min-w-0">

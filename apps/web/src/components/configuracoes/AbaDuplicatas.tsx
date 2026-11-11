@@ -83,7 +83,7 @@ export function AbaDuplicatas({ comunidadeId, cadastradoPor }: { comunidadeId: s
   return (
     <div className="max-w-2xl space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-text-primary">Verificar duplicatas</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Verificar duplicatas</h3>
         <p className="mt-1 text-xs text-text-secondary">
           Procura pessoas que aparecem em mais de um módulo (Funil, Retiros, Pastoral) sem estar vinculadas ao
           cadastro central de Pessoas — mesmo nome/telefone em módulos diferentes é sinal de que é a mesma pessoa.

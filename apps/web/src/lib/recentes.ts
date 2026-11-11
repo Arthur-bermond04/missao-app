@@ -1,6 +1,8 @@
 const CHAVE = 'missaoapp:acessados-recentes';
 const LIMITE = 8;
 
+export const CHAVE_ACESSOS_RECENTES = CHAVE;
+
 export type TipoAcessoRecente = 'pessoa' | 'ovelha' | 'ministerio' | 'retiro';
 
 export interface AcessoRecente {
@@ -27,6 +29,15 @@ export function registrarAcessoRecente(item: Omit<AcessoRecente, 'acessadoEm'>) 
     window.localStorage.setItem(CHAVE, JSON.stringify(novos));
   } catch {
     // localStorage indisponível (modo privado etc.) — não é crítico, ignora
+  }
+}
+
+/** Interpreta o texto guardado no localStorage (útil com useArmazenamentoLocal). */
+export function lerAcessosRecentes(bruto: string | null): AcessoRecente[] {
+  try {
+    return bruto ? (JSON.parse(bruto) as AcessoRecente[]) : [];
+  } catch {
+    return [];
   }
 }
 

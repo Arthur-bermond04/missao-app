@@ -23,6 +23,7 @@ import {
   type PastoralOvelha,
   type Pessoa,
 } from '@/types/database';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
 const ORIGEM_LABEL = Object.fromEntries(ORIGENS_PESSOA.map((o) => [o.valor, o.label]));
 const SITUACAO_LABEL = Object.fromEntries(SITUACOES_FE.map((s) => [s.valor, s.label]));
@@ -92,15 +93,15 @@ export function AbaResumo({
   return (
     <div className="space-y-6">
       {vencido && (
-        <div className="flex items-center gap-2 rounded-md bg-danger-light px-3 py-2 text-sm font-medium text-danger">
-          <AlertTriangle size={16} />
+        <div className="flex items-center gap-3 rounded-xl bg-danger-light px-4 py-3 text-sm font-medium text-danger">
+          <AlertTriangle size={18} />
           Contato vencido — a próxima visita marcada já passou.
         </div>
       )}
 
       {!!pessoa.objetivo_atual && (
         <div className="rounded-md border border-border-green bg-accent-green-bg p-3">
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary-dark">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary-dark">
             <Target size={13} /> Objetivo atual
           </p>
           <p className="mt-1 text-sm text-text-primary">{pessoa.objetivo_atual}</p>
@@ -108,8 +109,8 @@ export function AbaResumo({
       )}
 
       <div>
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-          <Link2 size={16} /> Vínculos em outros módulos
+        <h3 className="mb-3 flex items-center gap-3 text-sm font-semibold text-text-primary">
+          <IconeCaixa icon={Link2} tamanho="sm" tom="neutro" /> Vínculos em outros módulos
         </h3>
         <div className="space-y-2">
           {ovelha ? (
@@ -117,7 +118,7 @@ export function AbaResumo({
               href={`/pastoral/${ovelha.id}`}
               className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-bg-page"
             >
-              <HeartHandshake size={14} className="text-primary" />
+              <IconeCaixa icon={HeartHandshake} tamanho="xs" />
               Em acompanhamento pastoral
             </Link>
           ) : (
@@ -137,7 +138,7 @@ export function AbaResumo({
                 const freq = frequencias.find((f) => f.ministerio.id === m.id);
                 return (
                   <div key={m.id} className="flex flex-wrap items-center gap-2">
-                    <HandHeart size={14} className="text-primary" />
+                    <IconeCaixa icon={HandHeart} tamanho="xs" />
                     <Link
                       href="/ministerios"
                       className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
@@ -174,7 +175,7 @@ export function AbaResumo({
             <div className="space-y-1.5 rounded-md border border-border px-3 py-2">
               {celulas.map((f) => (
                 <div key={f.celula.id} className="flex flex-wrap items-center gap-2">
-                  <Users2 size={14} className="text-primary" />
+                  <IconeCaixa icon={Users2} tamanho="xs" />
                   <Link
                     href="/celulas"
                     className="rounded-full bg-primary-xlight px-2 py-0.5 text-xs font-medium text-primary"
@@ -237,8 +238,8 @@ export function AbaResumo({
       )}
 
       <div className="rounded-lg border border-border p-4">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-          <CalendarClock size={16} /> Próximo contato
+        <h3 className="flex items-center gap-3 text-sm font-semibold text-text-primary">
+          <IconeCaixa icon={CalendarClock} tamanho="sm" tom="info" /> Próximo contato
         </h3>
         <form onSubmit={handleSalvarAcompanhamento} className="mt-3 flex flex-wrap items-end gap-3">
           <Input label="Próxima visita" type="date" value={proximaVisita} onChange={(e) => setProximaVisita(e.target.value)} />

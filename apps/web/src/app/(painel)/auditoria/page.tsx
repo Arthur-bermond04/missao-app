@@ -34,32 +34,57 @@ export default function AuditoriaPage() {
 
   const [registros, setRegistros] = useState<RegistroAuditoria[]>([]);
   const [nomeUsuario, setNomeUsuario] = useState<Map<string, string>>(new Map());
-  const [carregando, setCarregando] = useState(true);
+  const [carregandoDados, setCarregando] = useState(true);
   const [tabela, setTabela] = useState('');
   const [usuarioId, setUsuarioId] = useState('');
   const [desde, setDesde] = useState('');
   const [ate, setAte] = useState('');
 
   const podeVer = pode('auditoria', 'ver');
+  const carregando = carregandoDados && podeVer;
 
-  function carregar() {
-    if (!usuario?.comunidade_id || !podeVer) {
+  async function carregar() {
+    if (!usuario?.comunidade_id || !podeVer) return;
+    try {
+      setRegistros(
+        await listarAuditoria(usuario.comunidade_id, {
+          tabela: tabela || undefined,
+          usuarioId: usuarioId || undefined,
+          desde: desde || undefined,
+          ate: ate || undefined,
+        })
+      );
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : 'Erro ao carregar auditoria.');
+    } finally {
       setCarregando(false);
-      return;
     }
-    setCarregando(true);
+  }
+
+  useEffect(() => {
+    if (!usuario?.comunidade_id || !podeVer) return;
+    let ativo = true;
     listarAuditoria(usuario.comunidade_id, {
       tabela: tabela || undefined,
       usuarioId: usuarioId || undefined,
       desde: desde || undefined,
       ate: ate || undefined,
     })
-      .then(setRegistros)
-      .catch((err) => toastError(err instanceof Error ? err.message : 'Erro ao carregar auditoria.'))
-      .finally(() => setCarregando(false));
-  }
-
-  useEffect(carregar, [usuario?.comunidade_id, podeVer]);
+      .then((lista) => {
+        if (ativo) setRegistros(lista);
+      })
+      .catch((err) => {
+        if (ativo) toastError(err instanceof Error ? err.message : 'Erro ao carregar auditoria.');
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
+    // Os filtros só valem na hora de carregar; mudar um filtro não busca sozinho (há o botão).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario?.comunidade_id, podeVer]);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
@@ -104,8 +129,8 @@ export default function AuditoriaPage() {
   if (!podeVer) {
     return (
       <div className="mx-auto max-w-3xl">
-        <PageHeader icon={ScrollText} title="Auditoria" subtitle="Histórico de alterações da comunidade" />
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <PageHeader icon={ScrollText} tom="neutro" title="Auditoria" subtitle="Histórico de alterações da comunidade" />
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <EmptyState
             icon={ShieldAlert}
             title="Sem acesso à auditoria"
@@ -120,6 +145,7 @@ export default function AuditoriaPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={ScrollText}
+        tom="neutro"
         title="Auditoria"
         subtitle="Quem alterou o quê, quando — registro imutável"
         actions={
@@ -131,7 +157,7 @@ export default function AuditoriaPage() {
         }
       />
 
-      <div className="mt-6 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Select label="Módulo" value={tabela} onChange={(e) => setTabela(e.target.value)} options={OPCOES_TABELA} />
           <Select
@@ -162,7 +188,7 @@ export default function AuditoriaPage() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-4 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         {carregando ? (
           <p className="py-6 text-center text-sm text-text-secondary">Carregando...</p>
         ) : (

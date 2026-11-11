@@ -37,7 +37,7 @@ export function AbaPlano({ comunidade }: { comunidade: Comunidade }) {
     <div className="max-w-md space-y-4">
       <div className="rounded-lg border border-border p-4">
         <p className="text-xs font-semibold text-text-secondary">Plano atual</p>
-        <p className="mt-1 text-xl font-extrabold text-primary">{PLANO_LABEL[comunidade.plano]}</p>
+        <p className="mt-1 text-xl font-semibold text-primary">{PLANO_LABEL[comunidade.plano]}</p>
 
         {limite ? (
           <>

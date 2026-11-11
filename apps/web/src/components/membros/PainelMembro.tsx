@@ -24,18 +24,25 @@ export function PainelMembro({
   const [contatosRecentes, setContatosRecentes] = useState<Pessoa[]>([]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
-  const [nomeSupervisor, setNomeSupervisor] = useState<string | null>(null);
+  const [supervisorCarregado, setSupervisorCarregado] = useState<{ id: string; nome: string | null } | null>(null);
+  const supervisorId = membro?.supervisor_id ?? null;
+  const nomeSupervisor = supervisorCarregado && supervisorCarregado.id === supervisorId ? supervisorCarregado.nome : null;
 
   useEffect(() => {
-    setNomeSupervisor(null);
-    if (!membro?.supervisor_id) return;
+    if (!supervisorId) return;
+    let ativo = true;
     supabase
       .from('usuarios')
       .select('nome')
-      .eq('id', membro.supervisor_id)
+      .eq('id', supervisorId)
       .single()
-      .then(({ data }) => setNomeSupervisor((data as { nome: string } | null)?.nome ?? null));
-  }, [membro?.supervisor_id]);
+      .then(({ data }) => {
+        if (ativo) setSupervisorCarregado({ id: supervisorId, nome: (data as { nome: string } | null)?.nome ?? null });
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [supervisorId]);
 
   useEffect(() => {
     if (!membro) return;
@@ -86,7 +93,7 @@ export function PainelMembro({
 
         {membro.perfil === 'missionario' && (
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               Contatos recentes ({membro.contatos_cadastrados})
             </p>
             {contatosRecentes.length === 0 ? (
@@ -104,7 +111,7 @@ export function PainelMembro({
         )}
 
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">Ministérios</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">Ministérios</p>
           {ministerios.length === 0 ? (
             <p className="text-sm text-text-secondary">Não participa de nenhum ministério.</p>
           ) : (
@@ -120,7 +127,7 @@ export function PainelMembro({
 
         {ovelhas.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               Ovelhas que acompanha ({ovelhas.length})
             </p>
             <ul className="space-y-1">
@@ -133,7 +140,7 @@ export function PainelMembro({
           </div>
         )}
 
-        <div className="flex gap-2 border-t border-border pt-4">
+        <div className="flex gap-2 border-t border-border-soft pt-4">
           <Button size="sm" variant="secondary" onClick={() => onEditar(membro)}>
             Editar
           </Button>

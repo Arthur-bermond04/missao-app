@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -49,13 +50,13 @@ export default function CelulasPage() {
   const [detalhe, setDetalhe] = useState<CelulaComInfo | null>(null);
   const [paraDesativar, setParaDesativar] = useState<CelulaComInfo | null>(null);
 
+  const comunidadeId = usuario?.comunidade_id;
   const carregar = useCallback(() => {
-    if (!usuario?.comunidade_id) return;
-    setCarregando(true);
-    listarCelulas(usuario.comunidade_id)
+    if (!comunidadeId) return;
+    listarCelulas(comunidadeId)
       .then(setCelulas)
       .finally(() => setCarregando(false));
-  }, [usuario?.comunidade_id]);
+  }, [comunidadeId]);
 
   useEffect(() => {
     carregar();
@@ -107,9 +108,10 @@ export default function CelulasPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Users2}
+        tom="roxo"
         title={t.plural}
         subtitle={`${ativas} ${t.singularMin}(s) ${t.ativo}(s) na comunidade`}
         actions={
@@ -150,7 +152,7 @@ export default function CelulasPage() {
       />
 
       {/* Filtros */}
-      <div className="mt-6 flex flex-wrap gap-3 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-6 flex flex-wrap gap-3 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         <div className="min-w-[220px] flex-1">
           <Input icon={Search} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou líder" />
         </div>
@@ -168,7 +170,7 @@ export default function CelulasPage() {
       {carregando ? (
         <p className="mt-6 text-sm text-text-secondary">Carregando {t.pluralMin}...</p>
       ) : filtradas.length === 0 ? (
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <EmptyState
             icon={Users2}
             title={`${t.nenhum} ${t.singular}`}
@@ -182,19 +184,13 @@ export default function CelulasPage() {
             <button
               key={c.id}
               onClick={() => setDetalhe(c)}
-              className={`rounded-lg bg-bg-card p-5 text-left shadow-card transition-colors hover:bg-bg-page ${
+              className={`rounded-xl border border-border-soft bg-bg-card p-5 text-left shadow-card transition-colors hover:border-text-muted ${
                 c.ativa ? '' : 'opacity-60'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-bold text-text-primary">{c.nome}</h3>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                    c.ativa ? 'bg-primary-xlight text-primary' : 'bg-bg-page text-text-secondary'
-                  }`}
-                >
-                  {c.ativa ? t.ativoLabel : t.inativoLabel}
-                </span>
+                <h3 className="text-sm font-semibold text-text-primary">{c.nome}</h3>
+                <Badge variant={c.ativa ? 'ativo' : 'inativo'}>{c.ativa ? t.ativoLabel : t.inativoLabel}</Badge>
               </div>
               <div className="mt-2 space-y-1 text-xs text-text-secondary">
                 <p className="flex items-center gap-1.5">
@@ -380,9 +376,9 @@ function DetalheCelula({
     <div className="fixed inset-0 z-40 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="relative z-50 flex h-full w-full max-w-md flex-col overflow-y-auto bg-bg-card shadow-hover">
-        <div className="flex items-start justify-between border-b border-border p-5">
+        <div className="flex items-start justify-between border-b border-border-soft p-5">
           <div>
-            <h2 className="text-lg font-bold text-text-primary">{celula.nome}</h2>
+            <h2 className="text-lg font-semibold text-text-primary">{celula.nome}</h2>
             <p className="text-sm text-text-secondary">
               {t.singular} {celula.ativa ? t.ativo : t.inativo}
             </p>
@@ -415,12 +411,12 @@ function DetalheCelula({
           </dl>
 
           <div>
-            <div className="flex items-center justify-between gap-2 border-b border-border">
+            <div className="flex items-center justify-between gap-2 border-b border-border-soft">
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => setAba('membros')}
-                  className={`border-b-2 px-1 pb-2 text-xs font-bold uppercase tracking-wide transition-colors ${
+                  className={`border-b-2 px-1 pb-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
                     aba === 'membros' ? 'border-primary text-primary' : 'border-transparent text-text-secondary'
                   }`}
                 >
@@ -429,7 +425,7 @@ function DetalheCelula({
                 <button
                   type="button"
                   onClick={() => setAba('encontros')}
-                  className={`border-b-2 px-1 pb-2 text-xs font-bold uppercase tracking-wide transition-colors ${
+                  className={`border-b-2 px-1 pb-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
                     aba === 'encontros' ? 'border-primary text-primary' : 'border-transparent text-text-secondary'
                   }`}
                 >

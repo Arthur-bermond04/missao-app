@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Lock, UserPlus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -63,7 +64,7 @@ export function NovaOvelhaModal({
   const [objetivo, setObjetivo] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  useEffect(() => {
+  useAoMudar([open, prefill, pessoas], () => {
     if (!open) return;
     setPessoasDisponiveis(pessoas);
     setMembroId('');
@@ -74,7 +75,7 @@ export function NovaOvelhaModal({
     setEtapa('inicio');
     setFrequencia('mensal');
     setObjetivo('');
-  }, [open, prefill, pessoas]);
+  });
 
   async function handleCriarPessoa() {
     const nome = nomeNovaPessoa.trim();

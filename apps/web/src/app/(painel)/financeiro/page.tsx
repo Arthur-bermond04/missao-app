@@ -22,6 +22,7 @@ import { listarRetiros } from '@/lib/retiros';
 import { listarMinisterios, type MinisterioComContagem } from '@/lib/ministerios';
 import { toastSuccess, toastError } from '@/lib/toast';
 import { CATEGORIAS_FINANCEIRO, type Comunidade, type Financeiro, type Retiro, type TipoFinanceiro } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 function inicioMesAtual() {
   const d = new Date();
@@ -143,14 +144,16 @@ export default function FinanceiroPage() {
 
   const despesasPorCategoria = useMemo(() => {
     const mapa = new Map<string, number>();
-    for (const l of filtrados) {
+    // Mesmo recorte dos cartões do topo: sem filtro, só o mês corrente.
+    const base = semFiltros ? lancamentos.filter((l) => l.data >= inicioMesAtual()) : filtrados;
+    for (const l of base) {
       if (l.tipo !== 'despesa') continue;
       mapa.set(l.categoria, (mapa.get(l.categoria) ?? 0) + l.valor);
     }
     return Array.from(mapa.entries())
       .map(([categoria, total]) => ({ categoria, total }))
       .sort((a, b) => b.total - a.total);
-  }, [filtrados]);
+  }, [filtrados, lancamentos, semFiltros]);
 
   function exportarExcel() {
     exportarExcelLib(
@@ -190,9 +193,10 @@ export default function FinanceiroPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Wallet}
+        tom="esmeralda"
         title="Financeiro"
         subtitle="Receitas, despesas e relatórios"
         actions={
@@ -200,7 +204,7 @@ export default function FinanceiroPage() {
             <Button variant="success" size="sm" onClick={() => abrirModal('receita')}>
               + Receita
             </Button>
-            <Button variant="danger" size="sm" onClick={() => abrirModal('despesa')}>
+            <Button variant="secondary" size="sm" onClick={() => abrirModal('despesa')}>
               - Despesa
             </Button>
           </>
@@ -243,7 +247,7 @@ export default function FinanceiroPage() {
       </div>
 
       {!!comunidade?.meta_arrecadacao_mensal && (
-        <div className="mt-6 rounded-lg bg-bg-card p-4 shadow-card">
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
           <div className="flex justify-between text-sm">
             <span className="font-semibold text-text-primary">Meta de arrecadação do mês</span>
             <span className="text-text-secondary">
@@ -267,22 +271,23 @@ export default function FinanceiroPage() {
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
-          <h2 className="text-sm font-bold text-text-primary">Despesas por categoria</h2>
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+          <TituloCard icone="grafico">Despesas por categoria</TituloCard>
+          <p className="mt-0.5 pl-11 text-xs text-text-secondary first-letter:uppercase">{labelPeriodo}</p>
           <div className="mt-3">
             <DespesasPieChart data={despesasPorCategoria} />
           </div>
         </div>
 
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <EvolucaoFinanceiraChart lancamentos={lancamentos} />
         </div>
       </div>
 
       {ministerios.length > 0 && (
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-text-primary">Caixas de ministérios</h2>
+            <TituloCard icone="caixa">Caixas de ministérios</TituloCard>
             <span className="text-xs text-text-secondary">Só leitura — não entra nos lançamentos gerais acima</span>
           </div>
           <div className="mt-3 space-y-2">
@@ -297,7 +302,7 @@ export default function FinanceiroPage() {
                 </span>
               </div>
             ))}
-            <div className="mt-1 flex items-center justify-between border-t border-border px-3 pt-2 text-sm font-bold">
+            <div className="mt-1 flex items-center justify-between border-t border-border-soft px-3 pt-2 text-sm font-semibold">
               <span className="text-text-primary">Total consolidado</span>
               <span className={saldoMinisterios >= 0 ? 'text-accent' : 'text-danger'}>R$ {saldoMinisterios.toFixed(2)}</span>
             </div>
@@ -305,7 +310,7 @@ export default function FinanceiroPage() {
         </div>
       )}
 
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-wrap gap-3">
             <Input label="De" type="date" value={filtroInicio} onChange={(e) => setFiltroInicio(e.target.value)} />

@@ -1,12 +1,13 @@
 'use client';
 
+import { useAoMudar } from '@/lib/hooksEstado';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { buscaGlobal, LABEL_SECAO, type ResultadoBusca, type TipoResultadoBusca } from '@/lib/busca';
 import { montarNavGrupos } from '@/lib/navegacao';
-import { useTerminologia } from '@/lib/terminologia';
+import { pluralizar, useTerminologia } from '@/lib/terminologia';
 
 const ORDEM_SECOES: TipoResultadoBusca[] = ['pessoa', 'contato', 'ovelha', 'membro', 'retiro', 'ministerio', 'financeiro'];
 
@@ -35,13 +36,18 @@ export function BuscaGlobal({
   const [buscando, setBuscando] = useState(false);
   const [indiceAtivo, setIndiceAtivo] = useState(0);
 
-  useEffect(() => {
+  useAoMudar([open], () => {
     if (open) {
       setTermo('');
       setResultados([]);
       setIndiceAtivo(0);
-      setTimeout(() => inputRef.current?.focus(), 30);
     }
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => inputRef.current?.focus(), 30);
+    return () => clearTimeout(t);
   }, [open]);
 
   useEffect(() => {
@@ -122,17 +128,17 @@ export function BuscaGlobal({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-[10vh]" onClick={onClose}>
       <div
-        className="w-full max-w-xl overflow-hidden rounded-lg bg-bg-card shadow-hover"
+        className="w-full max-w-xl overflow-hidden rounded-xl bg-bg-card shadow-pop"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-border-soft px-4 py-3">
           <Search size={18} className="text-text-secondary" />
           <input
             ref={inputRef}
             value={termo}
             onChange={(e) => setTermo(e.target.value)}
-            placeholder="Buscar pessoas, ovelhas, retiros, financeiro..."
+            placeholder={`Buscar pessoas, ${pluralizar(terminologia.nome_ovelha).toLowerCase()}, retiros, financeiro...`}
             className="flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-secondary"
           />
           <button onClick={onClose} className="rounded-md p-1 text-text-secondary hover:bg-bg-page">
@@ -149,7 +155,7 @@ export function BuscaGlobal({
                   busca por dado ainda está em voo. */}
               {resultadosTela.length > 0 && (
                 <div className="mb-2">
-                  <p className="px-3 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">Telas</p>
+                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">Telas</p>
                   {resultadosTela.map((item) => {
                     indiceGlobal += 1;
                     const ativo = indiceGlobal === indiceAtivo;
@@ -179,7 +185,7 @@ export function BuscaGlobal({
               ) : (
                 secoes.map((secao) => (
                   <div key={secao.tipo} className="mb-2">
-                    <p className="px-3 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">
+                    <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">
                       {LABEL_SECAO[secao.tipo]}
                     </p>
                     {secao.itens.map((item) => {
@@ -206,7 +212,7 @@ export function BuscaGlobal({
           )}
         </div>
 
-        <div className="border-t border-border px-4 py-2 text-xs text-text-secondary">
+        <div className="border-t border-border-soft px-4 py-2 text-xs text-text-secondary">
           ↑↓ navegar · Enter abrir · Esc fechar
         </div>
       </div>

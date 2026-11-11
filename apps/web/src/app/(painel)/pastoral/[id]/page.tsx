@@ -67,6 +67,7 @@ import {
   type PessoaRetiro,
   type Usuario,
 } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 const TEMA_LABEL = Object.fromEntries(TEMAS_PASTORAL.map((t) => [t.valor, t.label]));
 
@@ -98,7 +99,7 @@ function Indicador({
   return (
     <div className="rounded-lg border border-border p-3">
       <p className="text-xs text-text-secondary">{label}</p>
-      <p className={`mt-1 text-lg font-bold ${cor}`}>{valor}</p>
+      <p className={`mt-1 text-lg font-semibold ${cor}`}>{valor}</p>
     </div>
   );
 }
@@ -158,7 +159,7 @@ function CalendarioMensal({
       </div>
       <div className="mt-2 grid grid-cols-7 gap-1 text-center">
         {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map((l, i) => (
-          <span key={i} className="text-[10px] font-semibold text-text-secondary">
+          <span key={i} className="text-[11px] font-semibold text-text-secondary">
             {l}
           </span>
         ))}
@@ -170,7 +171,7 @@ function CalendarioMensal({
               key={dia.iso}
               className={`flex flex-col items-center rounded-md py-1 ${dia.iso === hoje ? 'bg-primary-xlight' : ''}`}
             >
-              <span className={`text-xs ${dia.iso === hoje ? 'font-bold text-primary' : 'text-text-primary'}`}>
+              <span className={`text-xs ${dia.iso === hoje ? 'font-semibold text-primary' : 'text-text-primary'}`}>
                 {dia.numero}
               </span>
               <span className="flex h-1.5 items-center gap-0.5">
@@ -225,7 +226,6 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
   const [novaDataReuniao, setNovaDataReuniao] = useState('');
 
   const carregar = useCallback(() => {
-    setCarregando(true);
     Promise.all([
       buscarOvelha(id),
       listarEncontrosPastorais(id),
@@ -370,9 +370,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
 
   async function exportarRelatorioPdf() {
     if (!ovelha) return;
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     const encontrosOrdenados = [...encontros].sort((a, b) => a.data.localeCompare(b.data));
 
@@ -430,6 +428,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
 
       <PageHeader
         icon={CheckCircle2}
+        tom="rosa"
         title={ovelha.nome}
         subtitle="Acompanhamento pastoral"
         actions={
@@ -509,14 +508,14 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       />
 
       {/* Header rico */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-xlight text-lg font-bold text-primary">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-xlight text-lg font-semibold text-primary">
             {ovelha.nome.slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-bold text-text-primary">{ovelha.nome}</h2>
+              <h2 className="text-lg font-semibold text-text-primary">{ovelha.nome}</h2>
               <EtapaBadge etapa={ovelha.etapa_formacao} />
               <EstadoEspiritualBadge estado={ovelha.estado_espiritual} />
               {reuniaoVencida && (
@@ -534,7 +533,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
         <div className="mt-4 grid grid-cols-3 gap-3">
           <div className="rounded-md bg-bg-page p-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">Último encontro</p>
-            <p className="mt-1 text-sm font-bold text-text-primary">
+            <p className="mt-1 text-sm font-semibold text-text-primary">
               {ultimoEncontro
                 ? `${new Date(ultimoEncontro.data).toLocaleDateString('pt-BR')}${ultimoEncontro.data === hoje ? ' (hoje)' : ''}`
                 : 'Nenhum ainda'}
@@ -542,19 +541,19 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="rounded-md bg-bg-page p-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">Próxima reunião</p>
-            <p className={`mt-1 text-sm font-bold ${reuniaoVencida ? 'text-danger' : 'text-text-primary'}`}>
+            <p className={`mt-1 text-sm font-semibold ${reuniaoVencida ? 'text-danger' : 'text-text-primary'}`}>
               {ovelha.proxima_reuniao ? new Date(ovelha.proxima_reuniao).toLocaleDateString('pt-BR') : 'Não agendada'}
             </p>
           </div>
           <div className="rounded-md bg-bg-page p-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">Total encontros</p>
-            <p className="mt-1 text-sm font-bold text-text-primary">{encontros.length} encontro(s)</p>
+            <p className="mt-1 text-sm font-semibold text-text-primary">{encontros.length} encontro(s)</p>
           </div>
         </div>
       </div>
 
       {/* Abas */}
-      <div className="mt-6 flex flex-wrap gap-1 border-b border-border">
+      <div className="mt-6 flex flex-wrap gap-1 border-b border-border-soft">
         {ABAS.map((a) => (
           <button
             key={a.valor}
@@ -601,8 +600,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Última observação */}
-            <div className="rounded-lg bg-bg-card p-5 shadow-card">
-              <h3 className="text-sm font-bold text-text-primary">Última observação</h3>
+            <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+              <h3 className="text-sm font-semibold text-text-primary">Última observação</h3>
               {ultimaObservacao ? (
                 <p className="mt-2 text-sm text-text-primary">{ultimaObservacao}</p>
               ) : (
@@ -611,8 +610,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
             </div>
 
             {/* Próxima reunião */}
-            <div className="rounded-lg bg-bg-card p-5 shadow-card">
-              <h3 className="text-sm font-bold text-text-primary">Próxima reunião</h3>
+            <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+              <h3 className="text-sm font-semibold text-text-primary">Próxima reunião</h3>
               {ovelha.proxima_reuniao ? (
                 <p className={`mt-2 text-sm font-semibold ${reuniaoVencida ? 'text-danger' : 'text-text-primary'}`}>
                   {new Date(ovelha.proxima_reuniao).toLocaleDateString('pt-BR', {
@@ -656,9 +655,9 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
           />
 
           {/* Últimos 3 encontros resumidos */}
-          <div className="rounded-lg bg-bg-card p-5 shadow-card">
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-text-primary">Últimos encontros</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Últimos encontros</h3>
               <button onClick={() => setAba('encontros')} className="text-xs font-medium text-primary hover:underline">
                 Ver todos →
               </button>
@@ -689,8 +688,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       {/* ---------------- Aba ENCONTROS ---------------- */}
       {aba === 'encontros' && (
         <div className="mt-6 space-y-4">
-          <div className="rounded-lg bg-bg-card p-6 shadow-card">
-            <h3 className="text-sm font-bold text-text-primary">Evolução do estado espiritual</h3>
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+            <h3 className="text-sm font-semibold text-text-primary">Evolução do estado espiritual</h3>
             <div className="mt-3">
               <EstadoTimeline data={timeline} />
             </div>
@@ -720,8 +719,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          <div className="rounded-lg bg-bg-card p-6 shadow-card">
-            <h3 className="text-sm font-bold text-text-primary">Histórico de encontros</h3>
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+            <h3 className="text-sm font-semibold text-text-primary">Histórico de encontros</h3>
             {encontros.length === 0 ? (
               <p className="mt-2 text-sm text-text-secondary">Nenhum encontro registrado ainda.</p>
             ) : (
@@ -793,11 +792,11 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       {/* ---------------- Aba AGENDA ---------------- */}
       {aba === 'agenda' && (
         <div className="mt-6 space-y-4">
-          <div className="rounded-lg bg-bg-card p-6 shadow-card">
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
             <CalendarioMensal encontros={encontros} proximaReuniao={ovelha.proxima_reuniao} />
           </div>
-          <div className="rounded-lg bg-bg-card p-5 shadow-card">
-            <h3 className="text-sm font-bold text-text-primary">Agendar próxima reunião</h3>
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+            <h3 className="text-sm font-semibold text-text-primary">Agendar próxima reunião</h3>
             <div className="mt-2 flex items-end gap-2">
               <div className="flex-1">
                 <Input
@@ -832,10 +831,10 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       {aba === 'presenca' && (
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <div className="rounded-lg bg-bg-card px-5 py-3 shadow-card">
+            <div className="rounded-xl border border-border-soft bg-bg-card px-5 py-3 shadow-card">
               <p className="text-xs text-text-secondary">Presença nos últimos 3 meses</p>
               <p
-                className={`text-xl font-bold ${
+                className={`text-xl font-semibold ${
                   estatisticasPresenca.pct == null
                     ? 'text-text-secondary'
                     : estatisticasPresenca.pct >= 70
@@ -854,8 +853,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Frequência por tipo de evento */}
-          <div className="rounded-lg bg-bg-card p-6 shadow-card">
-            <h3 className="text-sm font-bold text-text-primary">Frequência por tipo de evento</h3>
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+            <h3 className="text-sm font-semibold text-text-primary">Frequência por tipo de evento</h3>
             {estatisticasPresenca.porTipo.length === 0 ? (
               <p className="mt-2 text-sm text-text-secondary">Nenhuma presença registrada ainda.</p>
             ) : (
@@ -881,8 +880,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Lista de presenças */}
-          <div className="rounded-lg bg-bg-card p-6 shadow-card">
-            <h3 className="text-sm font-bold text-text-primary">Registros</h3>
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+            <h3 className="text-sm font-semibold text-text-primary">Registros</h3>
             {presencas.length === 0 ? (
               <p className="mt-2 text-sm text-text-secondary">Nenhuma presença registrada ainda.</p>
             ) : (
@@ -893,7 +892,7 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
                       <p className="text-sm font-semibold capitalize text-text-primary">{p.nome_evento || p.tipo_evento}</p>
                       <p className="text-xs text-text-secondary">{new Date(p.data).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <span className={`text-xs font-bold ${p.presente ? 'text-accent' : 'text-danger'}`}>
+                    <span className={`text-xs font-semibold ${p.presente ? 'text-accent' : 'text-danger'}`}>
                       {p.presente ? 'Presente' : 'Ausente'}
                     </span>
                   </div>
@@ -908,8 +907,8 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
       {aba === 'dados' && (
         <div className="mt-6 space-y-4">
           <DadosForm ovelha={ovelha} onSalvo={carregar} />
-          <div className="rounded-lg bg-bg-card p-6 shadow-card">
-            <h3 className="text-sm font-bold text-text-primary">Jornada</h3>
+          <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+            <h3 className="text-sm font-semibold text-text-primary">Jornada</h3>
             <JornadaTimeline
               dataInicio={ovelha.data_inicio_acompanhamento}
               encontros={encontros}
@@ -976,8 +975,8 @@ function DadosForm({ ovelha, onSalvo }: { ovelha: PastoralOvelha; onSalvo: () =>
   }
 
   return (
-    <form onSubmit={handleSalvar} className="rounded-lg bg-bg-card p-6 shadow-card">
-      <h3 className="text-sm font-bold text-text-primary">Informações pessoais</h3>
+    <form onSubmit={handleSalvar} className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+      <h3 className="text-sm font-semibold text-text-primary">Informações pessoais</h3>
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
         <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
         <Input label="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -79,14 +80,14 @@ export function NovaPessoaModal({
 
   const [salvando, setSalvando] = useState(false);
 
-  useEffect(() => {
+  useAoMudar([open, prefill, cadastradoPor], () => {
     if (open) {
       setNome(prefill?.nome ?? '');
       setTelefone(prefill?.telefone ?? '');
       if (prefill?.origem) setOrigem(prefill.origem);
       setResponsavelId(cadastradoPor);
     }
-  }, [open, prefill, cadastradoPor]);
+  });
 
   function alternarTag(tag: string) {
     setTags((atual) => (atual.includes(tag) ? atual.filter((t) => t !== tag) : [...atual, tag]));
@@ -162,7 +163,7 @@ export function NovaPessoaModal({
       <form onSubmit={handleSalvar} className="max-h-[70vh] space-y-6 overflow-y-auto pr-1">
         {/* Seção 1 — Dados pessoais */}
         <div>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">Dados pessoais</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-secondary">Dados pessoais</h3>
           <div className="space-y-3">
             <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
             <div className="grid grid-cols-2 gap-3">
@@ -195,7 +196,7 @@ export function NovaPessoaModal({
 
         {/* Seção 2 — Situação na fé e jornada */}
         <div>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">Situação na fé e jornada</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-secondary">Situação na fé e jornada</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Select
@@ -245,7 +246,7 @@ export function NovaPessoaModal({
 
         {/* Seção 3 — Acompanhamento */}
         <div>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">Acompanhamento</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-secondary">Acompanhamento</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Select
@@ -292,7 +293,7 @@ export function NovaPessoaModal({
               label="Objetivo atual do acompanhamento (opcional)"
               value={objetivoAtual}
               onChange={(e) => setObjetivoAtual(e.target.value)}
-              placeholder="Ex: aproximar da célula, iniciar CV..."
+              placeholder="Ex: convidar para o próximo encontro..."
             />
             <Textarea
               label="Observações (opcional)"

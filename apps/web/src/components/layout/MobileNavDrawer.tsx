@@ -56,7 +56,7 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
                     : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
                 }`}
               >
-                <Icon size={18} className={ativo ? 'text-accent-green' : ''} />
+                <Icon size={18} className={ativo ? 'text-destaque' : ''} />
                 {item.label}
               </Link>
             );
@@ -65,7 +65,7 @@ export function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () 
 
         <div className="border-t border-sidebar-border px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-sidebar-text-active">
               {usuario ? iniciais(usuario.nome) : ''}
             </div>
             <div className="min-w-0">

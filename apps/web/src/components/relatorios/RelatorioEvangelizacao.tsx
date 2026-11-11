@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_FUNIL_EVANGELIZACAO, type Pessoa, type Usuario } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 // Desde a migration 20260822030000, o web não cria mais em `contatos` — o
 // relatório passa a ler `pessoas` (origem evangelização), a mesma fonte que
@@ -79,9 +80,7 @@ export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string 
   }
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -135,11 +134,11 @@ export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string 
 
       <div className="rounded-lg border border-border p-4">
         <p className="text-sm text-text-secondary">Abordagens no período</p>
-        <p className="text-2xl font-extrabold text-text-primary">{filtrados.length}</p>
+        <p className="text-2xl font-semibold text-text-primary">{filtrados.length}</p>
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-bold text-text-primary">Funil</h3>
+        <h3 className="mb-2 text-sm font-semibold text-text-primary">Funil</h3>
         <div className="space-y-2">
           {funil.map((e) => (
             <div key={e.valor} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
@@ -151,7 +150,7 @@ export function RelatorioEvangelizacao({ comunidadeId }: { comunidadeId: string 
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-bold text-text-primary">Por missionário</h3>
+        <h3 className="mb-2 text-sm font-semibold text-text-primary">Por missionário</h3>
         {porMissionario.length === 0 ? (
           <p className="text-sm text-text-secondary">Nenhum dado no período selecionado.</p>
         ) : (

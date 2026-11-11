@@ -1,10 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from './supabase';
 import { usePainelSession } from './PainelSessionContext';
 import {
-  TERMINOLOGIA_PADRAO,
   type EtapaFormacao,
   type EtapaJornada,
   type EtapaJornadaPessoa,
@@ -13,26 +10,10 @@ import {
 } from '../types/database';
 
 // Lê comunidades.terminologia da comunidade do usuário logado. Cada tela que
-// mostra "CV"/"CAL"/"Ovelha"/"Pastor" deve usar esse hook em vez de string
+// mostra o nome de uma etapa, de "Ovelha" ou de "Pastor" deve usar esse hook em vez de string
 // fixa — sem ele, trocar o nome em Configurações não reflete em lugar nenhum.
 export function useTerminologia(): Terminologia {
-  const { usuario } = usePainelSession();
-  const [terminologia, setTerminologia] = useState<Terminologia>(TERMINOLOGIA_PADRAO);
-
-  useEffect(() => {
-    if (!usuario?.comunidade_id) return;
-    supabase
-      .from('comunidades')
-      .select('terminologia')
-      .eq('id', usuario.comunidade_id)
-      .single()
-      .then(({ data }) => {
-        const t = (data as { terminologia: Partial<Terminologia> } | null)?.terminologia;
-        if (t) setTerminologia({ ...TERMINOLOGIA_PADRAO, ...t });
-      });
-  }, [usuario?.comunidade_id]);
-
-  return terminologia;
+  return usePainelSession().terminologia;
 }
 
 // Helpers pra aplicar a terminologia customizada em cima das listas fixas de

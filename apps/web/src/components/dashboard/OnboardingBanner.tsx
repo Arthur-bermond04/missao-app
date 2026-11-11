@@ -34,7 +34,7 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white">
           <Cross size={18} />
         </div>
-        <h2 className="text-lg font-semibold text-white">Bem-vindo ao MissãoApp!</h2>
+        <h2 className="text-lg font-semibold text-white">Bem-vindo ao MissãoWeb!</h2>
       </div>
       <p className="mt-2 text-sm text-white/80">Vamos configurar sua comunidade em 3 passos:</p>
 
@@ -61,6 +61,9 @@ export function OnboardingBanner({ usuario }: { usuario: Usuario }) {
           className="inline-flex items-center gap-1 rounded-sm bg-white px-5 py-2.5 text-sm font-medium text-primary hover:bg-white/90"
         >
           Começar pelo passo 1 <ArrowRight size={16} />
+        </Link>
+        <Link href="/guia" className="text-sm text-white/80 underline hover:text-white">
+          Ver o guia completo
         </Link>
         <button onClick={pular} className="text-sm text-white/80 hover:text-white">
           Pular introdução

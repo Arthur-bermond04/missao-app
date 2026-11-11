@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Gauge, Lock, Send, ShieldAlert, Target, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Gauge, Lock, Send, ShieldAlert, Target, Users, X, AlertTriangle, CheckCircle2, XCircle, LucideIcon } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -24,23 +24,26 @@ import {
   type StatusPastor,
 } from '@/lib/monitoria';
 import { toastError, toastSuccess } from '@/lib/toast';
-import { useTerminologia } from '@/lib/terminologia';
+import { pluralizar, useTerminologia } from '@/lib/terminologia';
 import type { Canal } from '@/types/database';
 
-const STATUS_CONFIG: Record<StatusPastor, { label: string; cor: string; icone: string }> = {
-  ativo: { label: 'Pastor ativo', cor: 'text-accent', icone: '✓' },
-  atencao: { label: 'Atenção', cor: 'text-warning', icone: '⚠' },
-  inativo: { label: 'Pastor inativo', cor: 'text-danger', icone: '✗' },
+const STATUS_CONFIG: Record<StatusPastor, { label: string; cor: string; icone: LucideIcon }> = {
+  ativo: { label: 'Pastor ativo', cor: 'text-accent', icone: CheckCircle2 },
+  atencao: { label: 'Atenção', cor: 'text-warning', icone: AlertTriangle },
+  inativo: { label: 'Pastor inativo', cor: 'text-danger', icone: XCircle },
 };
 
 export default function MonitoriaPastoralPage() {
   const { usuario, pode } = usePainelSession();
   const terminologia = useTerminologia();
+  const pastor = terminologia.nome_pastor.toLowerCase();
+  const pastoresPl = pluralizar(terminologia.nome_pastor).toLowerCase();
+  const ovelhasPl = pluralizar(terminologia.nome_ovelha).toLowerCase();
 
   const [ovelhas, setOvelhas] = useState<OvelhaResumo[]>([]);
   const [pastores, setPastores] = useState<{ id: string; nome: string; supervisor_id: string | null }[]>([]);
   const [pastoresCarregados, setPastoresCarregados] = useState(false);
-  const [carregando, setCarregando] = useState(true);
+  const [carregandoDados, setCarregando] = useState(true);
   const [filtroPastor, setFiltroPastor] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [detalhe, setDetalhe] = useState<MetricasPastor | null>(null);
@@ -77,24 +80,27 @@ export default function MonitoriaPastoralPage() {
     return pastores.some((p) => p.supervisor_id === usuario.id);
   }, [usuario, pode, pastores]);
 
-  const carregar = useCallback(async () => {
-    if (!usuario?.comunidade_id) return;
-    setCarregando(true);
-    try {
-      const resumo = await listarOvelhasResumo(usuario.comunidade_id);
-      setOvelhas(resumo);
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Erro ao carregar métricas.');
-    } finally {
-      setCarregando(false);
-    }
-  }, [usuario?.comunidade_id]);
+  // Sem acesso ao módulo não há o que carregar: não fica "carregando" para sempre.
+  const carregando = carregandoDados && (!pastoresCarregados || podeAcessar);
 
+  const comunidadeId = usuario?.comunidade_id;
   useEffect(() => {
-    if (!pastoresCarregados) return;
-    if (podeAcessar) carregar();
-    else setCarregando(false);
-  }, [pastoresCarregados, podeAcessar, carregar]);
+    if (!pastoresCarregados || !podeAcessar || !comunidadeId) return;
+    let ativo = true;
+    listarOvelhasResumo(comunidadeId)
+      .then((resumo) => {
+        if (ativo) setOvelhas(resumo);
+      })
+      .catch((err) => {
+        if (ativo) toastError(err instanceof Error ? err.message : 'Erro ao carregar métricas.');
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [pastoresCarregados, podeAcessar, comunidadeId]);
 
   // Um supervisor sem o módulo liberado só deve ver, na tabela, os pastores
   // que de fato supervisiona (a RLS já limitou `ovelhas` a eles) — um
@@ -154,12 +160,12 @@ export default function MonitoriaPastoralPage() {
   if (pastoresCarregados && !podeAcessar) {
     return (
       <div className="mx-auto max-w-4xl">
-        <PageHeader icon={Gauge} title="Monitoria Pastoral" subtitle="Acesso restrito" />
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <PageHeader icon={Gauge} tom="rosa" title="Monitoria Pastoral" subtitle="Acesso restrito" />
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <EmptyState
             icon={Lock}
             title="Acesso restrito"
-            description="A monitoria pastoral é visível apenas para quem tem o módulo liberado ou supervisiona algum pastor."
+            description={`A monitoria pastoral é visível apenas para quem tem o módulo liberado ou supervisiona algum ${pastor}.`}
           />
         </div>
       </div>
@@ -167,11 +173,12 @@ export default function MonitoriaPastoralPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Gauge}
+        tom="rosa"
         title="Monitoria Pastoral"
-        subtitle="Acompanhamento dos pastores da comunidade"
+        subtitle={`Acompanhamento dos ${pastoresPl} da comunidade`}
         actions={
           <Button variant="secondary" onClick={exportar}>
             Exportar Excel
@@ -192,7 +199,7 @@ export default function MonitoriaPastoralPage() {
         <>
           {/* Cards de resumo */}
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
-            <MetricCard icon={Users} iconColor="primary" label="Total de pastores" value={resumoGeral.totalPastores} />
+            <MetricCard icon={Users} iconColor="primary" label={`Total de ${pastoresPl}`} value={resumoGeral.totalPastores} />
             <MetricCard
               icon={Users}
               iconColor="accent"
@@ -220,7 +227,7 @@ export default function MonitoriaPastoralPage() {
           </div>
 
           {/* Filtros */}
-          <div className="mt-6 flex flex-wrap gap-3 rounded-lg bg-bg-card p-4 shadow-card">
+          <div className="mt-6 flex flex-wrap gap-3 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
             <Select
               value={filtroPastor}
               onChange={(e) => setFiltroPastor(e.target.value)}
@@ -242,25 +249,25 @@ export default function MonitoriaPastoralPage() {
           </div>
 
           {/* Tabela de pastores */}
-          <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+          <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
             {metricasFiltradas.length === 0 ? (
-              <EmptyState icon={Gauge} title="Nenhum pastor com acompanhamento" description="Ninguém tem ovelhas ativas ainda." />
+              <EmptyState icon={Gauge} title={`Nenhum ${pastor} com acompanhamento`} description={`Ninguém tem ${ovelhasPl} ativas ainda.`} />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+                <table className="w-full border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-bg-page text-xs uppercase tracking-wide text-text-secondary">
-                      <th className="px-3 py-2 font-semibold">Pastor</th>
-                      <th className="px-3 py-2 font-semibold">Ovelhas</th>
-                      <th className="px-3 py-2 font-semibold">Enc./mês</th>
-                      <th className="px-3 py-2 font-semibold">Em atraso</th>
-                      <th className="px-3 py-2 font-semibold">Em risco</th>
-                      <th className="px-3 py-2 font-semibold">Objetivos parados</th>
-                      <th className="px-3 py-2 font-semibold">Último registro</th>
-                      <th className="px-3 py-2 font-semibold">Taxa</th>
+                    <tr className="border-b border-border-soft text-[11px] uppercase tracking-wider text-text-secondary">
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-left">{terminologia.nome_pastor}</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-right">{pluralizar(terminologia.nome_ovelha)}</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-right">Enc./mês</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-right">Em atraso</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-right">Em risco</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-right">Objetivos parados</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-left">Último registro</th>
+                      <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold text-right">Taxa</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border-soft">
                     {metricasFiltradas.map((m) => {
                       const status = statusPastor(m.taxaCumprimento);
                       const cfg = STATUS_CONFIG[status];
@@ -269,11 +276,11 @@ export default function MonitoriaPastoralPage() {
                         <tr
                           key={m.pastorId}
                           onClick={() => setDetalhe(m)}
-                          className="cursor-pointer border-b border-border last:border-b-0 hover:bg-primary-xlight/40"
+                          className="cursor-pointer transition-colors hover:bg-bg-page"
                         >
-                          <td className="px-3 py-2.5 font-medium text-text-primary">{m.pastorNome}</td>
-                          <td className="px-3 py-2.5 text-text-primary">{m.ovelhasAtivas}</td>
-                          <td className="px-3 py-2.5 text-text-primary">
+                          <td className="px-4 py-4 font-medium text-text-primary">{m.pastorNome}</td>
+                          <td className="px-4 py-4 text-right tabular-nums text-text-primary">{m.ovelhasAtivas}</td>
+                          <td className="px-4 py-4 text-right tabular-nums text-text-primary">
                             {m.encontrosMes}
                             {variacao !== 0 && (
                               <span className={`ml-1 text-xs font-medium ${variacao > 0 ? 'text-accent' : 'text-danger'}`}>
@@ -281,20 +288,22 @@ export default function MonitoriaPastoralPage() {
                               </span>
                             )}
                           </td>
-                          <td className={`px-3 py-2.5 ${m.emAtraso > 0 ? 'font-semibold text-warning' : 'text-text-primary'}`}>
+                          <td className={`px-4 py-4 text-right tabular-nums ${m.emAtraso > 0 ? 'font-semibold text-warning' : 'text-text-primary'}`}>
                             {m.emAtraso}
                           </td>
-                          <td className={`px-3 py-2.5 ${m.emRisco > 0 ? 'font-semibold text-danger' : 'text-text-primary'}`}>
+                          <td className={`px-4 py-4 text-right tabular-nums ${m.emRisco > 0 ? 'font-semibold text-danger' : 'text-text-primary'}`}>
                             {m.emRisco}
                           </td>
-                          <td className={`px-3 py-2.5 ${m.objetivosParados > 0 ? 'font-semibold text-warning' : 'text-text-primary'}`}>
+                          <td className={`px-4 py-4 text-right tabular-nums ${m.objetivosParados > 0 ? 'font-semibold text-warning' : 'text-text-primary'}`}>
                             {m.objetivosParados}
                           </td>
-                          <td className="px-3 py-2.5 text-text-secondary">
+                          <td className="px-4 py-4 text-text-secondary">
                             {m.ultimoRegistro ? new Date(m.ultimoRegistro).toLocaleDateString('pt-BR') : 'nunca'}
                           </td>
-                          <td className={`px-3 py-2.5 font-bold ${cfg.cor}`}>
-                            {m.taxaCumprimento}% {cfg.icone}
+                          <td className={`px-4 py-4 text-right font-semibold tabular-nums ${cfg.cor}`}>
+                            <span className="inline-flex items-center justify-end gap-1.5">
+                              {m.taxaCumprimento}% <cfg.icone size={14} aria-hidden />
+                            </span>
                           </td>
                         </tr>
                       );
@@ -344,6 +353,8 @@ function PainelPastor({
   onClose: () => void;
   onEnviarLembrete: () => void;
 }) {
+  const terminologia = useTerminologia();
+  const ovelhasPl = pluralizar(terminologia.nome_ovelha).toLowerCase();
   const status = statusPastor(metricas.taxaCumprimento);
   const cfg = STATUS_CONFIG[status];
   const hoje = new Date().toISOString().slice(0, 10);
@@ -352,11 +363,11 @@ function PainelPastor({
     <div className="fixed inset-0 z-40 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="relative z-50 flex h-full w-full max-w-md flex-col overflow-y-auto bg-bg-card shadow-hover">
-        <div className="flex items-center justify-between border-b border-border p-5">
+        <div className="flex items-center justify-between border-b border-border-soft p-5">
           <div>
-            <h2 className="text-lg font-bold text-text-primary">{metricas.pastorNome}</h2>
+            <h2 className="text-lg font-semibold text-text-primary">{metricas.pastorNome}</h2>
             <p className={`text-sm font-semibold ${cfg.cor}`}>
-              {cfg.icone} {cfg.label}
+              <cfg.icone size={14} aria-hidden className="mr-1 inline" /> {cfg.label}
             </p>
           </div>
           <button onClick={onClose} className="rounded-md p-1.5 text-text-secondary hover:bg-bg-page">
@@ -367,11 +378,11 @@ function PainelPastor({
         <div className="space-y-5 p-5">
           {/* Métricas do mês */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-text-secondary">Métricas do mês</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Métricas do mês</h3>
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div className="rounded-md border border-border p-3">
                 <p className="text-xs text-text-secondary">Encontros realizados</p>
-                <p className="mt-1 text-lg font-bold text-text-primary">
+                <p className="mt-1 text-lg font-semibold text-text-primary">
                   {metricas.encontrosMes} de {metricas.ovelhasAtivas}
                   {metricas.encontrosMes !== metricas.encontrosMesAnterior && (
                     <span
@@ -387,14 +398,14 @@ function PainelPastor({
                 <p className="text-xs text-text-secondary">{metricas.taxaCumprimento}% de cumprimento</p>
               </div>
               <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-text-secondary">Ovelhas em atraso</p>
-                <p className={`mt-1 text-lg font-bold ${metricas.emAtraso > 0 ? 'text-warning' : 'text-text-primary'}`}>
+                <p className="text-xs text-text-secondary first-letter:uppercase">{ovelhasPl} em atraso</p>
+                <p className={`mt-1 text-lg font-semibold ${metricas.emAtraso > 0 ? 'text-warning' : 'text-text-primary'}`}>
                   {metricas.emAtraso}
                 </p>
               </div>
               <div className="rounded-md border border-border p-3">
                 <p className="text-xs text-text-secondary">Objetivos parados</p>
-                <p className={`mt-1 text-lg font-bold ${metricas.objetivosParados > 0 ? 'text-warning' : 'text-text-primary'}`}>
+                <p className={`mt-1 text-lg font-semibold ${metricas.objetivosParados > 0 ? 'text-warning' : 'text-text-primary'}`}>
                   {metricas.objetivosParados}
                 </p>
               </div>
@@ -403,7 +414,7 @@ function PainelPastor({
 
           {/* Lista de ovelhas — só métricas */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-text-secondary">Suas ovelhas</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Suas {ovelhasPl}</h3>
             <div className="mt-2 space-y-2">
               {metricas.ovelhas.map((o) => {
                 const atraso = ovelhaEmAtraso(o);
@@ -423,8 +434,12 @@ function PainelPastor({
                         Próxima:{' '}
                         {o.proxima_reuniao ? new Date(o.proxima_reuniao).toLocaleDateString('pt-BR') : 'não agendada'}
                       </span>
-                      {atraso && <span className="font-semibold text-warning">⚠ em atraso</span>}
-                      {parado && <span className="font-semibold text-warning">🎯 objetivo parado</span>}
+                      {atraso && <span className="inline-flex items-center gap-1 font-semibold text-warning">
+                          <AlertTriangle size={12} aria-hidden /> em atraso
+                        </span>}
+                      {parado && <span className="inline-flex items-center gap-1 font-semibold text-warning">
+                          <Target size={12} aria-hidden /> objetivo parado
+                        </span>}
                     </div>
                   </div>
                 );

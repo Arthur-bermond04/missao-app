@@ -59,15 +59,15 @@ export function ParaFazerBell() {
       >
         <ListChecks size={18} />
         {pendentesAgora > 0 && (
-          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white">
             {pendentesAgora > 9 ? '9+' : pendentesAgora}
           </span>
         )}
       </button>
 
       {aberto && (
-        <div className="absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-80 overflow-y-auto rounded-lg border border-border bg-bg-card p-2 shadow-hover">
-          <p className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">Para fazer</p>
+        <div className="absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-80 overflow-y-auto rounded-xl border border-border-soft bg-bg-card p-2 shadow-pop">
+          <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">Para fazer</p>
           {itens.length === 0 ? (
             <p className="px-2 py-3 text-sm text-text-secondary">Tudo em dia! Nenhuma ação pendente. 🎉</p>
           ) : (
@@ -77,7 +77,7 @@ export function ParaFazerBell() {
                 if (grupo.length === 0) return null;
                 return (
                   <div key={prioridade}>
-                    <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wide text-text-secondary/70">
+                    <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary/70">
                       {LABEL_PRIORIDADE[prioridade]}
                     </p>
                     <div className="space-y-1">

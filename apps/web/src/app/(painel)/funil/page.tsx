@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Filter, PartyPopper, HeartHandshake, MapPin, UserPlus } from 'lucide-react';
+import { Filter, PartyPopper, HeartHandshake, UserPlus } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as XLSX from 'xlsx';
 import { usePainelSession } from '@/lib/PainelSessionContext';
@@ -19,6 +19,7 @@ import { registrarAbordagemPessoa } from '@/lib/pessoas';
 import { toastError, toastSuccess } from '@/lib/toast';
 import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_FUNIL_EVANGELIZACAO, type NivelInteresse, type Pessoa, type Usuario } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -44,7 +45,6 @@ export default function FunilPage() {
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
-    setCarregandoDados(true);
     Promise.all([
       supabase
         .from('pessoas')
@@ -83,14 +83,15 @@ export default function FunilPage() {
     });
   }, [pessoasFiltradas, terminologia]);
 
+  // Instante de referência para "travados": fixado na montagem (render puro).
+  const [agora] = useState(() => Date.now());
   const travados = useMemo(() => {
-    const agora = Date.now();
     return pessoasFiltradas.filter((p) => {
       if (p.etapa_jornada !== 'contato_inicial') return false;
       const dataAbordagem = new Date(p.data_primeiro_contato).getTime();
       return agora - dataAbordagem > TRINTA_DIAS_MS;
     });
-  }, [pessoasFiltradas]);
+  }, [pessoasFiltradas, agora]);
 
   const locaisMaisFrequentes = useMemo(() => {
     const contagem = new Map<string, number>();
@@ -129,9 +130,10 @@ export default function FunilPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Filter}
+        tom="azul"
         title="Funil de Evangelização"
         subtitle="Acompanhe a jornada de cada pessoa"
         actions={
@@ -159,7 +161,7 @@ export default function FunilPage() {
       )}
 
       {/* Filtros */}
-      <div className="mt-6 flex flex-wrap gap-3 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-8 flex flex-wrap items-end gap-4 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <Input label="De" type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
         <Input label="Até" type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
         <Select
@@ -180,21 +182,22 @@ export default function FunilPage() {
       </div>
 
       {/* Funil */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         {carregandoDados ? (
           <p className="text-sm text-text-secondary">Carregando dados...</p>
         ) : (
-          <div className="mx-auto max-w-sm">
+          <div>
+            <TituloCard icone="funil" className="mb-5">
+              Jornada por etapa
+            </TituloCard>
             <FunilVisual etapas={funil} />
           </div>
         )}
       </div>
 
       {/* Onde estamos evangelizando */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-          <MapPin size={15} /> Onde estamos evangelizando
-        </h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="local">Onde estamos evangelizando</TituloCard>
         {locaisMaisFrequentes.length === 0 ? (
           <p className="mt-3 text-sm text-text-secondary">Nenhum local registrado ainda.</p>
         ) : (
@@ -218,10 +221,8 @@ export default function FunilPage() {
       </div>
 
       {/* Travados */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">
-          Travados na abordagem há mais de 30 dias ({travados.length})
-        </h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="travado">Travados na abordagem há mais de 30 dias ({travados.length})</TituloCard>
         {travados.length === 0 ? (
           <EmptyState
             icon={PartyPopper}
@@ -229,7 +230,7 @@ export default function FunilPage() {
             description="Todo mundo está avançando na jornada. Continue assim!"
           />
         ) : (
-          <ul className="mt-3 divide-y divide-border">
+          <ul className="mt-3 divide-y divide-border-soft">
             {travados.map((p) => (
               <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
                 <button

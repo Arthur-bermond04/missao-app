@@ -63,7 +63,7 @@ export function AbaInteracoes({
         confirmLabel="Excluir"
       />
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-text-primary">Histórico de interações</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Histórico de interações</h3>
         <Button size="sm" icon={MessageSquarePlus} onClick={() => setModalNova(true)}>
           Nova interação
         </Button>

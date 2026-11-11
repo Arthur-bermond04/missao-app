@@ -1,68 +1,44 @@
-import { CORES, DEGRADE_FUNIL } from '@/lib/cores';
-
-const ALTURA_ETAPA = 56;
-const GAP = 4;
-
-// Luminância relativa (WCAG) pra decidir se o texto em cima da cor precisa ser
-// claro ou escuro, em vez de fixar por índice (evita texto ilegível quando o
-// degradê muda).
-function luminanciaRelativa(hex: string): number {
-  const [r, g, b] = [hex.slice(1, 3), hex.slice(3, 5), hex.slice(5, 7)]
-    .map((h) => parseInt(h, 16) / 255)
-    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
+// Funil em barras horizontais proporcionais. Substitui o desenho em SVG com
+// preserveAspectRatio="none", que esticava o texto e deixava os rótulos
+// ilegíveis. Em barras a leitura é direta: etapa, quantidade e quanto da etapa
+// anterior chegou até aqui.
+const TONS = ['bg-primary/30', 'bg-primary/45', 'bg-primary/60', 'bg-primary/80', 'bg-primary'];
 
 export function FunilVisual({ etapas }: { etapas: { label: string; total: number }[] }) {
-  const maiorTotal = etapas[0]?.total || 1;
-  const larguras = etapas.map((e) => Math.max(8, (e.total / maiorTotal) * 100));
-  const alturaTotal = etapas.length * (ALTURA_ETAPA + GAP) - GAP;
+  const base = etapas[0]?.total || 0;
+  const maior = Math.max(1, ...etapas.map((e) => e.total));
 
   return (
-    <svg viewBox={`0 0 100 ${alturaTotal}`} width="100%" height={alturaTotal} preserveAspectRatio="none">
+    <ol className="space-y-3" aria-label="Etapas do funil">
       {etapas.map((etapa, i) => {
-        const wTop = larguras[i];
-        const wBottom = larguras[i + 1] ?? larguras[i];
-        const yTop = i * (ALTURA_ETAPA + GAP);
-        const yBottom = yTop + ALTURA_ETAPA;
-        const pontos = [
-          [(100 - wTop) / 2, yTop],
-          [(100 + wTop) / 2, yTop],
-          [(100 + wBottom) / 2, yBottom],
-          [(100 - wBottom) / 2, yBottom],
-        ]
-          .map((p) => p.join(','))
-          .join(' ');
-        const cor = DEGRADE_FUNIL[Math.min(i, DEGRADE_FUNIL.length - 1)];
-        const textoEscuro = luminanciaRelativa(cor) > 0.45;
+        const anterior = i > 0 ? etapas[i - 1].total : null;
+        const largura = etapa.total === 0 ? 0 : Math.max(3, (etapa.total / maior) * 100);
+        const conversao = anterior ? Math.round((etapa.total / anterior) * 100) : null;
+        const daBase = base ? Math.round((etapa.total / base) * 100) : 0;
+
         return (
-          <g key={etapa.label}>
-            <title>
-              {etapa.label}: {etapa.total}
-            </title>
-            <polygon points={pontos} fill={cor} />
-            <text
-              x="50"
-              y={yTop + ALTURA_ETAPA / 2 - 4}
-              textAnchor="middle"
-              fontSize="5.5"
-              fontWeight="700"
-              fill={textoEscuro ? CORES.textPrimary : CORES.accentGreenBg}
-            >
+          <li key={etapa.label} className="grid grid-cols-[minmax(110px,160px)_1fr_auto] items-center gap-4">
+            <span className="truncate text-sm font-medium text-text-primary" title={etapa.label}>
               {etapa.label}
-            </text>
-            <text
-              x="50"
-              y={yTop + ALTURA_ETAPA / 2 + 8}
-              textAnchor="middle"
-              fontSize="5"
-              fill={textoEscuro ? CORES.textSecondary : CORES.borderGreen}
+            </span>
+
+            <div
+              className="h-8 overflow-hidden rounded-md bg-bg-page"
+              role="img"
+              aria-label={`${etapa.label}: ${etapa.total}${i > 0 ? `, ${daBase}% da primeira etapa` : ''}`}
             >
-              {etapa.total}
-            </text>
-          </g>
+              <div className={`h-full rounded-md ${TONS[Math.min(i, TONS.length - 1)]}`} style={{ width: `${largura}%` }} />
+            </div>
+
+            <span className="flex min-w-24 items-baseline justify-end gap-2 text-right">
+              <span className="text-base font-semibold tabular-nums text-text-primary">{etapa.total}</span>
+              <span className="w-10 text-xs tabular-nums text-text-secondary" title="Quanto da etapa anterior chegou aqui">
+                {conversao === null ? '' : `${conversao}%`}
+              </span>
+            </span>
+          </li>
         );
       })}
-    </svg>
+    </ol>
   );
 }

@@ -9,7 +9,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   description?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   children: React.ReactNode;
   footer?: React.ReactNode;
 }
@@ -18,6 +18,7 @@ const SIZE_STYLES: Record<NonNullable<ModalProps['size']>, string> = {
   sm: 'max-w-sm',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
 };
 
 export function Modal({ open, onClose, title, description, size = 'md', children, footer }: ModalProps) {
@@ -33,12 +34,12 @@ export function Modal({ open, onClose, title, description, size = 'md', children
   if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div className="escala-compacta fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className={`w-full ${SIZE_STYLES[size]} rounded-lg bg-bg-card p-6 shadow-hover`}
+        className={`max-h-[92vh] w-full overflow-y-auto ${SIZE_STYLES[size]} rounded-xl bg-bg-card p-6 shadow-pop`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between border-b border-border pb-3">
+        <div className="flex items-start justify-between border-b border-border-soft pb-3">
           <div>
             <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
             {!!description && <p className="mt-1 text-sm text-text-secondary">{description}</p>}

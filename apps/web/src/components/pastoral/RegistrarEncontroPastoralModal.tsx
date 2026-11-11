@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -66,7 +67,7 @@ export function RegistrarEncontroPastoralModal({
   const [salvando, setSalvando] = useState(false);
 
   // sincroniza os campos com o encontro em edição (ou reseta para criação)
-  useEffect(() => {
+  useAoMudar([open, encontroEditar], () => {
     if (!open) return;
     if (encontroEditar) {
       setData(encontroEditar.data);
@@ -89,7 +90,7 @@ export function RegistrarEncontroPastoralModal({
       setProximaReuniao('');
       setAbertura(3);
     }
-  }, [open, encontroEditar]);
+  });
 
   function toggleTema(t: TemaPastoral) {
     setTemas((atual) => (atual.includes(t) ? atual.filter((x) => x !== t) : [...atual, t]));

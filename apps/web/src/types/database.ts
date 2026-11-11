@@ -43,6 +43,17 @@ export interface Permissao {
   criado_em: string;
 }
 
+/** Ajuste de permissão de UM usuário. Vence o ajuste da comunidade e o padrão do sistema. */
+export interface UsuarioPermissao {
+  id: string;
+  comunidade_id: string;
+  usuario_id: string;
+  modulo: string;
+  acao: AcaoPermissao;
+  permitido: boolean;
+  criado_em: string;
+}
+
 export interface HorarioMissa {
   dia_semana: string;
   horario: string;
@@ -76,8 +87,8 @@ export interface Terminologia {
 }
 
 export const TERMINOLOGIA_PADRAO: Terminologia = {
-  etapa_cv: 'CV',
-  etapa_cal: 'CAL',
+  etapa_cv: 'Formação',
+  etapa_cal: 'Aprofundamento',
   nome_ovelha: 'Ovelha',
   nome_pastor: 'Pastor',
   modulo_celulas: 'Grupo',

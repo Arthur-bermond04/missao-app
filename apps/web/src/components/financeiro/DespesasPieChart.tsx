@@ -7,9 +7,17 @@ interface DespesasPieChartProps {
   data: { categoria: string; total: number }[];
 }
 
-export function DespesasPieChart({ data }: DespesasPieChartProps) {
+export function DespesasPieChart({ data: bruto }: DespesasPieChartProps) {
+  // Categoria sem gasto não vira fatia: só poluiria a legenda.
+  const data = bruto.filter((d) => d.total > 0);
+
   if (data.length === 0) {
-    return <p className="text-sm text-text-secondary">Sem despesas no período.</p>;
+    return (
+      <div className="flex h-[220px] flex-col items-center justify-center gap-1 text-center">
+        <p className="text-sm font-medium text-text-primary">Sem despesas no período</p>
+        <p className="text-xs text-text-secondary">Quando houver gastos, a distribuição por categoria aparece aqui.</p>
+      </div>
+    );
   }
 
   return (

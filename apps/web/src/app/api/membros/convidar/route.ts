@@ -1,9 +1,33 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import type { Perfil } from '@/types/database';
 
+const PERFIS_VALIDOS: readonly Perfil[] = ['missionario', 'lider', 'coordenador', 'padre', 'admin'];
+const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function gerarSenhaTemporaria() {
   return crypto.randomUUID().replace(/-/g, '').slice(0, 10);
+}
+
+/**
+ * Pergunta ao PRÓPRIO banco se quem chamou pode criar membros, usando o token
+ * dele (auth.uid() vale). Assim a rota segue a matriz de permissões da
+ * comunidade, em vez de repetir uma lista fixa de perfis. Se a função ainda não
+ * existir no banco, cai para a regra antiga (admin e coordenador).
+ */
+async function podeCriarMembros(token: string, perfil: Perfil): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (url && anon) {
+    const comoUsuario = createClient(url, anon, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data, error } = await comoUsuario.rpc('auth_pode', { p_modulo: 'membros', p_acao: 'criar' });
+    if (!error && typeof data === 'boolean') return data;
+  }
+  return perfil === 'admin' || perfil === 'coordenador';
 }
 
 export async function POST(req: Request) {
@@ -20,27 +44,50 @@ export async function POST(req: Request) {
 
   const { data: chamador, error: erroChamador } = await supabaseAdmin
     .from('usuarios')
-    .select('comunidade_id, perfil')
+    .select('comunidade_id, perfil, ativo')
     .eq('id', authData.user.id)
     .single();
 
-  if (erroChamador || !chamador || !['admin', 'coordenador'].includes(chamador.perfil)) {
+  // Conta desativada perde o acesso na hora, mesmo com o token ainda válido.
+  if (erroChamador || !chamador || !chamador.ativo || !(await podeCriarMembros(token, chamador.perfil as Perfil))) {
     return NextResponse.json({ erro: 'Você não tem permissão para convidar membros.' }, { status: 403 });
   }
   if (!chamador.comunidade_id) {
     return NextResponse.json({ erro: 'Seu usuário não está vinculado a uma comunidade.' }, { status: 400 });
   }
 
-  const body = await req.json();
-  const { email, nome, perfil } = body as { email?: string; nome?: string; perfil?: Perfil };
-  if (!email?.trim() || !nome?.trim() || !perfil) {
+  let body: { email?: unknown; nome?: unknown; perfil?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ erro: 'Requisição inválida.' }, { status: 400 });
+  }
+
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const nome = typeof body.nome === 'string' ? body.nome.trim() : '';
+  const perfil = body.perfil;
+
+  if (!email || !nome || typeof perfil !== 'string') {
     return NextResponse.json({ erro: 'Informe nome, e-mail e perfil.' }, { status: 400 });
+  }
+  if (email.length > 254 || !EMAIL_VALIDO.test(email)) {
+    return NextResponse.json({ erro: 'E-mail inválido.' }, { status: 400 });
+  }
+  if (nome.length > 120) {
+    return NextResponse.json({ erro: 'Nome muito longo.' }, { status: 400 });
+  }
+  if (!PERFIS_VALIDOS.includes(perfil as Perfil)) {
+    return NextResponse.json({ erro: 'Perfil inválido.' }, { status: 400 });
+  }
+  // Escalada de privilégio: quem não é admin não cria admin.
+  if (perfil === 'admin' && chamador.perfil !== 'admin') {
+    return NextResponse.json({ erro: 'Só um admin pode criar outro admin.' }, { status: 403 });
   }
 
   const senhaTemporaria = gerarSenhaTemporaria();
 
   const { data: novoAuthUser, error: erroCriarAuth } = await supabaseAdmin.auth.admin.createUser({
-    email: email.trim(),
+    email,
     password: senhaTemporaria,
     email_confirm: true,
   });
@@ -55,8 +102,8 @@ export async function POST(req: Request) {
   const { error: erroInserirUsuario } = await supabaseAdmin.from('usuarios').insert({
     id: novoAuthUser.user.id,
     comunidade_id: chamador.comunidade_id,
-    nome: nome.trim(),
-    perfil,
+    nome,
+    perfil: perfil as Perfil,
     ativo: true,
   });
 

@@ -27,6 +27,7 @@ import {
   type Pessoa,
   type Usuario,
 } from '@/types/database';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
 function iniciais(nome: string) {
   return nome.slice(0, 2).toUpperCase();
@@ -240,7 +241,7 @@ export function AbaMembros({
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-border bg-bg-page text-xs uppercase text-text-secondary">
+              <tr className="border-b border-border-soft bg-bg-page text-xs uppercase text-text-secondary">
                 <th className="px-3 py-2">Nome</th>
                 <th className="px-3 py-2">Cargo</th>
                 <th className="px-3 py-2">Entrou em</th>
@@ -253,10 +254,10 @@ export function AbaMembros({
                 const freq = frequencia.get(m.usuario_id);
                 const baixa = freq != null && freq < 50;
                 return (
-                  <tr key={m.id} className="border-b border-border last:border-b-0">
+                  <tr key={m.id} className="border-b border-border-soft last:border-b-0">
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                           {iniciais(m.nome)}
                         </div>
                         {m.nome}
@@ -285,13 +286,13 @@ export function AbaMembros({
       {/* Membros sem login (Pessoas) */}
       {membrosPessoa.length > 0 && (
         <div>
-          <h3 className="flex items-center gap-1 text-sm font-bold text-text-primary">
-            <IdCard size={14} /> Membros sem login ({membrosPessoa.length})
+          <h3 className="flex items-center gap-3 text-sm font-semibold text-text-primary">
+            <IconeCaixa icon={IdCard} tamanho="sm" tom="neutro" /> Membros sem login ({membrosPessoa.length})
           </h3>
           <div className="mt-3 overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-bg-page text-xs uppercase text-text-secondary">
+                <tr className="border-b border-border-soft bg-bg-page text-xs uppercase text-text-secondary">
                   <th className="px-3 py-2">Nome</th>
                   <th className="px-3 py-2">Cargo</th>
                   <th className="px-3 py-2">Entrou em</th>
@@ -299,10 +300,10 @@ export function AbaMembros({
               </thead>
               <tbody>
                 {membrosPessoa.map((m) => (
-                  <tr key={m.id} className="border-b border-border last:border-b-0">
+                  <tr key={m.id} className="border-b border-border-soft last:border-b-0">
                     <td className="px-3 py-2.5">
                       <Link href={`/pessoas/${m.pessoa_id}`} className="flex items-center gap-2 hover:text-primary">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                           {iniciais(m.nome)}
                         </div>
                         {m.nome}
@@ -322,7 +323,7 @@ export function AbaMembros({
 
       {/* Histórico de encontros */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary">Histórico de encontros</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Histórico de encontros</h3>
         {encontros.length === 0 ? (
           <p className="mt-2 text-sm text-text-secondary">Nenhum encontro registrado ainda.</p>
         ) : (

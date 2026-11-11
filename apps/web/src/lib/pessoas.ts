@@ -166,8 +166,8 @@ const LABEL_ETAPA_HISTORICO: Record<string, string> = {
   contato_inicial: 'Contato inicial',
   interessado: 'Interessado',
   participando: 'Participando',
-  cv: 'CV',
-  cal: 'CAL',
+  cv: 'Formação',
+  cal: 'Aprofundamento',
   integrado: 'Integrado',
   afastado: 'Afastado',
 };

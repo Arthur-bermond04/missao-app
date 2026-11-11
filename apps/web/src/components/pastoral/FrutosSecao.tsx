@@ -55,9 +55,9 @@ export function FrutosSecao({
   }
 
   return (
-    <div className="rounded-lg bg-bg-card p-6 shadow-card">
+    <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-text-primary">Frutos</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Frutos</h3>
         <Button size="sm" icon={Plus} onClick={() => setModalAberto(true)}>
           Registrar fruto
         </Button>

@@ -16,6 +16,7 @@ import {
   type ModuloAlerta,
   type NivelAlertaCentral,
 } from '@/lib/alertas';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 const NIVEL_CONFIG: Record<NivelAlertaCentral, { label: string; icone: typeof ShieldAlert; cor: string; borda: string }> = {
   urgente: { label: 'URGENTE', icone: ShieldAlert, cor: 'text-danger', borda: 'border-l-danger' },
@@ -44,7 +45,6 @@ export default function AlertasPage() {
 
   const carregar = useCallback(async () => {
     if (!usuario?.comunidade_id) return;
-    setCarregando(true);
     try {
       const [lista, vistosSet] = await Promise.all([
         gerarAlertasCentral(usuario.comunidade_id, usuario),
@@ -87,11 +87,9 @@ export default function AlertasPage() {
   }, [filtrados]);
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
-    const content: any[] = [
+    const content: Record<string, unknown>[] = [
       { text: 'Relatório de alertas', style: 'titulo' },
       { text: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }), style: 'sub' },
     ];
@@ -119,6 +117,7 @@ export default function AlertasPage() {
     <div className="mx-auto max-w-4xl">
       <PageHeader
         icon={Bell}
+        tom="ambar"
         title="Central de alertas"
         subtitle="Tudo que precisa de atenção, em ordem de urgência"
         actions={
@@ -148,8 +147,8 @@ export default function AlertasPage() {
       {carregando ? (
         <p className="mt-6 text-sm text-text-secondary">Carregando alertas...</p>
       ) : filtrados.length === 0 ? (
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-          <EmptyState icon={Check} title="Nenhum alerta" description="Tudo em dia — nada precisa de atenção agora. 🎉" />
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+          <EmptyState icon={Check} title="Nenhum alerta" description="Tudo em dia — nada precisa de atenção agora." />
         </div>
       ) : (
         <div className="mt-6 space-y-6">
@@ -160,7 +159,7 @@ export default function AlertasPage() {
             const Icone = cfg.icone;
             return (
               <div key={nivel}>
-                <p className={`flex items-center gap-1.5 text-xs font-bold tracking-wide ${cfg.cor}`}>
+                <p className={`flex items-center gap-1.5 text-xs font-semibold tracking-wide ${cfg.cor}`}>
                   <Icone size={14} /> {cfg.label} ({grupo.length})
                 </p>
                 <div className="mt-2 space-y-2">
@@ -172,7 +171,7 @@ export default function AlertasPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="truncate text-sm font-semibold text-text-primary">{a.mensagem}</p>
-                          <span className="shrink-0 rounded-full bg-bg-page px-2 py-0.5 text-[10px] font-medium text-text-secondary">
+                          <span className="shrink-0 rounded-full bg-bg-page px-2 py-0.5 text-[11px] font-medium text-text-secondary">
                             {a.modulo}
                           </span>
                         </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Modal } from '@/components/ui/Modal';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
@@ -27,14 +28,14 @@ export function LembreteModal({ open, onClose, retiro, totalInscritos, comunidad
   const [mensagem, setMensagem] = useState('');
   const [enviando, setEnviando] = useState(false);
 
-  useEffect(() => {
+  useAoMudar([open, retiro], () => {
     if (open) {
       const dias = diasAteRetiro(retiro);
       setMensagem(
         `Olá! Faltam ${dias} dia${dias === 1 ? '' : 's'} para o retiro "${retiro.nome}". Confirme sua presença! 🙏`
       );
     }
-  }, [open, retiro]);
+  });
 
   async function handleEnviar() {
     setEnviando(true);

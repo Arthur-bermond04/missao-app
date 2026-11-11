@@ -47,7 +47,7 @@ export function AbaSeguranca({ usuario, onAtualizado }: { usuario: Usuario; onAt
   return (
     <div className="max-w-md space-y-6">
       <form onSubmit={handleAlterarSenha} className="space-y-3">
-        <h3 className="text-sm font-bold text-text-primary">Alterar senha</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Alterar senha</h3>
         <Input
           type="password"
           label="Nova senha"
@@ -61,7 +61,7 @@ export function AbaSeguranca({ usuario, onAtualizado }: { usuario: Usuario; onAt
       </form>
 
       <div>
-        <h3 className="text-sm font-bold text-text-primary">Dispositivo conectado</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Dispositivo conectado</h3>
         <div className="mt-2 flex items-center gap-3 rounded-lg border border-border p-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-primary">
             <Smartphone size={18} />

@@ -20,7 +20,6 @@ export function HistoricoEncontrosCelula({ celulaId, recarregarChave }: { celula
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    setCarregando(true);
     Promise.all([listarEncontrosCelula(celulaId), listarPresencasDaCelula(celulaId), listarFrequenciaCelula(celulaId)])
       .then(([enc, presencas, freq]) => {
         setEncontros(enc);
@@ -53,7 +52,7 @@ export function HistoricoEncontrosCelula({ celulaId, recarregarChave }: { celula
   return (
     <div className="space-y-5">
       <div>
-        <h4 className="text-xs font-bold uppercase tracking-wide text-text-secondary">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
           Encontros ({encontros.length})
         </h4>
         <div className="mt-2 space-y-1.5">
@@ -70,7 +69,7 @@ export function HistoricoEncontrosCelula({ celulaId, recarregarChave }: { celula
 
       {frequencia.length > 0 && (
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wide text-text-secondary">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
             Frequência (últimos 90 dias)
           </h4>
           <div className="mt-2 space-y-2">

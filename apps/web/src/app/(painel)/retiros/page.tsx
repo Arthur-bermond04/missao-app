@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Tent, Search, HeartHandshake, IdCard, CircleCheck, CircleAlert, BellRing, ClipboardCheck } from 'lucide-react';
+import { Tent, Search, HeartHandshake, IdCard, CircleCheck, CircleAlert, BellRing, ClipboardCheck, Check } from 'lucide-react';
 import { exportarExcel as exportarExcelLib, exportarPDF as exportarPDFLib } from '@/lib/exportacao';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -25,11 +25,16 @@ import {
   listarInscritos,
   listarRetiros,
   pessoasComAcompanhamentoPastoral,
+  type CamposInscricaoEditaveis,
 } from '@/lib/retiros';
 import { promoverInscricaoParaPessoa } from '@/lib/pessoas';
 import { buscarStatusIntegracoes, type StatusIntegracoes } from '@/lib/integracoes';
 import { toastSuccess, toastError } from '@/lib/toast';
 import type { InscricaoRetiro, Retiro, StatusRetiro } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
+
+const SEM_INSCRITOS: InscricaoRetiro[] = [];
 
 export default function RetirosPage() {
   const { usuario } = usePainelSession();
@@ -37,7 +42,7 @@ export default function RetirosPage() {
   const [retiros, setRetiros] = useState<Retiro[]>([]);
   const [contagemInscritos, setContagemInscritos] = useState<Record<string, number>>({});
   const [retiroSelecionadoId, setRetiroSelecionadoId] = useState<string | null>(null);
-  const [inscritos, setInscritos] = useState<InscricaoRetiro[]>([]);
+  const [inscritosCarregados, setInscritos] = useState<InscricaoRetiro[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [criandoRetiro, setCriandoRetiro] = useState(false);
   const [numGrupos, setNumGrupos] = useState('4');
@@ -63,16 +68,15 @@ export default function RetirosPage() {
   }, [usuario?.comunidade_id]);
 
   useEffect(() => {
-    if (!retiroSelecionadoId) {
-      setInscritos([]);
-      return;
-    }
+    if (!retiroSelecionadoId) return;
     listarInscritos(retiroSelecionadoId).then((lista) => {
       setInscritos(lista);
       const pessoaIds = lista.map((i) => i.pessoa_id).filter((id): id is string => !!id);
       pessoasComAcompanhamentoPastoral(pessoaIds).then(setPessoasAcompanhadas);
     });
   }, [retiroSelecionadoId]);
+
+  const inscritos = retiroSelecionadoId ? inscritosCarregados : SEM_INSCRITOS;
 
   const retiroSelecionado = useMemo(
     () => retiros.find((r) => r.id === retiroSelecionadoId) ?? null,
@@ -123,12 +127,12 @@ export default function RetirosPage() {
     }
   }
 
-  async function alterarInscricao(id: string, campos: Partial<InscricaoRetiro>) {
+  async function alterarInscricao(id: string, campos: CamposInscricaoEditaveis) {
     setInscritos((atual) => atual.map((i) => (i.id === id ? { ...i, ...campos } : i)));
     try {
       await atualizarInscricao(
         id,
-        campos as any,
+        campos,
         usuario && retiroSelecionado ? { usuarioId: usuario.id, retiroNome: retiroSelecionado.nome } : undefined
       );
     } catch (err) {
@@ -238,16 +242,14 @@ export default function RetirosPage() {
     return inscritos.filter((i) => (i.nome ?? '').toLowerCase().includes(termo));
   }, [inscritos, buscaCheckIn]);
 
-  const grupos = useMemo(() => {
+  const grupos = (() => {
     const mapa = new Map<string, InscricaoRetiro[]>();
     for (const i of inscritos) {
       if (!i.grupo) continue;
-      const lista = mapa.get(i.grupo) ?? [];
-      lista.push(i);
-      mapa.set(i.grupo, lista);
+      mapa.set(i.grupo, [...(mapa.get(i.grupo) ?? []), i]);
     }
     return Array.from(mapa.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [inscritos]);
+  })();
 
   const totalArrecadado = inscritos.reduce((s, i) => s + (i.valor_pago ?? 0), 0);
   const totalEsperado = (retiroSelecionado?.valor ?? 0) * (retiroSelecionado?.vagas ?? (inscritos.length || 1));
@@ -256,6 +258,7 @@ export default function RetirosPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Tent}
+        tom="ambar"
         title="Retiros"
         subtitle="Inscrições, grupos e presença"
         actions={<Button onClick={() => setModalAberto(true)}>+ Novo retiro</Button>}
@@ -270,8 +273,8 @@ export default function RetirosPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
         {/* Lista de retiros */}
-        <div className="rounded-lg bg-bg-card p-4 shadow-card">
-          <h2 className="text-sm font-bold text-text-primary">Retiros</h2>
+        <div className="rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
+          <TituloCard icone="retiro">Retiros</TituloCard>
 
           <div className="mt-3 space-y-2">
             {retiros.map((r) => (
@@ -296,7 +299,7 @@ export default function RetirosPage() {
         </div>
 
         {/* Detalhe do retiro */}
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           {!retiroSelecionado ? (
             <p className="text-sm text-text-secondary">Selecione ou crie um retiro.</p>
           ) : (
@@ -304,7 +307,7 @@ export default function RetirosPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-text-primary">{retiroSelecionado.nome}</h2>
+                    <h2 className="text-lg font-semibold text-text-primary">{retiroSelecionado.nome}</h2>
                     <Badge variant={retiroSelecionado.status} />
                   </div>
                   <p className="text-sm text-text-secondary">
@@ -380,13 +383,13 @@ export default function RetirosPage() {
               {/* Relatório pós-retiro */}
               {retiroSelecionado.status === 'realizado' && (
                 <div className="mt-4 rounded-md border border-primary/30 bg-primary-xlight p-4">
-                  <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-                    <ClipboardCheck size={15} /> Relatório pós-retiro
+                  <h3 className="flex items-center gap-3 text-sm font-semibold text-text-primary">
+                    <IconeCaixa icon={ClipboardCheck} tamanho="sm" tom="info" /> Relatório pós-retiro
                   </h3>
                   <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <div>
                       <p className="text-xs text-text-secondary">Taxa de presença</p>
-                      <p className="text-lg font-bold text-text-primary">
+                      <p className="text-lg font-semibold text-text-primary">
                         {inscritos.length > 0
                           ? `${Math.round((inscritos.filter((i) => i.presente).length / inscritos.length) * 100)}%`
                           : '—'}
@@ -394,13 +397,13 @@ export default function RetirosPage() {
                     </div>
                     <div>
                       <p className="text-xs text-text-secondary">Arrecadação vs. meta</p>
-                      <p className="text-lg font-bold text-text-primary">
+                      <p className="text-lg font-semibold text-text-primary">
                         {totalEsperado > 0 ? `${Math.round((totalArrecadado / totalEsperado) * 100)}%` : '—'}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-text-secondary">Inscritos</p>
-                      <p className="text-lg font-bold text-text-primary">{inscritos.length}</p>
+                      <p className="text-lg font-semibold text-text-primary">{inscritos.length}</p>
                     </div>
                   </div>
                   <Button size="sm" variant="secondary" className="mt-3" onClick={exportarRelatorioCompleto}>
@@ -479,7 +482,7 @@ export default function RetirosPage() {
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {grupos.map(([nome, membros]) => (
                     <div key={nome} className="rounded-md border border-border p-2">
-                      <p className="text-xs font-bold text-primary">{nome}</p>
+                      <p className="text-xs font-semibold text-primary">{nome}</p>
                       <ul className="mt-1 space-y-0.5">
                         {membros.map((m) => (
                           <li key={m.id} className="truncate text-xs text-text-secondary">
@@ -552,7 +555,13 @@ export default function RetirosPage() {
                             i.presente ? 'bg-accent-light text-accent' : 'bg-bg-page text-text-secondary hover:bg-primary-xlight'
                           }`}
                         >
-                          {i.presente ? '✓ Presente' : 'Confirmar'}
+                          {i.presente ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Check size={12} aria-hidden /> Presente
+                            </span>
+                          ) : (
+                            'Confirmar'
+                          )}
                         </button>
                       ),
                     },

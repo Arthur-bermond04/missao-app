@@ -26,7 +26,7 @@ export function AbaNotificacoes({ usuario }: { usuario: Usuario }) {
   }
 
   return (
-    <div className="max-w-md divide-y divide-border">
+    <div className="max-w-md divide-y divide-border-soft">
       <Toggle
         label="Lembrete de contatos vencendo hoje"
         description="Receber notificação push quando houver lembretes para hoje."

@@ -14,7 +14,8 @@ const CORES: Record<EtapaJornadaPessoa, string> = {
 export function EtapaJornadaBadge({ etapa }: { etapa: EtapaJornadaPessoa }) {
   const terminologia = useTerminologia();
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${CORES[etapa]}`}>
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${CORES[etapa]}`}>
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden />
       {labelEtapaJornadaPessoa(etapa, terminologia)}
     </span>
   );

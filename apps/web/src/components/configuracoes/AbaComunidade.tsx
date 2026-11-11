@@ -9,6 +9,7 @@ import { atualizarComunidade } from '@/lib/comunidades';
 import { listarTiposEvento, criarTipoEvento, removerTipoEvento } from '@/lib/tiposEvento';
 import { toastError, toastSuccess } from '@/lib/toast';
 import { TERMINOLOGIA_PADRAO, type Comunidade, type HorarioMissa, type Terminologia, type TipoEventoComunidade } from '@/types/database';
+import { usePainelSession } from '@/lib/PainelSessionContext';
 
 const OPCOES_TIPO = [
   { value: 'paróquia', label: 'Paróquia' },
@@ -27,6 +28,7 @@ const DIAS_SEMANA = [
 ];
 
 export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comunidade; onAtualizada: (c: Comunidade) => void }) {
+  const { recarregarTerminologia } = usePainelSession();
   const [nome, setNome] = useState(comunidade.nome);
   const [tipo, setTipo] = useState(comunidade.tipo);
   const [telefone, setTelefone] = useState(comunidade.telefone ?? '');
@@ -96,6 +98,7 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
       };
       await atualizarComunidade(comunidade.id, campos);
       onAtualizada({ ...comunidade, ...campos });
+      await recarregarTerminologia();
       toastSuccess('Dados da comunidade atualizados.');
     } catch (err) {
       toastError(err instanceof Error ? err.message : 'Erro ao salvar. Tente novamente.');
@@ -105,13 +108,20 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
   }
 
   return (
-    <form onSubmit={handleSalvar} className="max-w-md space-y-4">
-      <Input label="Nome da comunidade" value={nome} onChange={(e) => setNome(e.target.value)} required />
-      <Select label="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} options={OPCOES_TIPO} />
-      <Input label="Telefone de contato" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+    <form onSubmit={handleSalvar} className="max-w-3xl space-y-8">
+      <section>
+        <h3 className="text-sm font-semibold text-text-primary">Dados da comunidade</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Input label="Nome da comunidade" value={nome} onChange={(e) => setNome(e.target.value)} required />
+          </div>
+          <Select label="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} options={OPCOES_TIPO} />
+          <Input label="Telefone de contato" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+        </div>
+      </section>
 
-      <div>
-        <p className="mb-1 text-xs font-semibold text-text-secondary">Horários de missa</p>
+      <div className="border-t border-border-soft pt-6">
+        <h3 className="mb-3 text-sm font-semibold text-text-primary">Horários de missa</h3>
         {horariosMissa.length > 0 && (
           <div className="mb-2 space-y-1.5">
             {horariosMissa.map((h, i) => (
@@ -147,24 +157,24 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
         </div>
       </div>
 
-      <div>
-        <p className="text-xs font-semibold text-text-secondary">Terminologia</p>
-        <p className="mt-0.5 text-xs text-text-secondary">
-          Sua comunidade pode usar nomes diferentes dos padrões da Shalom — os valores abaixo trocam os rótulos em
+      <div className="border-t border-border-soft pt-6">
+        <h3 className="text-sm font-semibold text-text-primary">Terminologia</h3>
+        <p className="mt-1 text-sm text-text-secondary">
+          Sua comunidade pode usar nomes diferentes dos padrões do sistema — os valores abaixo trocam os rótulos em
           todo o app (o que é salvo no banco não muda, só como aparece na tela).
         </p>
-        <div className="mt-2 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-4">
           <Input
-            label='Nome da etapa "CV"'
+            label="Nome da 4ª etapa da jornada"
             value={terminologia.etapa_cv}
             onChange={(e) => setTerminologia((t) => ({ ...t, etapa_cv: e.target.value || TERMINOLOGIA_PADRAO.etapa_cv }))}
-            placeholder="Ex: Formação, Catecúmeno"
+            placeholder="Ex: Formação, Preparação"
           />
           <Input
-            label='Nome da etapa "CAL"'
+            label="Nome da 5ª etapa da jornada"
             value={terminologia.etapa_cal}
             onChange={(e) => setTerminologia((t) => ({ ...t, etapa_cal: e.target.value || TERMINOLOGIA_PADRAO.etapa_cal }))}
-            placeholder="Ex: Aliança, Batismo"
+            placeholder="Ex: Aprofundamento, Envio"
           />
           <Input
             label="Nome do acompanhamento pastoral"
@@ -181,13 +191,13 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
         </div>
       </div>
 
-      <div>
-        <p className="text-xs font-semibold text-text-secondary">Nomes dos módulos no menu</p>
-        <p className="mt-0.5 text-xs text-text-secondary">
-          Se sua comunidade já usa outro termo no dia a dia (ex: "Célula" em vez de "Grupos"), troque aqui — o menu,
+      <div className="border-t border-border-soft pt-6">
+        <h3 className="text-sm font-semibold text-text-primary">Nomes dos módulos no menu</h3>
+        <p className="mt-1 text-sm text-text-secondary">
+          Se sua comunidade já usa outro termo no dia a dia (ex: &quot;Célula&quot; em vez de &quot;Grupos&quot;), troque aqui — o menu,
           os títulos de tela e os relatórios passam a usar o nome escolhido.
         </p>
-        <div className="mt-2 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="col-span-2 flex gap-3 sm:col-span-1">
             <div className="flex-1">
               <Input
@@ -253,7 +263,7 @@ export function AbaComunidade({ comunidade, onAtualizada }: { comunidade: Comuni
         Salvar alterações
       </Button>
 
-      <div className="border-t border-border pt-4">
+      <div className="border-t border-border-soft pt-4">
         <p className="text-xs font-semibold text-text-secondary">Tipos de evento</p>
         <p className="mt-0.5 text-xs text-text-secondary">
           Usados no registro de presença da Pastoral. Adicione os que sua comunidade usa, além dos padrões.

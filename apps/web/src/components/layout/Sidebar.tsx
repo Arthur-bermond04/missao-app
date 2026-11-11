@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAoMudar, useArmazenamentoLocal } from '@/lib/hooksEstado';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Search, LogOut, KeyRound, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { usePathname } from 'next/navigation';
+import { ChevronRight, Search } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { useTerminologia } from '@/lib/terminologia';
 import { useSidebarLayout } from '@/lib/SidebarLayoutContext';
@@ -12,6 +12,8 @@ import { montarNavGrupos, type NavLink } from '@/lib/navegacao';
 import { Logo } from '@/components/ui/Logo';
 import { BuscaGlobal } from '@/components/layout/BuscaGlobal';
 import type { AcaoPermissao, Perfil } from '@/types/database';
+
+const CHAVE_GRUPOS = 'missaoweb:menu-grupos-abertos';
 
 export const PERFIL_LABEL_SIDEBAR: Record<Perfil, string> = {
   missionario: 'Missionário',
@@ -33,36 +35,14 @@ export function iniciais(nome: string) {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { usuario, sair, pode } = usePainelSession();
+  const { usuario, pode } = usePainelSession();
   const terminologia = useTerminologia();
-  const { colapsada, alternar } = useSidebarLayout();
+  const { colapsada } = useSidebarLayout();
   // Texto/rótulos só aparecem em telas lg+ E quando a sidebar não foi
   // encolhida manualmente — em md (sempre estreita) o toggle não tem efeito
   // nenhum, de propósito: não há o que "expandir" abaixo de lg.
   const mostrarTexto = !colapsada;
-  const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
-  const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
-  const menuUsuarioRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClickFora(e: MouseEvent) {
-      if (menuUsuarioRef.current && !menuUsuarioRef.current.contains(e.target as Node)) setMenuUsuarioAberto(false);
-    }
-    document.addEventListener('mousedown', onClickFora);
-    return () => document.removeEventListener('mousedown', onClickFora);
-  }, []);
-
-  useEffect(() => {
-    if (!usuario?.comunidade_id) return;
-    supabase
-      .from('comunidades')
-      .select('nome')
-      .eq('id', usuario.comunidade_id)
-      .single()
-      .then(({ data }) => setNomeComunidade((data as { nome: string } | null)?.nome ?? ''));
-  }, [usuario?.comunidade_id]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -75,9 +55,30 @@ export function Sidebar() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  async function handleSair() {
-    await sair();
-    router.replace('/login');
+  // Submenus: quais grupos estão abertos. Guardado no navegador, para o menu
+  // continuar como a pessoa deixou. Começa vazio (igual ao HTML do servidor) e
+  // só lê a preferência depois de montar.
+  const [abertos, setAbertos] = useState<Set<string>>(new Set());
+  const [gruposSalvos, gravarGrupos] = useArmazenamentoLocal(CHAVE_GRUPOS);
+  useAoMudar([gruposSalvos], () => {
+    if (!gruposSalvos) return;
+    try {
+      const salvo = JSON.parse(gruposSalvos);
+      if (Array.isArray(salvo)) {
+        const titulos = salvo.filter((t): t is string => typeof t === 'string');
+        setAbertos((atual) => new Set([...titulos, ...atual]));
+      }
+    } catch {
+      // valor inválido: ignora e usa o padrão
+    }
+  });
+
+  function alternarGrupo(titulo: string) {
+    const novo = new Set(abertos);
+    if (novo.has(titulo)) novo.delete(titulo);
+    else novo.add(titulo);
+    setAbertos(novo);
+    gravarGrupos(JSON.stringify([...novo]));
   }
 
   // Esconde da navegação os itens cujo módulo o perfil logado não pode ver,
@@ -90,10 +91,24 @@ export function Sidebar() {
     }))
     .filter((grupo) => grupo.itens.length > 0);
 
+  // O item ativo é o de href mais específico: /pastoral/monitoria acende só
+  // "Painel da Liderança", não também "Acompanhamento".
+  const hrefAtivo = gruposVisiveis
+    .flatMap((g) => g.itens)
+    .filter((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
+  // Ao navegar, o grupo da página atual abre sozinho.
+  const grupoAtivo = gruposVisiveis.find((g) => g.itens.some((i) => i.href === hrefAtivo))?.titulo;
+  useAoMudar([grupoAtivo], () => {
+    if (!grupoAtivo) return;
+    setAbertos((atual) => (atual.has(grupoAtivo) ? atual : new Set(atual).add(grupoAtivo)));
+  });
+
   return (
     <aside
-      className={`scrollbar-escura fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-y-auto bg-sidebar-bg md:flex ${
-        colapsada ? '' : 'lg:w-[240px]'
+      className={`fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col overflow-hidden bg-sidebar-bg md:flex ${
+        colapsada ? '' : 'lg:w-[264px]'
       }`}
     >
       {usuario?.comunidade_id && (
@@ -101,44 +116,35 @@ export function Sidebar() {
       )}
 
       {/*
-        Colapsada (72px em lg): logo e botão empilhados e centralizados —
-        lado a lado eles não cabem na largura estreita. Expandida (240px):
-        lado a lado, botão empurrado pra direita.
+        Faixa branca com o logo, como no modelo, na mesma altura da barra superior
+        (h-14) para as duas linhas se alinharem. O resto do menu segue escuro.
+        Colapsada (72px): só o símbolo; expandida (264px): símbolo e nome.
       */}
-      <div className={`flex px-5 pb-4 pt-6 ${colapsada ? 'flex-col items-center gap-3' : 'items-center gap-2'}`}>
+      <Link
+        href="/dashboard"
+        title="Ir para o início"
+        aria-label="Ir para o início"
+        className="flex h-14 shrink-0 items-center justify-center border-b-2 border-destaque bg-white px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-destaque lg:justify-start lg:px-5"
+      >
         <div className={`flex items-center justify-center ${mostrarTexto ? 'lg:hidden' : ''}`}>
-          <Logo size={32} variant="white" />
+          <Logo size={28} variant="color" />
         </div>
         {mostrarTexto && (
           <div className="hidden lg:flex">
-            <Logo size={36} variant="white" showText />
+            <Logo size={30} variant="color" showText />
           </div>
         )}
-        {/* Só faz sentido a partir de lg: abaixo disso a sidebar já é
-            estreita pelo breakpoint responsivo, sem nada pra "recolher". */}
-        <button
-          type="button"
-          onClick={alternar}
-          title={colapsada ? 'Expandir menu' : 'Recolher menu'}
-          className={`hidden shrink-0 rounded-md p-1.5 text-sidebar-text transition-colors hover:bg-white/10 hover:text-sidebar-text-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green lg:block ${
-            colapsada ? '' : 'ml-auto'
-          }`}
-        >
-          {colapsada ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        </button>
-      </div>
+      </Link>
 
-      {mostrarTexto && !!nomeComunidade && (
-        <p className="-mt-3 hidden truncate px-5 pb-4 text-xs text-sidebar-text lg:block">{nomeComunidade}</p>
-      )}
+      <div className="h-3 shrink-0" aria-hidden />
 
       {/* Busca global — abre a mesma paleta de comando (Ctrl+K) usada no resto do app */}
-      <div className="px-3 pb-2">
+      <div className="shrink-0 px-3 pb-2">
         <button
           type="button"
           onClick={() => setBuscaAberta(true)}
           title="Buscar (Ctrl+K)"
-          className={`flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+          className={`flex w-full items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2.5 text-[15px] text-sidebar-text transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
             mostrarTexto ? 'lg:justify-start' : ''
           }`}
         >
@@ -147,92 +153,97 @@ export function Sidebar() {
         </button>
       </div>
 
-      <nav className="mt-1 flex-1 space-y-1 px-2 pb-3">
-        {gruposVisiveis.map((grupo, indiceGrupo) => (
-          <div key={grupo.titulo}>
-            {indiceGrupo > 0 && <div className="mx-3 my-1 h-px bg-sidebar-border" />}
-            <p
-              className={`hidden px-3 pb-0.5 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-text/70 ${
-                mostrarTexto ? 'lg:block' : ''
-              }`}
-            >
-              {grupo.titulo}
-            </p>
-            <div>
-              {grupo.itens.map((item) => {
-                const ativo = pathname === item.href;
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    title={`${item.label} — ${item.descricao}`}
-                    aria-current={ativo ? 'page' : undefined}
-                    className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
-                      mostrarTexto ? 'lg:justify-start' : ''
-                    } ${
-                      ativo
-                        ? 'bg-sidebar-bg-hover font-medium text-sidebar-text-active'
-                        : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
-                    }`}
-                  >
-                    <Icon size={18} className={`shrink-0 ${ativo ? 'text-accent-green' : ''}`} />
-                    <span className={`hidden ${mostrarTexto ? 'lg:inline' : ''}`}>{item.label}</span>
-                  </Link>
-                );
-              })}
+      <nav className="scrollbar-escura mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-2 pb-3" aria-label="Navegação principal">
+        {gruposVisiveis.map((grupo, indiceGrupo) => {
+          const submenu = !!grupo.icon && grupo.itens.length > 1;
+
+          // Link solto (ícone + nome). Usado em grupos simples, no menu recolhido e abaixo de lg.
+          const linkSolto = (item: NavLink) => {
+            const ativo = item.href === hrefAtivo;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={`${item.label} — ${item.descricao}`}
+                aria-current={ativo ? 'page' : undefined}
+                className={`mx-2 my-px flex items-center justify-center gap-3 rounded-md px-2.5 py-2.5 text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+                  mostrarTexto ? 'lg:justify-start' : ''
+                } ${
+                  ativo
+                    ? 'bg-sidebar-bg-hover text-sidebar-text-active'
+                    : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
+                }`}
+              >
+                <Icon size={18} className={`shrink-0 ${ativo ? 'text-destaque' : ''}`} />
+                <span className={`hidden ${mostrarTexto ? 'lg:inline' : ''}`}>{item.label}</span>
+              </Link>
+            );
+          };
+
+          // Grupo simples ou menu recolhido: itens soltos, com um traço entre os grupos.
+          if (!submenu || !mostrarTexto) {
+            return (
+              <div key={grupo.titulo}>
+                {indiceGrupo > 0 && !mostrarTexto && <div className="mx-3 my-1 h-px bg-sidebar-border" />}
+                {grupo.itens.map(linkSolto)}
+              </div>
+            );
+          }
+
+          // Submenu: cabeçalho com seta + itens recuados, com uma linha-guia à esquerda.
+          const aberto = abertos.has(grupo.titulo);
+          const algumAtivo = grupo.itens.some((i) => i.href === hrefAtivo);
+          const GrupoIcon = grupo.icon!;
+          const idLista = `submenu-${indiceGrupo}`;
+          return (
+            <div key={grupo.titulo}>
+              {/* abaixo de lg o menu é só ícones: mostra os itens soltos */}
+              <div className="lg:hidden">{grupo.itens.map(linkSolto)}</div>
+
+              <div className="hidden lg:block">
+                <button
+                  type="button"
+                  onClick={() => alternarGrupo(grupo.titulo)}
+                  aria-expanded={aberto}
+                  aria-controls={idLista}
+                  className={`mx-2 my-px flex w-[calc(100%-1rem)] items-center gap-3 rounded-md px-2.5 py-2.5 text-left text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg ${
+                    algumAtivo && !aberto ? 'bg-sidebar-bg-hover text-sidebar-text-active' : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
+                  }`}
+                >
+                  <GrupoIcon size={18} className={`shrink-0 ${algumAtivo ? 'text-destaque' : ''}`} />
+                  <span className="flex-1 truncate">{grupo.titulo}</span>
+                  <ChevronRight size={16} className={`shrink-0 transition-transform ${aberto ? 'rotate-90' : ''}`} aria-hidden />
+                </button>
+
+                {aberto && (
+                  <div id={idLista} className="mb-1 ml-7 mr-2 mt-0.5 space-y-0.5 border-l border-sidebar-border pl-3">
+                    {grupo.itens.map((item) => {
+                      const ativo = item.href === hrefAtivo;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          title={`${item.label} — ${item.descricao}`}
+                          aria-current={ativo ? 'page' : undefined}
+                          className={`block rounded-md px-3 py-2 text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green ${
+                            ativo
+                              ? 'bg-sidebar-bg-hover font-medium text-sidebar-text-active'
+                              : 'text-sidebar-text hover:bg-sidebar-bg-hover hover:text-sidebar-text-active'
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
-      <div className="relative border-t border-sidebar-border px-4 py-4" ref={menuUsuarioRef}>
-        {menuUsuarioAberto && (
-          <div className="absolute bottom-full left-3 right-3 mb-2 overflow-hidden rounded-md border border-sidebar-border bg-sidebar-bg-hover shadow-hover">
-            <Link
-              href="/configuracoes#seguranca"
-              onClick={() => setMenuUsuarioAberto(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-sidebar-text-active transition-colors hover:bg-white/10"
-            >
-              <KeyRound size={15} className="shrink-0 text-sidebar-text" />
-              Trocar senha
-            </Link>
-            <Link
-              href="/configuracoes"
-              onClick={() => setMenuUsuarioAberto(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-sidebar-text-active transition-colors hover:bg-white/10"
-            >
-              <Settings size={15} className="shrink-0 text-sidebar-text" />
-              Configurações
-            </Link>
-            <button
-              onClick={handleSair}
-              className="flex w-full items-center gap-2.5 border-t border-sidebar-border px-3 py-2.5 text-left text-sm text-sidebar-text-active transition-colors hover:bg-white/10 hover:text-danger"
-            >
-              <LogOut size={15} className="shrink-0" />
-              Sair
-            </button>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setMenuUsuarioAberto((v) => !v)}
-          aria-expanded={menuUsuarioAberto}
-          aria-haspopup="menu"
-          className={`flex w-full items-center justify-center gap-2 rounded-md p-1 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green ${
-            mostrarTexto ? 'lg:justify-start' : ''
-          }`}
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-sidebar-text-active">
-            {usuario ? iniciais(usuario.nome) : ''}
-          </div>
-          <div className={`hidden min-w-0 ${mostrarTexto ? 'lg:block' : ''}`}>
-            <p className="truncate text-[13px] font-medium text-sidebar-text-active">{usuario?.nome}</p>
-            <p className="text-[11px] text-sidebar-text">{usuario ? PERFIL_LABEL_SIDEBAR[usuario.perfil] : ''}</p>
-          </div>
-        </button>
-      </div>
     </aside>
   );
 }

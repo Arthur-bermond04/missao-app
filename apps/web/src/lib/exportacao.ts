@@ -27,10 +27,28 @@ export type SecaoPdf =
 // Substitui as implementações locais de "gerar PDF" (pdfmake, import
 // dinâmico) — cada tela monta só as seções de conteúdo, o resto (fonte,
 // estilos, rodapé de confidencialidade) fica centralizado aqui.
+async function importarPdfMake() {
+  return (await import('pdfmake/build/pdfmake')).default;
+}
+type PdfMake = Awaited<ReturnType<typeof importarPdfMake>>;
+type ArquivoVfs = { vfs?: Record<string, string> };
+
+/**
+ * Carrega o pdfmake e registra as fontes embutidas. Era repetido, com `any`, em
+ * dez arquivos; agora todo PDF do app passa por aqui.
+ */
+export async function carregarPdfMake(): Promise<PdfMake> {
+  const pdfMake = await importarPdfMake();
+  const fontes = (await import('pdfmake/build/vfs_fonts')) as unknown as ArquivoVfs & {
+    pdfMake?: ArquivoVfs;
+    default?: ArquivoVfs;
+  };
+  (pdfMake as unknown as ArquivoVfs).vfs = fontes.pdfMake?.vfs ?? fontes.vfs ?? fontes.default?.vfs;
+  return pdfMake;
+}
+
 export async function exportarPDF(titulo: string, secoes: SecaoPdf[], nomeArquivo: string, confidencial = false) {
-  const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-  const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-  (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+  const pdfMake = await carregarPdfMake();
 
   const content: Record<string, unknown>[] = [{ text: titulo, style: 'titulo' }];
 

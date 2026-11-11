@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
-import { Clock, IdCard, Heart, HandHeart, Tent, type LucideIcon } from 'lucide-react';
-import { listarAcessosRecentes, type AcessoRecente, type TipoAcessoRecente } from '@/lib/recentes';
+import { IdCard, Heart, HandHeart, Tent, type LucideIcon } from 'lucide-react';
+import { CHAVE_ACESSOS_RECENTES, lerAcessosRecentes, type TipoAcessoRecente } from '@/lib/recentes';
+import { useArmazenamentoLocal } from '@/lib/hooksEstado';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 const ICONE_TIPO: Record<TipoAcessoRecente, LucideIcon> = {
   pessoa: IdCard,
@@ -13,22 +15,15 @@ const ICONE_TIPO: Record<TipoAcessoRecente, LucideIcon> = {
 };
 
 export function AcessadosRecentemente() {
-  const [itens, setItens] = useState<AcessoRecente[] | null>(null);
+  const [bruto] = useArmazenamentoLocal(CHAVE_ACESSOS_RECENTES);
+  const itens = useMemo(() => lerAcessosRecentes(bruto), [bruto]);
 
-  useEffect(() => {
-    setItens(listarAcessosRecentes());
-  }, []);
-
-  if (itens !== null && itens.length === 0) return null;
+  if (itens.length === 0) return null;
 
   return (
-    <div className="rounded-lg bg-bg-card p-6 shadow-card">
-      <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-        <Clock size={15} /> Acessados recentemente
-      </h2>
-      {!itens ? (
-        <p className="mt-3 text-sm text-text-secondary">Carregando...</p>
-      ) : (
+    <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+      <TituloCard icone="recentes">Acessados recentemente</TituloCard>
+      {(
         <div className="mt-3 flex flex-wrap gap-2">
           {itens.map((item) => {
             const Icon = ICONE_TIPO[item.tipo];
