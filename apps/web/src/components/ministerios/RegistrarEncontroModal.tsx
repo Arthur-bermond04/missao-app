@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -53,7 +54,7 @@ export function RegistrarEncontroModal({
   const todosMembros = [...membros, ...membrosPessoa];
   const editando = !!encontroExistente;
 
-  useEffect(() => {
+  useAoMudar([open, membros, membrosPessoa, encontroExistente], () => {
     if (!open) return;
     setTitulo(encontroExistente?.titulo ?? 'Reunião');
     setData(encontroExistente?.data ?? new Date().toISOString().slice(0, 10));
@@ -72,8 +73,7 @@ export function RegistrarEncontroModal({
         : { presente: true, justificativa: '' };
     });
     setPresencas(inicial);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, membros, membrosPessoa, encontroExistente]);
+  });
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();

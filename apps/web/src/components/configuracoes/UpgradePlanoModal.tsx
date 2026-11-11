@@ -40,7 +40,7 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
   function abrirEmail(nomePlano: string) {
     const assunto = encodeURIComponent(`Upgrade do MissãoWeb para o plano ${nomePlano}`);
     const corpo = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoWeb para o plano ${nomePlano}.`);
-    window.location.href = `mailto:${EMAIL_UPGRADE}?subject=${assunto}&body=${corpo}`;
+    window.location.assign(`mailto:${EMAIL_UPGRADE}?subject=${assunto}&body=${corpo}`);
   }
 
   return (

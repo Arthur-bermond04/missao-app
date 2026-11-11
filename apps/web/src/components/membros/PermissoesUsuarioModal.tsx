@@ -1,5 +1,6 @@
 'use client';
 
+import { useAoMudar } from '@/lib/hooksEstado';
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
@@ -64,14 +65,18 @@ export function PermissoesUsuarioModal({
   const [grupoFiltro, setGrupoFiltro] = useState('');
   const [abertos, setAbertos] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
+  useAoMudar([membro], () => {
     if (!membro) return;
-    let cancelado = false;
     setCarregando(true);
     setSemTabela(false);
     setBusca('');
     setGrupoFiltro('');
     setAbertos(new Set());
+  });
+
+  useEffect(() => {
+    if (!membro) return;
+    let cancelado = false;
     (async () => {
       try {
         const [mods, perms] = await Promise.all([listarModulos(), listarPermissoes(comunidadeId)]);

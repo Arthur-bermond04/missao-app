@@ -80,7 +80,6 @@ export function AbaPermissoes({ comunidadeId, ehAdmin }: { comunidadeId: string;
 
   useEffect(() => {
     let cancelado = false;
-    setCarregando(true);
     Promise.all([listarModulos(), listarPermissoes(comunidadeId)])
       .then(([m, p]) => {
         if (cancelado) return;

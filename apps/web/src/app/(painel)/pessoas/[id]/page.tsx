@@ -41,7 +41,6 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
   const [modalExcluir, setModalExcluir] = useState(false);
 
   const carregar = useCallback(() => {
-    setCarregando(true);
     Promise.all([
       buscarPessoa(id),
       listarInteracoes(id),

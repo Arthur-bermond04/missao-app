@@ -29,13 +29,17 @@ export function PainelContato({
   const [modalInteracao, setModalInteracao] = useState(false);
   const [avancando, setAvancando] = useState(false);
 
+  const contatoId = contato?.id;
   useEffect(() => {
-    if (contato) {
-      listarInteracoes(contato.id).then(setInteracoes);
-    } else {
-      setInteracoes([]);
-    }
-  }, [contato?.id]);
+    if (!contatoId) return;
+    let ativo = true;
+    listarInteracoes(contatoId).then((lista) => {
+      if (ativo) setInteracoes(lista);
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [contatoId]);
 
   if (!contato) return null;
 

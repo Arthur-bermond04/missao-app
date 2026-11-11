@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Gauge, Lock, Send, ShieldAlert, Target, Users, X, AlertTriangle, CheckCircle2, XCircle, LucideIcon } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { supabase } from '@/lib/supabase';
@@ -43,7 +43,7 @@ export default function MonitoriaPastoralPage() {
   const [ovelhas, setOvelhas] = useState<OvelhaResumo[]>([]);
   const [pastores, setPastores] = useState<{ id: string; nome: string; supervisor_id: string | null }[]>([]);
   const [pastoresCarregados, setPastoresCarregados] = useState(false);
-  const [carregando, setCarregando] = useState(true);
+  const [carregandoDados, setCarregando] = useState(true);
   const [filtroPastor, setFiltroPastor] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [detalhe, setDetalhe] = useState<MetricasPastor | null>(null);
@@ -80,24 +80,27 @@ export default function MonitoriaPastoralPage() {
     return pastores.some((p) => p.supervisor_id === usuario.id);
   }, [usuario, pode, pastores]);
 
-  const carregar = useCallback(async () => {
-    if (!usuario?.comunidade_id) return;
-    setCarregando(true);
-    try {
-      const resumo = await listarOvelhasResumo(usuario.comunidade_id);
-      setOvelhas(resumo);
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Erro ao carregar métricas.');
-    } finally {
-      setCarregando(false);
-    }
-  }, [usuario?.comunidade_id]);
+  // Sem acesso ao módulo não há o que carregar: não fica "carregando" para sempre.
+  const carregando = carregandoDados && (!pastoresCarregados || podeAcessar);
 
+  const comunidadeId = usuario?.comunidade_id;
   useEffect(() => {
-    if (!pastoresCarregados) return;
-    if (podeAcessar) carregar();
-    else setCarregando(false);
-  }, [pastoresCarregados, podeAcessar, carregar]);
+    if (!pastoresCarregados || !podeAcessar || !comunidadeId) return;
+    let ativo = true;
+    listarOvelhasResumo(comunidadeId)
+      .then((resumo) => {
+        if (ativo) setOvelhas(resumo);
+      })
+      .catch((err) => {
+        if (ativo) toastError(err instanceof Error ? err.message : 'Erro ao carregar métricas.');
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [pastoresCarregados, podeAcessar, comunidadeId]);
 
   // Um supervisor sem o módulo liberado só deve ver, na tabela, os pastores
   // que de fato supervisiona (a RLS já limitou `ovelhas` a eles) — um

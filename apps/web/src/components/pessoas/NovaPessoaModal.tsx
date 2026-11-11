@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -79,14 +80,14 @@ export function NovaPessoaModal({
 
   const [salvando, setSalvando] = useState(false);
 
-  useEffect(() => {
+  useAoMudar([open, prefill, cadastradoPor], () => {
     if (open) {
       setNome(prefill?.nome ?? '');
       setTelefone(prefill?.telefone ?? '');
       if (prefill?.origem) setOrigem(prefill.origem);
       setResponsavelId(cadastradoPor);
     }
-  }, [open, prefill, cadastradoPor]);
+  });
 
   function alternarTag(tag: string) {
     setTags((atual) => (atual.includes(tag) ? atual.filter((t) => t !== tag) : [...atual, tag]));

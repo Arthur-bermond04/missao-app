@@ -57,7 +57,6 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
   useEffect(() => {
     let ativo = true;
     async function carregar() {
-      setCarregando(true);
       const [comunidadeRes, pessoasRes, membrosRes, retirosRes] = await Promise.all([
         buscarComunidade(comunidadeId).catch(() => null),
         supabase.from('pessoas').select('*').eq('comunidade_id', comunidadeId).eq('ativo', true),

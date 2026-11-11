@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAoMudar, useHashDaUrl } from '@/lib/hooksEstado';
 import { Lock, Settings } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -46,21 +47,18 @@ const ABAS_VALIDAS = new Set<string>(['comunidade', 'plano', 'financeiro', 'inte
 export default function ConfiguracoesPage() {
   const { usuario, pode, permissoes } = usePainelSession();
   const [corDestaque, setCorDestaque] = useState<string | null>(null);
-  const [aba, setAba] = useState<Aba>('comunidade');
+  const hash = useHashDaUrl();
+  const [abaEscolhida, setAba] = useState<Aba | null>(null);
+  const aba: Aba = abaEscolhida ?? (ABAS_VALIDAS.has(hash) ? (hash as Aba) : 'comunidade');
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [usuarioLocal, setUsuarioLocal] = useState<Usuario | null>(usuario ?? null);
 
   // Abre direto numa aba via /configuracoes#seguranca — usado pelo atalho
   // "Trocar senha" do menu do usuário. Lê o hash em vez de useSearchParams
   // pra não precisar de Suspense boundary só por isso.
-  useEffect(() => {
-    const hash = window.location.hash.replace('#', '');
-    if (ABAS_VALIDAS.has(hash)) setAba(hash as Aba);
-  }, []);
-
-  useEffect(() => {
+  useAoMudar([usuario], () => {
     setUsuarioLocal(usuario ?? null);
-  }, [usuario]);
+  });
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;

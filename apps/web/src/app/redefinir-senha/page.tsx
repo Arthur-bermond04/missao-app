@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useHashDaUrl } from '@/lib/hooksEstado';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -17,23 +18,22 @@ type Estado = 'verificando' | 'pronto' | 'invalido';
 
 export default function RedefinirSenhaPage() {
   const router = useRouter();
-  const [estado, setEstado] = useState<Estado>('verificando');
-  const [motivoInvalido, setMotivoInvalido] = useState('');
+  const [estadoLocal, setEstado] = useState<Estado>('verificando');
+  const [motivoLocal, setMotivoInvalido] = useState('');
+  // Quando o link expira ou já foi usado, o Supabase devolve o motivo no
+  // fragmento da URL em vez de criar sessão.
+  const hash = useHashDaUrl();
+  const fragmento = new URLSearchParams(hash);
+  const erroNaUrl = fragmento.get('error_description') ?? fragmento.get('error');
+  const estado: Estado = erroNaUrl ? 'invalido' : estadoLocal;
+  const motivoInvalido = erroNaUrl ? erroNaUrl.replace(/\+/g, ' ') : motivoLocal;
   const [senha, setSenha] = useState('');
   const [confirmacao, setConfirmacao] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
 
   useEffect(() => {
-    // Quando o link expira ou já foi usado, o Supabase devolve o motivo no
-    // fragmento da URL em vez de criar sessão.
-    const fragmento = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    const erroNaUrl = fragmento.get('error_description') ?? fragmento.get('error');
-    if (erroNaUrl) {
-      setMotivoInvalido(erroNaUrl.replace(/\+/g, ' '));
-      setEstado('invalido');
-      return;
-    }
+    if (erroNaUrl) return;
 
     let encerrado = false;
     const liberar = () => {
@@ -65,7 +65,7 @@ export default function RedefinirSenhaPage() {
       clearTimeout(prazo);
       listener.subscription.unsubscribe();
     };
-  }, []);
+  }, [erroNaUrl]);
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault();

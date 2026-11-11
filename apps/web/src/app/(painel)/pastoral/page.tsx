@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Heart, Sprout, AlertTriangle, ShieldAlert, Users, Lock, ChevronRight, Sparkles, CalendarClock } from 'lucide-react';
@@ -21,6 +22,21 @@ import type { Comunidade, Pessoa, PastoralEncontro, PastoralOvelha, PastoralPres
 import { TituloCard } from '@/components/ui/TituloCard';
 
 const LIMITE_OVELHAS_SEMENTE = 5;
+
+/** Lê ovelhas, encontros, presenças e frutos de uma vez. Só busca: quem chama decide o que fazer com o resultado. */
+async function buscarDadosPastorais(comunidadeId: string) {
+  const ovelhas = await listarOvelhas(comunidadeId);
+  const ids = ovelhas.map((o) => o.id);
+  if (ids.length === 0) {
+    return { ovelhas, encontros: [] as PastoralEncontro[], presencas: [] as PastoralPresenca[], frutos: {} as Awaited<ReturnType<typeof contarFrutosPorOvelha>> };
+  }
+  const [{ data: enc }, { data: pres }, frutos] = await Promise.all([
+    supabase.from('pastoral_encontros').select('*').in('ovelha_id', ids),
+    supabase.from('pastoral_presencas').select('*').in('ovelha_id', ids),
+    contarFrutosPorOvelha(ids),
+  ]);
+  return { ovelhas, encontros: (enc as PastoralEncontro[]) ?? [], presencas: (pres as PastoralPresenca[]) ?? [], frutos };
+}
 
 export default function PastoralPage() {
   const { usuario } = usePainelSession();
@@ -44,26 +60,13 @@ export default function PastoralPage() {
   const plano = comunidade?.plano ?? 'semente';
   const temIndicadores = plano !== 'semente';
 
-  const carregar = useCallback(() => {
+  const carregar = useCallback(async () => {
     if (!comunidadeId) return;
-    listarOvelhas(comunidadeId).then(async (lista) => {
-      setOvelhas(lista);
-      const ids = lista.map((o) => o.id);
-      if (ids.length === 0) {
-        setEncontros([]);
-        setPresencas([]);
-        setFrutosPorOvelha({});
-        return;
-      }
-      const [{ data: enc }, { data: pres }, frutos] = await Promise.all([
-        supabase.from('pastoral_encontros').select('*').in('ovelha_id', ids),
-        supabase.from('pastoral_presencas').select('*').in('ovelha_id', ids),
-        contarFrutosPorOvelha(ids),
-      ]);
-      setEncontros((enc as PastoralEncontro[]) ?? []);
-      setPresencas((pres as PastoralPresenca[]) ?? []);
-      setFrutosPorOvelha(frutos);
-    });
+    const dados = await buscarDadosPastorais(comunidadeId);
+    setOvelhas(dados.ovelhas);
+    setEncontros(dados.encontros);
+    setPresencas(dados.presencas);
+    setFrutosPorOvelha(dados.frutos);
   }, [comunidadeId]);
 
   useEffect(() => {
@@ -76,11 +79,21 @@ export default function PastoralPage() {
       .order('nome', { ascending: true })
       .then(({ data }) => setUsuarios((data as Usuario[]) ?? []));
     buscarPessoasParaCombobox(comunidadeId).then(setPessoas);
-    carregar();
-  }, [comunidadeId, carregar]);
+    let ativo = true;
+    buscarDadosPastorais(comunidadeId).then((dados) => {
+      if (!ativo) return;
+      setOvelhas(dados.ovelhas);
+      setEncontros(dados.encontros);
+      setPresencas(dados.presencas);
+      setFrutosPorOvelha(dados.frutos);
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [comunidadeId]);
 
   // Integração (P4a/P4b + Pessoas): abre o modal pré-preenchido quando chega de um contato/inscrito/pessoa
-  useEffect(() => {
+  useAoMudar([searchParams], () => {
     const nome = searchParams.get('nome');
     const pessoaId = searchParams.get('pessoaId');
     if (nome || pessoaId) {
@@ -91,9 +104,9 @@ export default function PastoralPage() {
       });
       setModalNova(true);
     }
-  }, [searchParams]);
+  });
 
-  const ativas = ovelhas.filter((o) => o.ativo);
+  const ativas = useMemo(() => ovelhas.filter((o) => o.ativo), [ovelhas]);
   const contagem = {
     total: ativas.length,
     crescendo: ativas.filter((o) => o.estado_espiritual === 'crescendo').length,

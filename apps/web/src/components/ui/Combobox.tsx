@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { ChevronDown, Search } from 'lucide-react';
 
 export interface ComboboxOption {
@@ -54,9 +55,9 @@ export function Combobox({
     return () => document.removeEventListener('mousedown', onClickFora);
   }, []);
 
-  useEffect(() => {
+  useAoMudar([busca, aberto], () => {
     setIndiceAtivo(0);
-  }, [busca, aberto]);
+  });
 
   function selecionar(opt: ComboboxOption) {
     onChange(opt.value);

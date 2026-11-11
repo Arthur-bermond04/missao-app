@@ -34,13 +34,15 @@ import type { InscricaoRetiro, Retiro, StatusRetiro } from '@/types/database';
 import { TituloCard } from '@/components/ui/TituloCard';
 import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
+const SEM_INSCRITOS: InscricaoRetiro[] = [];
+
 export default function RetirosPage() {
   const { usuario } = usePainelSession();
 
   const [retiros, setRetiros] = useState<Retiro[]>([]);
   const [contagemInscritos, setContagemInscritos] = useState<Record<string, number>>({});
   const [retiroSelecionadoId, setRetiroSelecionadoId] = useState<string | null>(null);
-  const [inscritos, setInscritos] = useState<InscricaoRetiro[]>([]);
+  const [inscritosCarregados, setInscritos] = useState<InscricaoRetiro[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [criandoRetiro, setCriandoRetiro] = useState(false);
   const [numGrupos, setNumGrupos] = useState('4');
@@ -66,16 +68,15 @@ export default function RetirosPage() {
   }, [usuario?.comunidade_id]);
 
   useEffect(() => {
-    if (!retiroSelecionadoId) {
-      setInscritos([]);
-      return;
-    }
+    if (!retiroSelecionadoId) return;
     listarInscritos(retiroSelecionadoId).then((lista) => {
       setInscritos(lista);
       const pessoaIds = lista.map((i) => i.pessoa_id).filter((id): id is string => !!id);
       pessoasComAcompanhamentoPastoral(pessoaIds).then(setPessoasAcompanhadas);
     });
   }, [retiroSelecionadoId]);
+
+  const inscritos = retiroSelecionadoId ? inscritosCarregados : SEM_INSCRITOS;
 
   const retiroSelecionado = useMemo(
     () => retiros.find((r) => r.id === retiroSelecionadoId) ?? null,
@@ -241,16 +242,14 @@ export default function RetirosPage() {
     return inscritos.filter((i) => (i.nome ?? '').toLowerCase().includes(termo));
   }, [inscritos, buscaCheckIn]);
 
-  const grupos = useMemo(() => {
+  const grupos = (() => {
     const mapa = new Map<string, InscricaoRetiro[]>();
     for (const i of inscritos) {
       if (!i.grupo) continue;
-      const lista = mapa.get(i.grupo) ?? [];
-      lista.push(i);
-      mapa.set(i.grupo, lista);
+      mapa.set(i.grupo, [...(mapa.get(i.grupo) ?? []), i]);
     }
     return Array.from(mapa.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [inscritos]);
+  })();
 
   const totalArrecadado = inscritos.reduce((s, i) => s + (i.valor_pago ?? 0), 0);
   const totalEsperado = (retiroSelecionado?.valor ?? 0) * (retiroSelecionado?.vagas ?? (inscritos.length || 1));

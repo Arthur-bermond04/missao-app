@@ -45,7 +45,6 @@ export default function AlertasPage() {
 
   const carregar = useCallback(async () => {
     if (!usuario?.comunidade_id) return;
-    setCarregando(true);
     try {
       const [lista, vistosSet] = await Promise.all([
         gerarAlertasCentral(usuario.comunidade_id, usuario),

@@ -226,7 +226,6 @@ export default function PerfilOvelhaPage({ params }: { params: Promise<{ id: str
   const [novaDataReuniao, setNovaDataReuniao] = useState('');
 
   const carregar = useCallback(() => {
-    setCarregando(true);
     Promise.all([
       buscarOvelha(id),
       listarEncontrosPastorais(id),

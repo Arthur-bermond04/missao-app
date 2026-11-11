@@ -102,15 +102,15 @@ export default function AgendaPage() {
 
   const intervalo = useMemo(() => intervaloVisivel(visao, ancora), [visao, ancora]);
 
+  const comunidadeId = usuario?.comunidade_id;
   const carregar = useCallback(() => {
-    if (!usuario?.comunidade_id) return;
-    setCarregando(true);
+    if (!comunidadeId) return;
     const busca =
       modo === 'calendario'
-        ? listarEventosPeriodo(usuario.comunidade_id, intervalo.de, intervalo.ate)
-        : listarEventosProprios(usuario.comunidade_id);
+        ? listarEventosPeriodo(comunidadeId, intervalo.de, intervalo.ate)
+        : listarEventosProprios(comunidadeId);
     busca.then(setEventos).finally(() => setCarregando(false));
-  }, [usuario?.comunidade_id, modo, intervalo.de, intervalo.ate]);
+  }, [comunidadeId, modo, intervalo.de, intervalo.ate]);
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;

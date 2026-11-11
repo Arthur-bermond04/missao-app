@@ -101,7 +101,6 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
   const [diaExpandido, setDiaExpandido] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
-    setCarregando(true);
     try {
       const [minhasOvelhas, { data: minhasPessoas }] = await Promise.all([
         listarOvelhasDoPastor(usuario.id),

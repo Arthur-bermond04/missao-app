@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext } from 'react';
+import { useArmazenamentoLocal } from '@/lib/hooksEstado';
 
 const CHAVE_STORAGE = 'missaoapp:sidebar-colapsada';
 
@@ -19,19 +20,11 @@ const SidebarLayoutCtx = createContext<SidebarLayoutValue | null>(null);
 export function SidebarLayoutProvider({ children }: { children: React.ReactNode }) {
   // Começa sempre expandida (mesmo valor do SSR) e só lê a preferência salva
   // depois de montar, pra não divergir do HTML que o servidor mandou.
-  const [colapsada, setColapsada] = useState(false);
-
-  useEffect(() => {
-    const salvo = localStorage.getItem(CHAVE_STORAGE);
-    if (salvo === '1') setColapsada(true);
-  }, []);
+  const [salvo, gravar] = useArmazenamentoLocal(CHAVE_STORAGE);
+  const colapsada = salvo === '1';
 
   function alternar() {
-    setColapsada((atual) => {
-      const novo = !atual;
-      localStorage.setItem(CHAVE_STORAGE, novo ? '1' : '0');
-      return novo;
-    });
+    gravar(colapsada ? '0' : '1');
   }
 
   return <SidebarLayoutCtx.Provider value={{ colapsada, alternar }}>{children}</SidebarLayoutCtx.Provider>;

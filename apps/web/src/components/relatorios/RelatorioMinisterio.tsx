@@ -25,7 +25,8 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
   const [encontros, setEncontros] = useState<MinisterioEncontro[]>([]);
   const [frequencias, setFrequencias] = useState<{ nome: string; freq: number }[]>([]);
   const [lancamentos, setLancamentos] = useState<LancamentoDetalhe[]>([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregadoPara, setCarregadoPara] = useState('');
+  const carregando = !!ministerioId && carregadoPara !== ministerioId;
 
   useEffect(() => {
     listarMinisterios(comunidadeId).then((lista) => {
@@ -36,7 +37,7 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
 
   useEffect(() => {
     if (!ministerioId) return;
-    setCarregando(true);
+    let ativo = true;
     Promise.all([
       listarEncontros(ministerioId),
       listarPresencasDoMinisterio(ministerioId),
@@ -45,6 +46,7 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
       listarFinanceiroMinisterio(ministerioId),
     ])
       .then(([enc, pres, membros, membrosPessoa, fin]) => {
+        if (!ativo) return;
         setEncontros(enc);
         const freq = calcularFrequencia(enc, pres);
         const todosMembros = [...membros, ...membrosPessoa].filter((m) => m.ativo);
@@ -55,7 +57,12 @@ export function RelatorioMinisterio({ comunidadeId }: { comunidadeId: string }) 
         );
         setLancamentos(fin);
       })
-      .finally(() => setCarregando(false));
+      .finally(() => {
+        if (ativo) setCarregadoPara(ministerioId);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [ministerioId]);
 
   const ministerio = ministerios.find((m) => m.id === ministerioId);

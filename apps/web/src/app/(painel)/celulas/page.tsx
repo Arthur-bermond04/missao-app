@@ -50,13 +50,13 @@ export default function CelulasPage() {
   const [detalhe, setDetalhe] = useState<CelulaComInfo | null>(null);
   const [paraDesativar, setParaDesativar] = useState<CelulaComInfo | null>(null);
 
+  const comunidadeId = usuario?.comunidade_id;
   const carregar = useCallback(() => {
-    if (!usuario?.comunidade_id) return;
-    setCarregando(true);
-    listarCelulas(usuario.comunidade_id)
+    if (!comunidadeId) return;
+    listarCelulas(comunidadeId)
       .then(setCelulas)
       .finally(() => setCarregando(false));
-  }, [usuario?.comunidade_id]);
+  }, [comunidadeId]);
 
   useEffect(() => {
     carregar();

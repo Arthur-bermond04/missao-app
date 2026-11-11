@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -30,13 +31,13 @@ export function EditarMembroModal({ membro, membros = [], onClose, onSalvo }: Ed
   const { usuario } = usePainelSession();
   const comunidadeId = usuario?.comunidade_id ?? null;
 
-  useEffect(() => {
+  useAoMudar([membro], () => {
     if (!membro) return;
     setNome(membro.nome);
     setTelefone(membro.telefone ?? '');
     setPerfil(membro.perfil);
     setSupervisorId(membro.supervisor_id ?? '');
-  }, [membro]);
+  });
 
   // Quem já está abaixo deste membro fica de fora da lista: escolher um deles
   // criaria ciclo e o trigger do banco recusaria o update.

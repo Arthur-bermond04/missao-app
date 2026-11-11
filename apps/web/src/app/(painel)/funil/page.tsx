@@ -45,7 +45,6 @@ export default function FunilPage() {
 
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
-    setCarregandoDados(true);
     Promise.all([
       supabase
         .from('pessoas')
@@ -84,14 +83,15 @@ export default function FunilPage() {
     });
   }, [pessoasFiltradas, terminologia]);
 
+  // Instante de referência para "travados": fixado na montagem (render puro).
+  const [agora] = useState(() => Date.now());
   const travados = useMemo(() => {
-    const agora = Date.now();
     return pessoasFiltradas.filter((p) => {
       if (p.etapa_jornada !== 'contato_inicial') return false;
       const dataAbordagem = new Date(p.data_primeiro_contato).getTime();
       return agora - dataAbordagem > TRINTA_DIAS_MS;
     });
-  }, [pessoasFiltradas]);
+  }, [pessoasFiltradas, agora]);
 
   const locaisMaisFrequentes = useMemo(() => {
     const contagem = new Map<string, number>();

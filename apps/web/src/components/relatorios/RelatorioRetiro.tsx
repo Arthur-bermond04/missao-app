@@ -13,7 +13,8 @@ export function RelatorioRetiro({ comunidadeId }: { comunidadeId: string }) {
   const [retiros, setRetiros] = useState<Retiro[]>([]);
   const [retiroId, setRetiroId] = useState('');
   const [inscritos, setInscritos] = useState<InscricaoRetiro[]>([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregadoPara, setCarregadoPara] = useState('');
+  const carregando = !!retiroId && carregadoPara !== retiroId;
 
   useEffect(() => {
     listarRetiros(comunidadeId).then((lista) => {
@@ -24,10 +25,17 @@ export function RelatorioRetiro({ comunidadeId }: { comunidadeId: string }) {
 
   useEffect(() => {
     if (!retiroId) return;
-    setCarregando(true);
+    let ativo = true;
     listarInscritos(retiroId)
-      .then(setInscritos)
-      .finally(() => setCarregando(false));
+      .then((lista) => {
+        if (ativo) setInscritos(lista);
+      })
+      .finally(() => {
+        if (ativo) setCarregadoPara(retiroId);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [retiroId]);
 
   const retiro = retiros.find((r) => r.id === retiroId);

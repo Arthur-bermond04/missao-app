@@ -41,7 +41,6 @@ export default function EquipePage() {
 
   function carregar() {
     if (!comunidadeId) return;
-    setCarregando(true);
     listarEquipeCargos(comunidadeId)
       .then(setCargos)
       .finally(() => setCarregando(false));

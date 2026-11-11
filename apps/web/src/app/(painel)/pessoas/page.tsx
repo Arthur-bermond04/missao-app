@@ -45,7 +45,6 @@ export default function PessoasPage() {
 
   const carregar = () => {
     if (!comunidadeId) return;
-    setCarregando(true);
     listarPessoas(comunidadeId).then((lista) => {
       setPessoas(lista);
       setCarregando(false);

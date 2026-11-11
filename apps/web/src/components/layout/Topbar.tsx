@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Calendar, ChevronRight, Menu } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useDataHoje } from '@/lib/hooksEstado';
 import { montarNavGrupos } from '@/lib/navegacao';
 import { useTerminologia } from '@/lib/terminologia';
 import { useSidebarLayout } from '@/lib/SidebarLayoutContext';
@@ -25,7 +26,7 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
   const { colapsada, alternar } = useSidebarLayout();
   const { usuario } = usePainelSession();
   const [comunidade, setComunidade] = useState<{ nome: string; plano: string } | null>(null);
-  const [hoje, setHoje] = useState('');
+  const hoje = useDataHoje();
 
   useEffect(() => {
     supabase
@@ -35,11 +36,6 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
       .single()
       .then(({ data }) => setComunidade((data as { nome: string; plano: string } | null) ?? null));
   }, [comunidadeId]);
-
-  // Só depois de montar: a data do servidor e a do navegador podem divergir.
-  useEffect(() => {
-    setHoje(new Date().toLocaleDateString('pt-BR'));
-  }, []);
 
   const nav = montarNavGrupos(terminologia).flatMap((g) => g.itens);
   const secaoAtual = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));

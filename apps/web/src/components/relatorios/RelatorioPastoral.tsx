@@ -16,13 +16,11 @@ export function RelatorioPastoral({ comunidadeId, isAdmin }: { comunidadeId: str
   const nomeOvelha = terminologia.nome_ovelha.toLowerCase();
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
   const [pastores, setPastores] = useState<Usuario[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const [carregandoDados, setCarregando] = useState(true);
+  const carregando = carregandoDados && isAdmin;
 
   useEffect(() => {
-    if (!isAdmin) {
-      setCarregando(false);
-      return;
-    }
+    if (!isAdmin) return;
     Promise.all([
       listarOvelhas(comunidadeId),
       supabase.from('usuarios').select('*').eq('comunidade_id', comunidadeId),

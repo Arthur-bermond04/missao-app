@@ -20,7 +20,6 @@ export function HistoricoEncontrosCelula({ celulaId, recarregarChave }: { celula
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    setCarregando(true);
     Promise.all([listarEncontrosCelula(celulaId), listarPresencasDaCelula(celulaId), listarFrequenciaCelula(celulaId)])
       .then(([enc, presencas, freq]) => {
         setEncontros(enc);

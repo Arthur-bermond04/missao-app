@@ -24,18 +24,25 @@ export function PainelMembro({
   const [contatosRecentes, setContatosRecentes] = useState<Pessoa[]>([]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ovelhas, setOvelhas] = useState<PastoralOvelha[]>([]);
-  const [nomeSupervisor, setNomeSupervisor] = useState<string | null>(null);
+  const [supervisorCarregado, setSupervisorCarregado] = useState<{ id: string; nome: string | null } | null>(null);
+  const supervisorId = membro?.supervisor_id ?? null;
+  const nomeSupervisor = supervisorCarregado && supervisorCarregado.id === supervisorId ? supervisorCarregado.nome : null;
 
   useEffect(() => {
-    setNomeSupervisor(null);
-    if (!membro?.supervisor_id) return;
+    if (!supervisorId) return;
+    let ativo = true;
     supabase
       .from('usuarios')
       .select('nome')
-      .eq('id', membro.supervisor_id)
+      .eq('id', supervisorId)
       .single()
-      .then(({ data }) => setNomeSupervisor((data as { nome: string } | null)?.nome ?? null));
-  }, [membro?.supervisor_id]);
+      .then(({ data }) => {
+        if (ativo) setSupervisorCarregado({ id: supervisorId, nome: (data as { nome: string } | null)?.nome ?? null });
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [supervisorId]);
 
   useEffect(() => {
     if (!membro) return;

@@ -1,5 +1,6 @@
 'use client';
 
+import { useAoMudar } from '@/lib/hooksEstado';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
@@ -35,13 +36,18 @@ export function BuscaGlobal({
   const [buscando, setBuscando] = useState(false);
   const [indiceAtivo, setIndiceAtivo] = useState(0);
 
-  useEffect(() => {
+  useAoMudar([open], () => {
     if (open) {
       setTermo('');
       setResultados([]);
       setIndiceAtivo(0);
-      setTimeout(() => inputRef.current?.focus(), 30);
     }
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => inputRef.current?.focus(), 30);
+    return () => clearTimeout(t);
   }, [open]);
 
   useEffect(() => {

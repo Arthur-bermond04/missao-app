@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAoMudar } from '@/lib/hooksEstado';
 import Link from 'next/link';
 import {
   AlertTriangle,
@@ -241,15 +242,16 @@ export default function GuiaPage() {
   const [funcao, setFuncao] = useState<Perfil | null>(null);
   const [aba, setAba] = useState<Aba>('trilha');
   const [seletorAberto, setSeletorAberto] = useState(false);
-  const [irPara, setIrPara] = useState<string | null>(null);
+  const alvoRef = useRef<string | null>(null);
+  const [pedidoScroll, setPedidoScroll] = useState(0);
 
   const usuarioId = usuario?.id;
 
-  useEffect(() => {
+  useAoMudar([usuarioId], () => {
     if (!usuarioId) return;
     setConcluidos(lerProgresso(usuarioId));
     setFuncao(lerFuncao(usuarioId));
-  }, [usuarioId]);
+  });
 
   // Só entram os tutoriais dos módulos que o perfil logado pode ver.
   const secoesVisiveis = useMemo(
@@ -299,15 +301,15 @@ export default function GuiaPage() {
   function abrirSecao(id: string) {
     setBusca('');
     setAba('todos');
-    setIrPara(id);
+    alvoRef.current = id;
+    setPedidoScroll((n) => n + 1);
   }
 
   useEffect(() => {
-    if (!irPara || aba !== 'todos') return;
-    const el = document.getElementById(irPara);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setIrPara(null);
-  }, [irPara, aba, busca]);
+    if (!alvoRef.current || aba !== 'todos') return;
+    document.getElementById(alvoRef.current)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    alvoRef.current = null;
+  }, [pedidoScroll, aba]);
 
   const glossario = useMemo(() => montarGlossario(terminologia), [terminologia]);
 

@@ -50,7 +50,6 @@ export default function MembrosPage() {
   function carregar() {
     if (!usuario?.comunidade_id) return;
     const comunidadeId = usuario.comunidade_id;
-    setCarregando(true);
     listarMembros(comunidadeId)
       .then(setMembros)
       .finally(() => setCarregando(false));

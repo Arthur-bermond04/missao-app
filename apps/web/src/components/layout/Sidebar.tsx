@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAoMudar, useArmazenamentoLocal } from '@/lib/hooksEstado';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight, Search } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { usePainelSession } from '@/lib/PainelSessionContext';
 import { useTerminologia } from '@/lib/terminologia';
 import { useSidebarLayout } from '@/lib/SidebarLayoutContext';
@@ -42,18 +42,7 @@ export function Sidebar() {
   // encolhida manualmente — em md (sempre estreita) o toggle não tem efeito
   // nenhum, de propósito: não há o que "expandir" abaixo de lg.
   const mostrarTexto = !colapsada;
-  const [nomeComunidade, setNomeComunidade] = useState('');
   const [buscaAberta, setBuscaAberta] = useState(false);
-
-  useEffect(() => {
-    if (!usuario?.comunidade_id) return;
-    supabase
-      .from('comunidades')
-      .select('nome')
-      .eq('id', usuario.comunidade_id)
-      .single()
-      .then(({ data }) => setNomeComunidade((data as { nome: string } | null)?.nome ?? ''));
-  }, [usuario?.comunidade_id]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -70,27 +59,26 @@ export function Sidebar() {
   // continuar como a pessoa deixou. Começa vazio (igual ao HTML do servidor) e
   // só lê a preferência depois de montar.
   const [abertos, setAbertos] = useState<Set<string>>(new Set());
-  useEffect(() => {
+  const [gruposSalvos, gravarGrupos] = useArmazenamentoLocal(CHAVE_GRUPOS);
+  useAoMudar([gruposSalvos], () => {
+    if (!gruposSalvos) return;
     try {
-      const salvo = JSON.parse(localStorage.getItem(CHAVE_GRUPOS) ?? '[]');
-      if (Array.isArray(salvo)) setAbertos(new Set(salvo.filter((t): t is string => typeof t === 'string')));
+      const salvo = JSON.parse(gruposSalvos);
+      if (Array.isArray(salvo)) {
+        const titulos = salvo.filter((t): t is string => typeof t === 'string');
+        setAbertos((atual) => new Set([...titulos, ...atual]));
+      }
     } catch {
-      // sem localStorage: o menu funciona do mesmo jeito, só não lembra
+      // valor inválido: ignora e usa o padrão
     }
-  }, []);
+  });
 
   function alternarGrupo(titulo: string) {
-    setAbertos((atual) => {
-      const novo = new Set(atual);
-      if (novo.has(titulo)) novo.delete(titulo);
-      else novo.add(titulo);
-      try {
-        localStorage.setItem(CHAVE_GRUPOS, JSON.stringify([...novo]));
-      } catch {
-        // idem
-      }
-      return novo;
-    });
+    const novo = new Set(abertos);
+    if (novo.has(titulo)) novo.delete(titulo);
+    else novo.add(titulo);
+    setAbertos(novo);
+    gravarGrupos(JSON.stringify([...novo]));
   }
 
   // Esconde da navegação os itens cujo módulo o perfil logado não pode ver,
@@ -112,10 +100,10 @@ export function Sidebar() {
 
   // Ao navegar, o grupo da página atual abre sozinho.
   const grupoAtivo = gruposVisiveis.find((g) => g.itens.some((i) => i.href === hrefAtivo))?.titulo;
-  useEffect(() => {
+  useAoMudar([grupoAtivo], () => {
     if (!grupoAtivo) return;
     setAbertos((atual) => (atual.has(grupoAtivo) ? atual : new Set(atual).add(grupoAtivo)));
-  }, [grupoAtivo]);
+  });
 
   return (
     <aside
