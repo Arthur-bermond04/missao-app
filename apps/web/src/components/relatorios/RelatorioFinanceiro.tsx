@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { listarFinanceiro } from '@/lib/financeiro';
 import type { Financeiro } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 export function RelatorioFinanceiro({ comunidadeId }: { comunidadeId: string }) {
   const [lancamentos, setLancamentos] = useState<Financeiro[]>([]);
@@ -63,9 +64,7 @@ export function RelatorioFinanceiro({ comunidadeId }: { comunidadeId: string }) 
   }
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -118,22 +117,22 @@ export function RelatorioFinanceiro({ comunidadeId }: { comunidadeId: string }) 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Receita total</p>
-              <p className="text-2xl font-extrabold text-accent">R$ {dre.receita.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-accent">R$ {dre.receita.toFixed(2)}</p>
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Despesa total</p>
-              <p className="text-2xl font-extrabold text-danger">R$ {dre.despesa.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-danger">R$ {dre.despesa.toFixed(2)}</p>
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-sm text-text-secondary">Saldo</p>
-              <p className={`text-2xl font-extrabold ${dre.saldo >= 0 ? 'text-accent' : 'text-danger'}`}>
+              <p className={`text-2xl font-semibold ${dre.saldo >= 0 ? 'text-accent' : 'text-danger'}`}>
                 R$ {dre.saldo.toFixed(2)}
               </p>
             </div>
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-bold text-text-primary">Por categoria</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Por categoria</h3>
             {porCategoria.length === 0 ? (
               <p className="text-sm text-text-secondary">Nenhum lançamento no período.</p>
             ) : (

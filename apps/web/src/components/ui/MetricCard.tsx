@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { IconeCaixa, type TomIcone } from '@/components/ui/IconeCaixa';
 
 interface MetricCardProps {
   icon: LucideIcon;
@@ -13,22 +14,22 @@ interface MetricCardProps {
   valorClassName?: string;
 }
 
-const ICON_STYLES: Record<MetricCardProps['iconColor'], string> = {
-  primary: 'bg-primary-xlight text-primary',
-  accent: 'bg-accent-green-bg text-success',
-  warning: 'bg-warning-light text-warning',
-  danger: 'bg-danger-light text-danger',
-  info: 'bg-info-light text-info',
+// primary = pessoas/contagens (azul) · accent = dinheiro e positivo (esmeralda) ·
+// warning = atenção (âmbar) · danger = problema (vermelho) · info = saldo e dados (azul).
+const TOM_DA_COR: Record<MetricCardProps['iconColor'], TomIcone> = {
+  primary: 'azul',
+  accent: 'esmeralda',
+  warning: 'ambar',
+  danger: 'danger',
+  info: 'azul',
 };
 
 export function MetricCard({ icon: Icon, iconColor, label, value, delta, subtitle, valorClassName }: MetricCardProps) {
   return (
-    <div className="rounded-md bg-bg-card p-4 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-hover">
-      <div className={`flex h-8 w-8 items-center justify-center rounded-full ${ICON_STYLES[iconColor]}`}>
-        <Icon size={16} />
-      </div>
-      <p className="mt-3 text-xs font-semibold text-text-secondary">{label}</p>
-      <p className={`mt-1 text-2xl font-extrabold ${valorClassName ?? 'text-text-primary'}`}>{value}</p>
+    <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+      <IconeCaixa icon={Icon} tom={TOM_DA_COR[iconColor]} tamanho="md" />
+      <p className="mt-4 text-xs font-medium text-text-secondary">{label}</p>
+      <p className={`mt-1 text-2xl font-semibold tabular-nums tracking-tight ${valorClassName ?? 'text-text-primary'}`}>{value}</p>
       {!!subtitle && <p className="mt-0.5 text-xs text-text-secondary">{subtitle}</p>}
       {delta !== undefined && Number.isFinite(delta.value) && (
         <p className={`mt-1 text-xs font-semibold ${delta.value >= 0 ? 'text-success' : 'text-danger'}`}>

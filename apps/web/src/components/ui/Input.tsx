@@ -20,7 +20,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div>
         {!!label && (
-          <label htmlFor={inputId} className="mb-1 block text-xs font-semibold text-text-secondary">
+          <label htmlFor={inputId} className="mb-1.5 block text-xs font-medium text-text-secondary">
             {label}
           </label>
         )}
@@ -32,12 +32,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             type={ehSenha ? (mostrarSenha ? 'text' : 'password') : type}
-            className={`w-full rounded-sm border-[1.5px] px-3 py-2.5 text-sm outline-none transition-colors ${
+            className={`h-10 w-full rounded-lg border bg-bg-card px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted ${
               Icon ? 'pl-9' : ''
             } ${ehSenha ? 'pr-9' : ''} ${
               error
-                ? 'border-danger focus:border-danger focus:ring-[3px] focus:ring-danger/10'
-                : 'border-border focus:border-accent-green focus:ring-[3px] focus:ring-accent-green/10'
+                ? 'border-danger focus:border-danger focus:ring-2 focus:ring-danger/20'
+                : 'border-border hover:border-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20'
             } ${className}`}
             {...rest}
           />

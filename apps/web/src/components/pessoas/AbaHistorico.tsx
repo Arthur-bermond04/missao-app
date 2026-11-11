@@ -44,7 +44,7 @@ export function AbaHistorico({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-text-primary">Retiros e formações</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Retiros e formações</h3>
         <Button size="sm" variant="secondary" icon={Plus} onClick={() => setMostrarForm((v) => !v)}>
           Adicionar ao histórico
         </Button>

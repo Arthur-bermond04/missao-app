@@ -112,7 +112,7 @@ export function PainelContato({
           </Button>
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+        <div className="flex flex-wrap gap-2 border-t border-border-soft pt-4">
           <Link
             href={`/pessoas/${contato.id}`}
             className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
@@ -130,7 +130,7 @@ export function PainelContato({
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">Histórico de interações</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">Histórico de interações</p>
           {interacoes.length === 0 ? (
             <p className="text-sm text-text-secondary">Nenhuma interação registrada ainda.</p>
           ) : (

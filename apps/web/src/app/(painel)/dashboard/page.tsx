@@ -16,7 +16,7 @@ export default function DashboardPage() {
   if (!usuario) {
     return (
       <div className="mx-auto max-w-6xl">
-        <PageHeader icon={LayoutDashboard} title="Dashboard" subtitle="Carregando..." />
+        <PageHeader icon={LayoutDashboard} tom="esmeralda" title="Dashboard" subtitle="Carregando..." />
       </div>
     );
   }
@@ -27,6 +27,7 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={LayoutDashboard}
+        tom="esmeralda"
         title="Dashboard"
         subtitle={modoGestao ? 'Visão geral da missão' : 'Seu dia na missão'}
       />

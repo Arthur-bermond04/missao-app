@@ -20,6 +20,7 @@ import { buscarComunidade } from '@/lib/comunidades';
 import { filtrarPessoas, listarPessoas, ordenarPorUrgencia, proximoContatoVencido, type FiltrosPessoas } from '@/lib/pessoas';
 import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
 import { ETAPAS_JORNADA_PESSOA, ORIGENS_PESSOA, type Comunidade, type Pessoa, type Usuario } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 export default function PessoasPage() {
   const { usuario } = usePainelSession();
@@ -96,6 +97,7 @@ export default function PessoasPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={IdCard}
+        tom="azul"
         title="Pessoas"
         subtitle="Cadastro central da comunidade"
         actions={<Button icon={UserPlus} onClick={handleNovaPessoa}>Nova pessoa</Button>}
@@ -133,7 +135,7 @@ export default function PessoasPage() {
       </div>
 
       {/* Filtros */}
-      <div className="mt-6 flex flex-wrap items-end gap-3 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         <div className="min-w-[200px] flex-1">
           <Input
             label="Buscar"
@@ -196,10 +198,10 @@ export default function PessoasPage() {
       </div>
 
       {/* Lista */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="pessoas">
           {carregando ? 'Carregando...' : `${filtradas.length} pessoa${filtradas.length === 1 ? '' : 's'}`}
-        </h2>
+        </TituloCard>
         {!carregando && filtradas.length === 0 ? (
           <EmptyState
             icon={IdCard}
@@ -223,7 +225,7 @@ export default function PessoasPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-xs font-bold text-primary-dark">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-xs font-semibold text-primary-dark">
                         {p.foto_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.foto_url} alt={p.nome} className="h-full w-full object-cover" />

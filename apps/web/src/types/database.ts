@@ -43,6 +43,17 @@ export interface Permissao {
   criado_em: string;
 }
 
+/** Ajuste de permissão de UM usuário. Vence o ajuste da comunidade e o padrão do sistema. */
+export interface UsuarioPermissao {
+  id: string;
+  comunidade_id: string;
+  usuario_id: string;
+  modulo: string;
+  acao: AcaoPermissao;
+  permitido: boolean;
+  criado_em: string;
+}
+
 export interface HorarioMissa {
   dia_semana: string;
   horario: string;

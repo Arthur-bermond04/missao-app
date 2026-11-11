@@ -7,7 +7,7 @@ interface PreviaMensagemProps {
   corpo: string;
 }
 
-// Cores do WhatsApp, não do MissãoApp — a prévia só é útil se parecer com o
+// Cores do WhatsApp, não do MissãoWeb — a prévia só é útil se parecer com o
 // app de destino. Por isso ficam fora dos tokens do design system, de
 // propósito: trocá-las pelo verde da marca tornaria a prévia menos fiel.
 const WHATSAPP_FUNDO = '#E5F5EA';
@@ -41,7 +41,7 @@ export function PreviaMensagem({ canal, titulo, corpo }: PreviaMensagemProps) {
           <Bell size={16} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-text-primary">{titulo || 'MissãoApp'}</p>
+          <p className="truncate text-sm font-semibold text-text-primary">{titulo || 'MissãoWeb'}</p>
           <p className="line-clamp-2 text-xs text-text-secondary">{corpoExibido}</p>
         </div>
       </div>

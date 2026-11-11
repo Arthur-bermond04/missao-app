@@ -66,7 +66,7 @@ export function UserMenu() {
         aria-haspopup="menu"
         className="flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-sidebar-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-green text-xs font-bold text-white">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-destaque text-[11px] font-semibold text-destaque-texto">
           {iniciais(usuario.nome)}
         </span>
         <span className="hidden min-w-0 text-left md:block">
@@ -81,9 +81,9 @@ export function UserMenu() {
       {aberto && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-30 mt-2 w-64 overflow-hidden rounded-md border border-border bg-bg-card shadow-hover"
+          className="absolute right-0 top-full z-30 mt-2 w-64 overflow-hidden rounded-xl border border-border-soft bg-bg-card shadow-pop"
         >
-          <div className="border-b border-border px-3 py-3">
+          <div className="border-b border-border-soft px-3 py-3">
             <p className="truncate text-sm font-semibold text-text-primary">{usuario.nome}</p>
             <p className="text-xs text-text-secondary">{PERFIL_LABEL[usuario.perfil]}</p>
           </div>
@@ -95,7 +95,7 @@ export function UserMenu() {
             <Settings size={16} className="shrink-0 text-text-secondary" />
             Configurações
           </Link>
-          <button type="button" role="menuitem" onClick={handleSair} className={`${itemClasse} border-t border-border text-danger`}>
+          <button type="button" role="menuitem" onClick={handleSair} className={`${itemClasse} border-t border-border-soft text-danger`}>
             <LogOut size={16} className="shrink-0" />
             Sair
           </button>

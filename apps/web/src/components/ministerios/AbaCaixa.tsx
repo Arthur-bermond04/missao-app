@@ -84,7 +84,7 @@ export function AbaCaixa({ ministerio, comunidadeId, lancamentos, pessoas, onRef
         <Button variant="success" size="sm" onClick={() => setModalTipo('receita')}>
           + Receita
         </Button>
-        <Button variant="danger" size="sm" onClick={() => setModalTipo('despesa')}>
+        <Button variant="secondary" size="sm" onClick={() => setModalTipo('despesa')}>
           - Despesa
         </Button>
         <Button variant="secondary" size="sm" onClick={exportarExcel}>

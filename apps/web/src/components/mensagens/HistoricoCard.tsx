@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Bell, MessageCircle, Mail, Smartphone, ChevronDown, type LucideIcon } from 'lucide-react';
 import type { Canal, MensagemEnviada } from '@/types/database';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
 const ICONE_CANAL: Record<Canal, LucideIcon> = {
   push: Bell,
@@ -22,9 +23,7 @@ export function HistoricoCard({ mensagem }: { mensagem: MensagemEnviada }) {
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-xlight text-primary">
-            <Icon size={16} />
-          </div>
+          <IconeCaixa icon={Icon} tamanho="sm" />
           <div>
             <p className="text-sm font-semibold text-text-primary">{mensagem.titulo || mensagem.corpo.slice(0, 40)}</p>
             <p className="text-xs text-text-secondary">
@@ -40,7 +39,7 @@ export function HistoricoCard({ mensagem }: { mensagem: MensagemEnviada }) {
         </div>
       </button>
       {aberto && (
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-t border-border-soft px-4 py-3">
           <p className="text-sm text-text-primary">{mensagem.corpo}</p>
         </div>
       )}

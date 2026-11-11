@@ -49,7 +49,7 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
 
   return (
     <div
-      className={`sticky top-0 z-20 flex h-16 items-center gap-3 bg-topbar-bg px-3 md:ml-[72px] md:px-5 ${
+      className={`sticky top-0 z-20 flex h-14 items-center gap-3 bg-topbar-bg px-3 md:ml-[72px] md:px-5 ${
         colapsada ? '' : 'lg:ml-[264px]'
       }`}
     >
@@ -69,15 +69,15 @@ export function Topbar({ comunidadeId, onAbrirDrawer }: { comunidadeId: string; 
       </button>
 
       {comunidade && (
-        <div className="flex min-w-0 items-center gap-2.5 rounded-md border border-sidebar-border bg-white/5 py-1.5 pl-1.5 pr-4">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-green text-xs font-bold text-white">
+        <div className="flex min-w-0 items-center gap-2 rounded-md border border-sidebar-border bg-white/5 py-1 pl-1 pr-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-destaque text-[9px] font-semibold text-destaque-texto">
             {iniciaisComunidade(comunidade.nome)}
           </span>
           <span className="hidden min-w-0 sm:block">
-            <span className="block max-w-[240px] truncate text-[13px] font-semibold leading-tight text-sidebar-text-active">
+            <span className="block max-w-[240px] truncate text-[12px] font-semibold leading-tight text-sidebar-text-active">
               {comunidade.nome}
             </span>
-            <span className="block truncate text-[11px] leading-tight text-sidebar-text">
+            <span className="block truncate text-[10px] leading-tight text-sidebar-text">
               Plano {PLANO_LABEL[comunidade.plano] ?? comunidade.plano}
               {usuario ? ` · ${usuario.nome.split(' ')[0]}` : ''}
             </span>

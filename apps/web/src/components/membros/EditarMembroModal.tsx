@@ -5,6 +5,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { ResumoFuncao } from '@/components/membros/ResumoFuncao';
+import { usePainelSession } from '@/lib/PainelSessionContext';
 import { atualizarMembro, candidatosASupervisor, PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
 import type { Perfil, Usuario } from '@/types/database';
@@ -25,6 +27,8 @@ export function EditarMembroModal({ membro, membros = [], onClose, onSalvo }: Ed
   const [perfil, setPerfil] = useState<Perfil>('missionario');
   const [supervisorId, setSupervisorId] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const { usuario } = usePainelSession();
+  const comunidadeId = usuario?.comunidade_id ?? null;
 
   useEffect(() => {
     if (!membro) return;
@@ -70,16 +74,19 @@ export function EditarMembroModal({ membro, membros = [], onClose, onSalvo }: Ed
   }
 
   return (
-    <Modal open={!!membro} onClose={onClose} title="Editar membro">
+    <Modal open={!!membro} onClose={onClose} title="Editar membro" size="lg">
       <form onSubmit={handleSalvar} className="space-y-3">
         <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
         <Input label="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
-        <Select
-          label="Perfil"
-          value={perfil}
-          onChange={(e) => setPerfil(e.target.value as Perfil)}
-          options={OPCOES_PERFIL}
-        />
+        <div className="space-y-2">
+          <Select
+            label="Função"
+            value={perfil}
+            onChange={(e) => setPerfil(e.target.value as Perfil)}
+            options={OPCOES_PERFIL}
+          />
+          {comunidadeId && <ResumoFuncao perfil={perfil} comunidadeId={comunidadeId} />}
+        </div>
         <div>
           <Select
             label="Supervisor"

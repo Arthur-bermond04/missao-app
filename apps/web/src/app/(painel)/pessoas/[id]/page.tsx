@@ -120,6 +120,7 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
 
       <PageHeader
         icon={IdCard}
+        tom="azul"
         title={pessoa.nome}
         subtitle="Cadastro central de pessoas"
         actions={
@@ -163,9 +164,9 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
       />
 
       {/* Header info */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-lg font-bold text-primary-dark">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-xlight text-lg font-semibold text-primary-dark">
             {pessoa.foto_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={pessoa.foto_url} alt={pessoa.nome} className="h-full w-full object-cover" />
@@ -175,7 +176,7 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-bold text-text-primary">{pessoa.nome}</h2>
+              <h2 className="text-lg font-semibold text-text-primary">{pessoa.nome}</h2>
               <EtapaJornadaBadge etapa={pessoa.etapa_jornada} />
               <Badge variant={pessoa.nivel_interesse} />
             </div>
@@ -202,7 +203,7 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Abas */}
-      <div className="mt-6 flex gap-1 border-b border-border">
+      <div className="mt-6 flex gap-1 border-b border-border-soft">
         {ABAS.map((a) => (
           <button
             key={a.valor}
@@ -218,7 +219,7 @@ export default function PerfilPessoaPage({ params }: { params: Promise<{ id: str
         ))}
       </div>
 
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         {aba === 'resumo' && (
           <AbaResumo pessoa={pessoa} onAtualizada={setPessoa} ovelha={ovelha} ministerios={ministeriosDaPessoa} />
         )}

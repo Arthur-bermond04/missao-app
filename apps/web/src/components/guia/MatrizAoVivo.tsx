@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { usePainelSession } from '@/lib/PainelSessionContext';
-import { listarModulos, listarPermissoes, podeNaMatriz, resolverMatriz, type MatrizPermissoes } from '@/lib/permissoes';
+import {
+  listarModulos,
+  listarPermissoes,
+  podeNaMatriz,
+  resolverMatriz,
+  rotuloModulo,
+  type MatrizPermissoes,
+} from '@/lib/permissoes';
 import type { AcaoPermissao, Perfil, PermissaoModulo } from '@/types/database';
 
 const PERFIS: { chave: Perfil; label: string }[] = [
@@ -87,9 +94,9 @@ export function MatrizAoVivo() {
           </thead>
           <tbody>
             {modulos.map((m) => (
-              <tr key={m.chave} className="border-t border-border">
+              <tr key={m.chave} className="border-t border-border-soft">
                 <th scope="row" className="px-3 py-2 text-left font-medium text-text-primary">
-                  {m.nome}
+                  {rotuloModulo(m.nome)}
                 </th>
                 {PERFIS.map((p) => (
                   <td key={p.chave} className={`px-3 py-2 ${p.chave === usuario?.perfil ? 'bg-primary-xlight/50' : ''}`}>
@@ -100,7 +107,7 @@ export function MatrizAoVivo() {
                           <span
                             key={a}
                             title={`${p.label}: ${ACAO_NOME[a]} ${ok ? 'permitido' : 'não permitido'}`}
-                            className={`inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${
+                            className={`inline-flex h-5 w-5 items-center justify-center rounded text-[11px] font-semibold ${
                               ok ? 'bg-primary text-white' : 'bg-neutral-light text-text-muted'
                             }`}
                           >

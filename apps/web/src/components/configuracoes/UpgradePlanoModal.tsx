@@ -38,8 +38,8 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
   const planos = montarPlanos(`${terminologia.nome_ovelha}s`);
 
   function abrirEmail(nomePlano: string) {
-    const assunto = encodeURIComponent(`Upgrade do MissãoApp para o plano ${nomePlano}`);
-    const corpo = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoApp para o plano ${nomePlano}.`);
+    const assunto = encodeURIComponent(`Upgrade do MissãoWeb para o plano ${nomePlano}`);
+    const corpo = encodeURIComponent(`Olá! Quero fazer upgrade do MissãoWeb para o plano ${nomePlano}.`);
     window.location.href = `mailto:${EMAIL_UPGRADE}?subject=${assunto}&body=${corpo}`;
   }
 
@@ -49,8 +49,8 @@ export function UpgradePlanoModal({ open, onClose, planoAtual }: { open: boolean
         {planos.map((p) => {
           const conteudo = (
             <>
-              <p className="text-sm font-bold text-text-primary">{p.nome}</p>
-              <p className="mt-1 text-lg font-extrabold text-primary">{p.preco}</p>
+              <p className="text-sm font-semibold text-text-primary">{p.nome}</p>
+              <p className="mt-1 text-lg font-semibold text-primary">{p.preco}</p>
               <ul className="mt-3 space-y-1.5">
                 {p.recursos.map((r) => (
                   <li key={r} className="flex items-start gap-1.5 text-xs text-text-secondary">

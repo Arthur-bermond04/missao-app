@@ -104,8 +104,8 @@ export default function AuditoriaPage() {
   if (!podeVer) {
     return (
       <div className="mx-auto max-w-3xl">
-        <PageHeader icon={ScrollText} title="Auditoria" subtitle="Histórico de alterações da comunidade" />
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <PageHeader icon={ScrollText} tom="neutro" title="Auditoria" subtitle="Histórico de alterações da comunidade" />
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <EmptyState
             icon={ShieldAlert}
             title="Sem acesso à auditoria"
@@ -120,6 +120,7 @@ export default function AuditoriaPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={ScrollText}
+        tom="neutro"
         title="Auditoria"
         subtitle="Quem alterou o quê, quando — registro imutável"
         actions={
@@ -131,7 +132,7 @@ export default function AuditoriaPage() {
         }
       />
 
-      <div className="mt-6 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Select label="Módulo" value={tabela} onChange={(e) => setTabela(e.target.value)} options={OPCOES_TABELA} />
           <Select
@@ -162,7 +163,7 @@ export default function AuditoriaPage() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-4 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         {carregando ? (
           <p className="py-6 text-center text-sm text-text-secondary">Carregando...</p>
         ) : (

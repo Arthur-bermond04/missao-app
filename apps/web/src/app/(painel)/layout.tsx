@@ -1,16 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { PainelSessionProvider, usePainelSession } from '@/lib/PainelSessionContext';
 import { SidebarLayoutProvider, useSidebarLayout } from '@/lib/SidebarLayoutContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNavDrawer } from '@/components/layout/MobileNavDrawer';
 import { Topbar } from '@/components/layout/Topbar';
+import { SemAcesso } from '@/components/layout/SemAcesso';
+import { moduloDaRota } from '@/lib/navegacao';
+import { useTerminologia } from '@/lib/terminologia';
 
 function PainelShell({ children }: { children: React.ReactNode }) {
-  const { session, usuario, carregando } = usePainelSession();
+  const { session, usuario, carregando, pode, permissoesCarregando } = usePainelSession();
+  const pathname = usePathname();
+  const terminologia = useTerminologia();
   const { colapsada } = useSidebarLayout();
   const router = useRouter();
   const [drawerAberto, setDrawerAberto] = useState(false);
@@ -18,6 +23,11 @@ function PainelShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!carregando && !session) router.replace('/login');
   }, [carregando, session, router]);
+
+  // Guarda de rota: o menu esconde o item, mas quem digita o endereço também
+  // precisa ser barrado. Só decide depois que a matriz carregou, para não piscar.
+  const modulo = moduloDaRota(pathname, terminologia);
+  const bloqueado = !!modulo && !permissoesCarregando && !pode(modulo, 'ver');
 
   if (carregando || !session) {
     return <div className="flex min-h-screen items-center justify-center text-text-secondary">Carregando...</div>;
@@ -39,14 +49,14 @@ function PainelShell({ children }: { children: React.ReactNode }) {
           >
             <Menu size={22} />
           </button>
-          <span className="text-lg font-semibold text-sidebar-text-active">MissãoApp</span>
+          <span className="text-lg font-semibold text-sidebar-text-active">MissãoWeb</span>
         </div>
       )}
 
       <main
-        className={`min-h-screen bg-content-bg p-4 md:ml-[72px] md:p-6 lg:p-8 ${colapsada ? '' : 'lg:ml-[264px]'}`}
+        className={`escala-compacta min-h-screen bg-content-bg p-4 md:ml-[72px] md:p-6 lg:p-8 ${colapsada ? '' : 'lg:ml-[264px]'}`}
       >
-        {children}
+        {bloqueado ? <SemAcesso /> : children}
       </main>
     </>
   );

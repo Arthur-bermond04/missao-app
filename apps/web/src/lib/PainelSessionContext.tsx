@@ -3,13 +3,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/lib/useSession';
 import {
+  aplicarAjustesDoUsuario,
   listarPermissoes,
+  listarPermissoesDoUsuario,
   podeNaMatriz,
   podeNoLegado,
   resolverMatriz,
   type MatrizPermissoes,
 } from '@/lib/permissoes';
-import type { AcaoPermissao } from '@/types/database';
+import { supabase } from '@/lib/supabase';
+import { aplicarCorDestaque, carregarCorDestaque } from '@/lib/aparencia';
+import { TERMINOLOGIA_PADRAO, type AcaoPermissao, type Terminologia } from '@/types/database';
 
 type PainelSession = ReturnType<typeof useSession> & {
   /** Matriz de permissões do perfil do usuário logado. */
@@ -26,6 +30,13 @@ type PainelSession = ReturnType<typeof useSession> & {
    * rodou neste banco.
    */
   permissoesIndisponiveis: boolean;
+  /**
+   * Nomes configuráveis da comunidade (etapas, pastor, ovelha, módulos). Lida uma
+   * vez aqui — antes cada componente que usava o hook fazia a sua própria consulta.
+   */
+  terminologia: Terminologia;
+  /** Releia depois de salvar a terminologia em Configurações. */
+  recarregarTerminologia: () => Promise<void>;
 };
 
 const PainelSessionCtx = createContext<PainelSession | null>(null);
@@ -35,10 +46,12 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
   const [permissoes, setPermissoes] = useState<MatrizPermissoes>({});
   const [permissoesCarregando, setPermissoesCarregando] = useState(true);
   const [permissoesIndisponiveis, setPermissoesIndisponiveis] = useState(false);
+  const [terminologia, setTerminologia] = useState<Terminologia>(TERMINOLOGIA_PADRAO);
 
   const { usuario } = sessionData;
   const comunidadeId = usuario?.comunidade_id ?? null;
   const perfil = usuario?.perfil ?? null;
+  const usuarioId = usuario?.id ?? null;
 
   useEffect(() => {
     if (!comunidadeId || !perfil) {
@@ -51,8 +64,13 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
     }
     let cancelado = false;
     setPermissoesCarregando(true);
-    listarPermissoes(comunidadeId)
-      .then((lista) => {
+    // Ajustes do próprio usuário (nível mais específico). Se a tabela ainda
+    // não existe neste banco, segue só com o perfil — igual ao comportamento antigo.
+    Promise.all([
+      listarPermissoes(comunidadeId),
+      usuarioId ? listarPermissoesDoUsuario(usuarioId).catch(() => []) : Promise.resolve([]),
+    ])
+      .then(([lista, ajustes]) => {
         if (cancelado) return;
         // Lista vazia conta como indisponível: sem nenhuma linha, a matriz
         // negaria tudo e o app ficaria sem menu.
@@ -61,13 +79,13 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
           setPermissoesIndisponiveis(true);
           return;
         }
-        setPermissoes(resolverMatriz(lista, perfil, comunidadeId));
+        setPermissoes(aplicarAjustesDoUsuario(resolverMatriz(lista, perfil, comunidadeId), ajustes));
         setPermissoesIndisponiveis(false);
       })
       .catch((err) => {
         if (cancelado) return;
         console.warn(
-          '[MissãoApp] Não foi possível ler a matriz de permissões; usando as regras anteriores. ' +
+          '[MissãoWeb] Não foi possível ler a matriz de permissões; usando as regras anteriores. ' +
             'A migration de permissões provavelmente ainda não rodou neste banco.',
           err
         );
@@ -80,19 +98,44 @@ export function PainelSessionProvider({ children }: { children: React.ReactNode 
     return () => {
       cancelado = true;
     };
-  }, [comunidadeId, perfil, sessionData.carregando]);
+  }, [comunidadeId, perfil, usuarioId, sessionData.carregando]);
+
+  const recarregarTerminologia = useCallback(async () => {
+    if (!comunidadeId) return;
+    const { data } = await supabase.from('comunidades').select('terminologia').eq('id', comunidadeId).single();
+    const salva = (data as { terminologia: Partial<Terminologia> | null } | null)?.terminologia;
+    setTerminologia({ ...TERMINOLOGIA_PADRAO, ...(salva ?? {}) });
+  }, [comunidadeId]);
+
+  useEffect(() => {
+    recarregarTerminologia();
+  }, [recarregarTerminologia]);
+
+  // Cor de destaque escolhida pela comunidade (Configurações › Aparência).
+  useEffect(() => {
+    if (!comunidadeId) return;
+    carregarCorDestaque(comunidadeId).then(aplicarCorDestaque);
+  }, [comunidadeId]);
 
   const pode = useCallback(
     (modulo: string, acao: AcaoPermissao) =>
       permissoesIndisponiveis
-        ? podeNoLegado(perfil, modulo, acao)
+        ? podeNoLegado(perfil, modulo)
         : podeNaMatriz(permissoes, modulo, acao),
     [permissoes, permissoesIndisponiveis, perfil]
   );
 
   const valor = useMemo(
-    () => ({ ...sessionData, permissoes, pode, permissoesCarregando, permissoesIndisponiveis }),
-    [sessionData, permissoes, pode, permissoesCarregando, permissoesIndisponiveis]
+    () => ({
+      ...sessionData,
+      permissoes,
+      pode,
+      permissoesCarregando,
+      permissoesIndisponiveis,
+      terminologia,
+      recarregarTerminologia,
+    }),
+    [sessionData, permissoes, pode, permissoesCarregando, permissoesIndisponiveis, terminologia, recarregarTerminologia]
   );
 
   return <PainelSessionCtx.Provider value={valor}>{children}</PainelSessionCtx.Provider>;

@@ -17,6 +17,10 @@ import {
   ScrollText,
   Users2,
   BookOpen,
+  Briefcase,
+  CalendarHeart,
+  Contact,
+  SlidersHorizontal,
   type LucideIcon,
 } from 'lucide-react';
 import { pluralizar } from '@/lib/terminologia';
@@ -39,6 +43,11 @@ export interface NavLink {
 
 export interface NavGrupo {
   titulo: string;
+  /**
+   * Ícone do grupo. Grupo COM ícone e com mais de um item vira um submenu que abre
+   * e fecha no menu lateral; sem ícone (ou com um item só), os itens ficam soltos.
+   */
+  icon?: LucideIcon;
   itens: NavLink[];
 }
 
@@ -53,6 +62,19 @@ export interface NavGrupo {
 // Reagrupado por natureza do dado, não por "quem usa": evangelização é o
 // funil de primeiro contato; grupo é o encontro coletivo semanal; acompanhamento
 // é o cuidado individual (pastor_id só seu) — ver pastoral_ovelhas no schema.
+/**
+ * Módulo (chave de permissoes_modulos) dono de uma rota. Usa o item de menu de
+ * href mais específico: /pastoral/monitoria é "monitoria", não "pastoral". Rotas
+ * sem módulo próprio (dashboard, guia) devolvem string vazia = livres.
+ */
+export function moduloDaRota(pathname: string, terminologia: Terminologia): string {
+  const itens = montarNavGrupos(terminologia).flatMap((g) => g.itens);
+  const donos = itens
+    .filter((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))
+    .sort((a, b) => b.href.length - a.href.length);
+  return donos[0]?.modulo ?? '';
+}
+
 export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
   return [
     {
@@ -68,6 +90,7 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
     },
     {
       titulo: 'Pessoas',
+      icon: Contact,
       itens: [
         { href: '/pessoas', label: 'Pessoas', descricao: 'Cadastro central de todo mundo', icon: IdCard, modulo: 'pessoas' },
         { href: '/equipe', label: 'Equipe', descricao: 'Estrutura e cargos da comunidade', icon: Network, modulo: 'equipe' },
@@ -94,6 +117,7 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
     },
     {
       titulo: 'Grupos e encontros',
+      icon: CalendarHeart,
       itens: [
         {
           href: '/celulas',
@@ -116,6 +140,7 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
     },
     {
       titulo: terminologia.modulo_pastoral,
+      icon: HeartHandshake,
       itens: [
         {
           href: '/pastoral',
@@ -139,6 +164,7 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
     },
     {
       titulo: 'Gestão',
+      icon: Briefcase,
       itens: [
         { href: '/alertas', label: 'Alertas', descricao: 'O que precisa de atenção agora', icon: Bell, modulo: 'alertas' },
         {
@@ -154,6 +180,7 @@ export function montarNavGrupos(terminologia: Terminologia): NavGrupo[] {
     },
     {
       titulo: 'Sistema',
+      icon: SlidersHorizontal,
       itens: [
         {
           href: '/configuracoes',

@@ -18,6 +18,7 @@ import { buscarPessoasParaCombobox } from '@/lib/pessoas';
 import { avaliarOvelha, contarFrutosPorOvelha, listarOvelhas } from '@/lib/pastoral';
 import { useTerminologia } from '@/lib/terminologia';
 import type { Comunidade, Pessoa, PastoralEncontro, PastoralOvelha, PastoralPresenca, Usuario } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 const LIMITE_OVELHAS_SEMENTE = 5;
 
@@ -151,6 +152,7 @@ export default function PastoralPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Heart}
+        tom="rosa"
         title="Acompanhamento Pastoral"
         subtitle={`Suas ${nomeOvelhaPlural.toLowerCase()} · registros confidenciais`}
         actions={
@@ -188,8 +190,8 @@ export default function PastoralPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Próximas reuniões */}
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
-          <h2 className="text-sm font-bold text-text-primary">Próximas reuniões (7 dias)</h2>
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+          <TituloCard icone="agenda">Próximas reuniões (7 dias)</TituloCard>
           {proximasReunioes.length === 0 ? (
             <p className="mt-3 text-sm text-text-secondary">Nenhuma reunião agendada para os próximos 7 dias.</p>
           ) : (
@@ -214,8 +216,8 @@ export default function PastoralPage() {
         </div>
 
         {/* Gargalos */}
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
-          <h2 className="text-sm font-bold text-text-primary">Gargalos — precisam de atenção</h2>
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+          <TituloCard icone="alerta">Gargalos — precisam de atenção</TituloCard>
           {!temIndicadores ? (
             <div className="mt-3 rounded-lg border border-warning-light bg-warning-light/40 p-4 text-center">
               <Lock className="mx-auto text-warning" size={22} />
@@ -227,7 +229,7 @@ export default function PastoralPage() {
               </Button>
             </div>
           ) : gargalos.length === 0 ? (
-            <p className="mt-3 text-sm text-text-secondary">Tudo em dia — nenhum(a) {nomeOvelha.toLowerCase()} em alerta. 🎉</p>
+            <p className="mt-3 text-sm text-text-secondary">Tudo em dia — nenhum(a) {nomeOvelha.toLowerCase()} em alerta.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {gargalos.map(({ ovelha, indicadores }) => (
@@ -254,8 +256,8 @@ export default function PastoralPage() {
       </div>
 
       {/* Lista de todas as ovelhas */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Todos(as) {nomeOvelhaPlural.toLowerCase()}</h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="pastoral">Todos(as) {nomeOvelhaPlural.toLowerCase()}</TituloCard>
         {ativas.length === 0 ? (
           <EmptyState
             icon={Heart}
@@ -276,7 +278,7 @@ export default function PastoralPage() {
                   className="flex items-center justify-between rounded-md border border-border px-3 py-3 hover:bg-bg-page"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                       {o.nome.slice(0, 2).toUpperCase()}
                     </div>
                     <div>

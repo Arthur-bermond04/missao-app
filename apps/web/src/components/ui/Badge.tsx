@@ -2,11 +2,6 @@ import {
   Flame,
   Droplet,
   Snowflake,
-  CheckCircle2,
-  Clock,
-  BadgeCheck,
-  CircleDot,
-  XCircle,
   ArrowUpRight,
   ArrowDownRight,
   type LucideIcon,
@@ -27,24 +22,38 @@ export type BadgeVariant =
   | 'receita'
   | 'despesa';
 
-// Pílula = fundo claro + texto saturado da mesma família. As classes saem dos
-// tokens de status do design system (globals.css), não de hex solto.
-const VARIANT_CONFIG: Record<BadgeVariant, { classes: string; icon: LucideIcon; label: string }> = {
+interface VariantConfig {
+  /** Fundo suave + texto saturado da mesma família (tokens do design system). */
+  classes: string;
+  /** Cor do ponto indicador. Estados (ativo, aberto...) usam ponto. */
+  ponto?: string;
+  /** Variantes com significado próprio (temperatura, fluxo) mantêm ícone. */
+  icon?: LucideIcon;
+  label: string;
+}
+
+const VARIANT_CONFIG: Record<BadgeVariant, VariantConfig> = {
   quente: { classes: 'bg-warning-light text-warning', icon: Flame, label: 'Quente' },
   morno: { classes: 'bg-info-light text-info', icon: Droplet, label: 'Morno' },
   frio: { classes: 'bg-neutral-light text-neutral', icon: Snowflake, label: 'Frio' },
-  pago: { classes: 'bg-success-light text-success', icon: CheckCircle2, label: 'Pago' },
-  pendente: { classes: 'bg-warning-light text-warning', icon: Clock, label: 'Pendente' },
-  integrado: { classes: 'bg-primary-xlight text-primary', icon: BadgeCheck, label: 'Integrado' },
-  aberto: { classes: 'bg-info-light text-info', icon: CircleDot, label: 'Aberto' },
-  encerrado: { classes: 'bg-neutral-light text-neutral', icon: XCircle, label: 'Encerrado' },
-  realizado: { classes: 'bg-success-light text-success', icon: CheckCircle2, label: 'Realizado' },
-  ativo: { classes: 'bg-success-light text-success', icon: CheckCircle2, label: 'Ativo' },
-  inativo: { classes: 'bg-neutral-light text-neutral', icon: XCircle, label: 'Inativo' },
   receita: { classes: 'bg-success-light text-success', icon: ArrowUpRight, label: 'Receita' },
   despesa: { classes: 'bg-danger-light text-danger', icon: ArrowDownRight, label: 'Despesa' },
+
+  pago: { classes: 'bg-success-light text-success', ponto: 'bg-success', label: 'Pago' },
+  pendente: { classes: 'bg-warning-light text-warning', ponto: 'bg-warning', label: 'Pendente' },
+  integrado: { classes: 'bg-primary-xlight text-primary', ponto: 'bg-primary', label: 'Integrado' },
+  aberto: { classes: 'bg-info-light text-info', ponto: 'bg-info', label: 'Aberto' },
+  encerrado: { classes: 'bg-neutral-light text-neutral', ponto: 'bg-neutral', label: 'Encerrado' },
+  realizado: { classes: 'bg-success-light text-success', ponto: 'bg-success', label: 'Realizado' },
+  ativo: { classes: 'bg-success-light text-success', ponto: 'bg-success', label: 'Ativo' },
+  inativo: { classes: 'bg-neutral-light text-neutral', ponto: 'bg-neutral', label: 'Inativo' },
 };
 
+/**
+ * Pílula de status: fundo suave, ponto arredondado e texto na mesma família de cor.
+ * O ponto aparece sempre nos estados; showIcon só controla os ícones das variantes
+ * com significado próprio (temperatura e fluxo financeiro).
+ */
 export function Badge({
   variant,
   children,
@@ -54,10 +63,11 @@ export function Badge({
   children?: React.ReactNode;
   showIcon?: boolean;
 }) {
-  const { classes, icon: Icon, label } = VARIANT_CONFIG[variant];
+  const { classes, ponto, icon: Icon, label } = VARIANT_CONFIG[variant];
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${classes}`}>
-      {showIcon && <Icon size={12} />}
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${classes}`}>
+      {ponto && <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${ponto}`} aria-hidden />}
+      {showIcon && Icon && <Icon size={12} aria-hidden />}
       {children ?? label}
     </span>
   );

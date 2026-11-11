@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MissãoApp — Painel",
-  description: "Painel administrativo do MissãoApp",
+  title: "MissãoWeb — Painel",
+  description: "Painel administrativo do MissãoWeb",
 };
 
 export default function RootLayout({

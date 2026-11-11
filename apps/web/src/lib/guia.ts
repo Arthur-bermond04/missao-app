@@ -161,8 +161,15 @@ export function montarGuia(t: Terminologia): GuiaSecao[] {
           texto: 'A tabela abaixo do desenho é lida do seu banco, já com os ajustes da sua comunidade. Procure a sua coluna, destacada.',
         },
         {
-          titulo: 'Ajuste as permissões (só admin)',
+          titulo: 'Ajuste as permissões do perfil (só admin)',
           texto: 'Em Configurações › Permissões o admin marca ou desmarca as ações de cada perfil. O ajuste vale só para a sua comunidade.',
+        },
+        {
+          titulo: 'Ajuste as permissões de uma pessoa (só admin)',
+          texto:
+            'Em ' +
+            t.modulo_membros +
+            ', o botão "Permissões" ao lado do nome abre todos os módulos. Marque o que aquela pessoa pode fazer: isso vence o perfil e vale só para ela. Pontos laranja mostram o que é diferente do perfil, e "Restaurar padrão do perfil" desfaz.',
         },
       ],
       resultado: 'Você sabe explicar por que um módulo aparece ou some, e o admin sabe onde mudar isso com segurança.',
@@ -178,7 +185,7 @@ export function montarGuia(t: Terminologia): GuiaSecao[] {
         },
       ],
       dicas: [
-        'A permissão vale para o perfil inteiro, nunca para uma pessoa isolada.',
+        'A permissão do perfil vale para todos que o têm. Para uma pessoa específica, use o botão Permissões na lista de membros.',
         'Se o valor escolhido voltar a ser igual ao padrão do sistema, o ajuste é apagado e a comunidade volta a acompanhar mudanças futuras do padrão.',
       ],
       relacionados: ['membros', 'equipe'],
@@ -679,6 +686,10 @@ export function montarGlossario(t: Terminologia): TermoGlossario[] {
     { termo: 'Ação', definicao: 'O que se pode fazer num módulo: ver, criar, editar ou excluir.' },
     { termo: 'Matriz de permissões', definicao: 'A tabela de perfil × módulo × ação que define o que cada perfil pode fazer.' },
     { termo: 'Override', definicao: 'Um ajuste da sua comunidade sobre o padrão do sistema. Ele vence o padrão.' },
+    {
+      termo: 'Ajuste do usuário',
+      definicao: 'Uma permissão dada ou retirada de uma pessoa específica. É o nível mais forte: vence o ajuste da comunidade e o padrão do sistema.',
+    },
     { termo: 'Escopo próprio', definicao: 'Os registros que você mesmo criou ou de que é responsável. Todo perfil acessa os seus.' },
     { termo: 'Escopo ampliado', definicao: 'Agir sobre registros de outras pessoas. É uma permissão separada (módulos "_todas" e "_todos").' },
     { termo: 'RLS', definicao: 'Segurança por linha, no banco de dados: o próprio banco recusa o que o perfil não pode ler ou escrever.' },

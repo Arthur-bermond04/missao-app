@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { Target, CheckCircle2 } from 'lucide-react';
-import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { concluirObjetivo, definirNovoObjetivo } from '@/lib/pastoral';
 import { toastError, toastSuccess } from '@/lib/toast';
 import type { PastoralObjetivo } from '@/types/database';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
 export function ObjetivosSecao({
   ovelhaId,
@@ -61,9 +61,9 @@ export function ObjetivosSecao({
   }
 
   return (
-    <div className="rounded-lg bg-bg-card p-6 shadow-card">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-        <Target size={15} /> Objetivo do acompanhamento
+    <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+      <h3 className="flex items-center gap-3 text-sm font-semibold text-text-primary">
+        <IconeCaixa icon={Target} tamanho="sm" tom="primary" /> Objetivo do acompanhamento
       </h3>
 
       {objetivoAtual ? (
@@ -118,7 +118,7 @@ export function ObjetivosSecao({
 
       {historico.filter((o) => o.data_fim).length > 0 && (
         <div className="mt-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">Objetivos anteriores</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">Objetivos anteriores</p>
           <div className="space-y-2">
             {historico
               .filter((o) => o.data_fim)

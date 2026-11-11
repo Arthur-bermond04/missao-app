@@ -162,7 +162,7 @@ export function NovaPessoaModal({
       <form onSubmit={handleSalvar} className="max-h-[70vh] space-y-6 overflow-y-auto pr-1">
         {/* Seção 1 — Dados pessoais */}
         <div>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">Dados pessoais</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-secondary">Dados pessoais</h3>
           <div className="space-y-3">
             <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
             <div className="grid grid-cols-2 gap-3">
@@ -195,7 +195,7 @@ export function NovaPessoaModal({
 
         {/* Seção 2 — Situação na fé e jornada */}
         <div>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">Situação na fé e jornada</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-secondary">Situação na fé e jornada</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Select
@@ -245,7 +245,7 @@ export function NovaPessoaModal({
 
         {/* Seção 3 — Acompanhamento */}
         <div>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">Acompanhamento</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-secondary">Acompanhamento</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Select

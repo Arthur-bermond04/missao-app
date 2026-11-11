@@ -19,6 +19,7 @@ import { listarMinisterios, type MinisterioComContagem } from '@/lib/ministerios
 import { buscarStatusIntegracoes, type StatusIntegracoes } from '@/lib/integracoes';
 import { toastSuccess, toastError } from '@/lib/toast';
 import type { Canal, MensagemEnviada, MensagemTemplate } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 // SMS removido: nunca teve integração no plano e é caro/complexo de viabilizar
 // no Brasil sem custo — não faz sentido pro público-alvo por enquanto.
@@ -100,11 +101,11 @@ export default function MensagensPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <PageHeader icon={MessageCircle} title="Comunicação" subtitle="Envie avisos para a equipe" />
+    <div className="mx-auto max-w-6xl">
+      <PageHeader icon={MessageCircle} tom="roxo" title="Comunicação" subtitle="Envie avisos para a equipe" />
 
       {statusIntegracoes && (
-        <div className="mt-6 flex flex-wrap items-center gap-4 rounded-lg bg-bg-card p-4 shadow-card text-sm">
+        <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card text-sm">
           {[
             { label: 'Push (FCM)', ativo: statusIntegracoes.push },
             { label: 'WhatsApp (Z-API)', ativo: statusIntegracoes.whatsapp },
@@ -123,9 +124,9 @@ export default function MensagensPage() {
         </div>
       )}
 
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-sm font-bold text-text-primary">Nova mensagem</h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-soft pb-4">
+          <TituloCard icone="mensagem">Nova mensagem</TituloCard>
           {!!usuario?.comunidade_id && (
             <TemplateDropdown
               templates={templates}
@@ -141,9 +142,9 @@ export default function MensagensPage() {
           )}
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-8 md:grid-cols-2">
           <form onSubmit={handleEnviar}>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Select
                 label="Canal"
                 value={canal}
@@ -203,8 +204,8 @@ export default function MensagensPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Histórico</h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="historico">Histórico</TituloCard>
         {historico.length === 0 ? (
           <EmptyState
             icon={MessageCircle}

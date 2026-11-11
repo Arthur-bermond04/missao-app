@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Activity, AlertTriangle, ChevronRight, Gauge, Info, ShieldAlert, Tent, UserX, Users } from 'lucide-react';
+import { Activity, AlertTriangle, ChevronRight, Info, ShieldAlert, Tent, UserX, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { LimiteContatosBanner } from '@/components/dashboard/LimiteContatosBanner';
@@ -11,8 +11,8 @@ import { AcessadosRecentemente } from '@/components/dashboard/AcessadosRecenteme
 import { UpgradePlanoModal } from '@/components/configuracoes/UpgradePlanoModal';
 import { buscarComunidade } from '@/lib/comunidades';
 import { gerarAlertasCentral, type AlertaCentral, type NivelAlertaCentral } from '@/lib/alertas';
-import { agruparMetricasPorPastor, listarOvelhasResumo, ovelhaEmAtraso, type MetricasPastor } from '@/lib/monitoria';
-import { labelEtapaJornadaPessoa, useTerminologia } from '@/lib/terminologia';
+import { agruparMetricasPorPastor, listarOvelhasResumo, type MetricasPastor } from '@/lib/monitoria';
+import { labelEtapaJornadaPessoa, pluralizar, useTerminologia } from '@/lib/terminologia';
 import {
   ETAPAS_FUNIL_EVANGELIZACAO,
   type Comunidade,
@@ -21,6 +21,7 @@ import {
   type Retiro,
   type Usuario,
 } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 function hojeIso() {
   return new Date().toISOString().slice(0, 10);
@@ -245,13 +246,13 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
   return (
     <div>
       {/* Cabeçalho: saúde da missão */}
-      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-bg-card px-6 py-4 shadow-card">
+      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-border-soft bg-bg-card px-6 py-4 shadow-card">
         <span className="text-sm text-text-secondary">Saúde da missão:</span>
-        <span className={`flex items-center gap-1.5 text-sm font-bold ${saude.cor}`}>
+        <span className={`flex items-center gap-1.5 text-sm font-semibold ${saude.cor}`}>
           <span className="h-2.5 w-2.5 rounded-full bg-current" /> {saude.label}
         </span>
         <span className="text-text-secondary">|</span>
-        <span className="text-sm capitalize text-text-secondary">{mesAtual}</span>
+        <span className="inline-block text-sm text-text-secondary first-letter:uppercase">{mesAtual}</span>
         {comunidade && (
           <>
             <span className="text-text-secondary">|</span>
@@ -316,15 +317,15 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
       </div>
 
       {/* Precisam de atenção */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-text-primary">Precisam de atenção</h2>
+          <TituloCard icone="alerta">Precisam de atenção</TituloCard>
           <Link href="/alertas" className="text-xs font-medium text-primary hover:underline">
             Ver todos os alertas →
           </Link>
         </div>
         {alertas.length === 0 ? (
-          <p className="mt-3 text-sm text-text-secondary">Nenhum alerta no momento. Tudo em dia! 🎉</p>
+          <p className="mt-3 text-sm text-text-secondary">Nenhum alerta no momento. Tudo em dia!</p>
         ) : (
           <div className="mt-3 space-y-4">
             {(['urgente', 'atencao', 'informativo'] as NivelAlertaCentral[]).map((nivel) => {
@@ -334,7 +335,7 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
               const Icone = cfg.icone;
               return (
                 <div key={nivel}>
-                  <p className={`flex items-center gap-1.5 text-xs font-bold tracking-wide ${cfg.cor}`}>
+                  <p className={`flex items-center gap-1.5 text-xs font-semibold tracking-wide ${cfg.cor}`}>
                     <Icone size={13} /> {cfg.label} ({grupo.length})
                   </p>
                   <div className="mt-1.5 space-y-1">
@@ -367,9 +368,9 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
       </div>
 
       {/* Funil da semana */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-text-primary">Funil da semana</h2>
+          <TituloCard icone="funil">Funil da semana</TituloCard>
           <Link href="/funil" className="text-xs font-medium text-primary hover:underline">
             Ver funil completo →
           </Link>
@@ -377,7 +378,7 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
         <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
           {funilSemana.map((etapa) => (
             <div key={etapa.valor} className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-text-primary">+{etapa.nestaSemana}</span>
+              <span className="text-lg font-semibold text-text-primary">+{etapa.nestaSemana}</span>
               <span className="text-sm text-text-secondary">{etapa.label.toLowerCase()}</span>
               {etapa.variacao !== 0 && (
                 <span className={`text-xs font-medium ${etapa.variacao > 0 ? 'text-accent' : 'text-danger'}`}>
@@ -390,15 +391,15 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
       </div>
 
       {/* Missionários — engajamento da equipe */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Missionários</h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="pessoas">Missionários</TituloCard>
         {atividadeMissionarios.length === 0 ? (
           <p className="mt-3 text-sm text-text-secondary">Nenhum membro ativo.</p>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-bg-page text-xs uppercase tracking-wide text-text-secondary">
+                <tr className="border-b border-border-soft bg-bg-page text-xs uppercase tracking-wide text-text-secondary">
                   <th className="px-3 py-2 font-semibold">Membro</th>
                   <th className="px-3 py-2 font-semibold">Contatos esta sem.</th>
                   <th className="px-3 py-2 font-semibold">Último registro</th>
@@ -407,7 +408,7 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
               </thead>
               <tbody>
                 {atividadeMissionarios.map(({ membro, estaSemana, ultimoRegistro, diasSemRegistro, ativoNaMissao }) => (
-                  <tr key={membro.id} className="border-b border-border last:border-b-0">
+                  <tr key={membro.id} className="border-b border-border-soft last:border-b-0">
                     <td className="px-3 py-2 font-medium text-text-primary">{membro.nome}</td>
                     <td className="px-3 py-2 text-text-primary">{estaSemana}</td>
                     <td className="px-3 py-2 text-text-secondary">
@@ -438,11 +439,9 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
 
       {/* Saúde pastoral (só aparece se a view de monitoria já existe) */}
       {saudePastoral.total > 0 && (
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-              <Gauge size={15} className="text-primary" /> Saúde pastoral
-            </h2>
+            <TituloCard icone="saude">Saúde pastoral</TituloCard>
             <Link href="/pastoral/monitoria" className="text-xs font-medium text-primary hover:underline">
               Ver monitoria →
             </Link>
@@ -450,26 +449,28 @@ export function DashboardGestao({ usuario }: { usuario: Usuario }) {
           <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
             <span className="text-text-secondary">
               Pastores ativos esta semana:{' '}
-              <span className="font-bold text-text-primary">
+              <span className="font-semibold text-text-primary">
                 {saudePastoral.pastoresAtivosSemana} de {saudePastoral.total}
               </span>
             </span>
             <span className="text-text-secondary">
               Ovelhas em atraso:{' '}
-              <span className={`font-bold ${saudePastoral.ovelhasEmAtraso > 0 ? 'text-warning' : 'text-text-primary'}`}>
+              <span className={`font-semibold ${saudePastoral.ovelhasEmAtraso > 0 ? 'text-warning' : 'text-text-primary'}`}>
                 {saudePastoral.ovelhasEmAtraso}
               </span>
             </span>
             <span className="text-text-secondary">
               Ovelhas em risco:{' '}
-              <span className={`font-bold ${saudePastoral.ovelhasEmRisco > 0 ? 'text-danger' : 'text-text-primary'}`}>
+              <span className={`font-semibold ${saudePastoral.ovelhasEmRisco > 0 ? 'text-danger' : 'text-text-primary'}`}>
                 {saudePastoral.ovelhasEmRisco}
               </span>
             </span>
           </div>
           {saudePastoral.precisamAtencao.length > 0 && (
             <div className="mt-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-text-secondary">Pastores que precisam de atenção</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                {pluralizar(terminologia.nome_pastor)} que precisam de atenção
+              </p>
               <div className="mt-1.5 space-y-1">
                 {saudePastoral.precisamAtencao.map(({ pastor, diasSemRegistro }) => (
                   <Link

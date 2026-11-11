@@ -52,15 +52,15 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
       >
         <Bell size={18} />
         {total > 0 && (
-          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-green px-1 text-[10px] font-bold text-white">
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-green px-1 text-[11px] font-semibold text-white">
             {total > 9 ? '9+' : total}
           </span>
         )}
       </button>
 
       {aberto && (
-        <div className="absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-80 overflow-y-auto rounded-lg border border-border bg-bg-card p-2 shadow-hover">
-          <p className="px-2 py-1 text-xs font-bold uppercase tracking-wide text-text-secondary">Notificações</p>
+        <div className="absolute right-0 top-full z-40 mt-2 max-h-[70vh] w-80 overflow-y-auto rounded-xl border border-border-soft bg-bg-card p-2 shadow-pop">
+          <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">Notificações</p>
           {topo.length === 0 ? (
             <p className="px-2 py-3 text-sm text-text-secondary">Tudo em dia — nenhum alerta agora.</p>
           ) : (
@@ -74,7 +74,7 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
                     a.nivel === 'urgente' ? 'text-danger' : a.nivel === 'atencao' ? 'text-warning' : 'text-text-primary'
                   }`}
                 >
-                  <span className="mr-1.5 rounded-full bg-bg-page px-1.5 py-0.5 text-[10px] font-medium text-text-secondary">
+                  <span className="mr-1.5 rounded-full bg-bg-page px-1.5 py-0.5 text-[11px] font-medium text-text-secondary">
                     {a.modulo}
                   </span>
                   {a.mensagem}
@@ -88,7 +88,7 @@ export function NotificacoesBell({ comunidadeId }: { comunidadeId: string }) {
           <Link
             href="/alertas"
             onClick={() => setAberto(false)}
-            className="mt-2 block border-t border-border px-2 py-2 text-center text-xs font-medium text-primary hover:bg-bg-page"
+            className="mt-2 block border-t border-border-soft px-2 py-2 text-center text-xs font-medium text-primary hover:bg-bg-page"
           >
             Ver central de alertas →
           </Link>

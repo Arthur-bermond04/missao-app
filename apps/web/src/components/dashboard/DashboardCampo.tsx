@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { CalendarPlus, ChevronRight, Heart, IdCard, MessageCircle, Sun } from 'lucide-react';
+import { CalendarPlus, ChevronRight, MessageCircle, Sun, CloudSun, Moon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import { NovaInteracaoModal } from '@/components/pessoas/NovaInteracaoModal';
 import { listarOvelhasDoPastor } from '@/lib/pastoral';
 import { useTerminologia } from '@/lib/terminologia';
 import type { PastoralOvelha, Pessoa, Usuario } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 // ---------------------------------------------------------------------------
 // Helpers de data
@@ -32,9 +33,9 @@ function emDias(offset: number) {
 
 function saudacaoDoDia() {
   const hora = new Date().getHours();
-  if (hora < 12) return { texto: 'Bom dia', emoji: '☀️' };
-  if (hora < 18) return { texto: 'Boa tarde', emoji: '🌤️' };
-  return { texto: 'Boa noite', emoji: '🌙' };
+  if (hora < 12) return { texto: 'Bom dia', icone: Sun };
+  if (hora < 18) return { texto: 'Boa tarde', icone: CloudSun };
+  return { texto: 'Boa noite', icone: Moon };
 }
 
 // ---------------------------------------------------------------------------
@@ -299,14 +300,17 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
       )}
 
       {/* Saudação contextual */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-xlight text-primary">
             <Sun size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-text-primary">
-              {saudacao.texto}, {primeiroNome}! {saudacao.emoji}
+            <h2 className="text-lg font-semibold text-text-primary">
+              <span className="inline-flex items-center gap-2">
+                {saudacao.texto}, {primeiroNome}!
+                <saudacao.icone size={20} aria-hidden className="text-warning" />
+              </span>
             </h2>
             <p className="text-sm text-text-secondary">
               {compromissosSemana > 0 || esperandoRetorno > 0 ? (
@@ -330,10 +334,10 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
       </div>
 
       {/* Para fazer hoje */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Para fazer hoje</h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="tarefas">Para fazer hoje</TituloCard>
         {itensParaFazer.length === 0 ? (
-          <p className="mt-3 text-sm text-text-secondary">Tudo em dia! Nenhuma ação pendente. 🎉</p>
+          <p className="mt-3 text-sm text-text-secondary">Tudo em dia! Nenhuma ação pendente.</p>
         ) : (
           <div className="mt-3 space-y-4">
             {(['urgente', 'hoje', 'semana'] as Prioridade[]).map((prioridade) => {
@@ -341,7 +345,7 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
               if (grupo.length === 0) return null;
               return (
                 <div key={prioridade}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-text-secondary">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                     {LABEL_PRIORIDADE[prioridade]}
                   </p>
                   <div className="mt-1.5 space-y-1.5">
@@ -352,7 +356,7 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${COR_PRIORIDADE[item.prioridade]}`} />
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                             {item.nome.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
@@ -396,11 +400,9 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Minhas ovelhas */}
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-              <Heart size={15} className="text-primary" /> Minhas {terminologia.nome_ovelha.toLowerCase()}s
-            </h2>
+            <TituloCard icone="pastoral">Minhas {terminologia.nome_ovelha.toLowerCase()}s</TituloCard>
             <Link href="/pastoral" className="text-xs font-medium text-primary hover:underline">
               Ver todas →
             </Link>
@@ -423,7 +425,7 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
                     className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                         {o.nome.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -457,11 +459,9 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
         </div>
 
         {/* Minhas pessoas */}
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-text-primary">
-              <IdCard size={15} className="text-primary" /> Minhas pessoas
-            </h2>
+            <TituloCard icone="cadastro">Minhas pessoas</TituloCard>
             <Link href="/pessoas" className="text-xs font-medium text-primary hover:underline">
               Ver todas →
             </Link>
@@ -478,7 +478,7 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
                     className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                         {p.nome.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -519,8 +519,8 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
       </div>
 
       {/* Agenda da semana */}
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
-        <h2 className="text-sm font-bold text-text-primary">Agenda da semana</h2>
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
+        <TituloCard icone="agenda">Agenda da semana</TituloCard>
         <div className="mt-3 grid grid-cols-7 gap-1.5">
           {diasDaSemana.map((dia) => (
             <button
@@ -534,8 +534,8 @@ export function DashboardCampo({ usuario }: { usuario: Usuario }) {
                     : 'border-border hover:bg-bg-page'
               }`}
             >
-              <span className="text-[10px] font-semibold text-text-secondary">{dia.label}</span>
-              <span className={`text-sm font-bold ${dia.ehHoje ? 'text-primary' : 'text-text-primary'}`}>
+              <span className="text-[11px] font-semibold text-text-secondary">{dia.label}</span>
+              <span className={`text-sm font-semibold ${dia.ehHoje ? 'text-primary' : 'text-text-primary'}`}>
                 {dia.numero}
               </span>
               <span className="flex h-2 items-center gap-0.5">

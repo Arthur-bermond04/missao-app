@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { LancamentoDetalhe } from '@/lib/ministerios';
 import type { Ministerio } from '@/types/database';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 interface AbaDoacoesProps {
   ministerio: Ministerio;
@@ -45,9 +46,7 @@ export function AbaDoacoes({ ministerio, lancamentos }: AbaDoacoesProps) {
   }, [doacoes]);
 
   async function exportarPdf() {
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -101,7 +100,7 @@ export function AbaDoacoes({ ministerio, lancamentos }: AbaDoacoesProps) {
                   {new Date(d.ultima).toLocaleDateString('pt-BR')}
                 </p>
               </div>
-              <span className="text-sm font-bold text-accent">R$ {d.total.toFixed(2)}</span>
+              <span className="text-sm font-semibold text-accent">R$ {d.total.toFixed(2)}</span>
             </div>
           ))}
         </div>

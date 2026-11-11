@@ -86,7 +86,7 @@ export function PainelMembro({
 
         {membro.perfil === 'missionario' && (
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               Contatos recentes ({membro.contatos_cadastrados})
             </p>
             {contatosRecentes.length === 0 ? (
@@ -104,7 +104,7 @@ export function PainelMembro({
         )}
 
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">Ministérios</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">Ministérios</p>
           {ministerios.length === 0 ? (
             <p className="text-sm text-text-secondary">Não participa de nenhum ministério.</p>
           ) : (
@@ -120,7 +120,7 @@ export function PainelMembro({
 
         {ovelhas.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-secondary">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               Ovelhas que acompanha ({ovelhas.length})
             </p>
             <ul className="space-y-1">
@@ -133,7 +133,7 @@ export function PainelMembro({
           </div>
         )}
 
-        <div className="flex gap-2 border-t border-border pt-4">
+        <div className="flex gap-2 border-t border-border-soft pt-4">
           <Button size="sm" variant="secondary" onClick={() => onEditar(membro)}>
             Editar
           </Button>

@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import type { Perfil, Terminologia } from '@/types/database';
+import { IconeCaixa } from '@/components/ui/IconeCaixa';
 
 // Função escolhida e progresso ficam só no navegador de cada pessoa
 // (localStorage), por usuário: é conveniência de leitura, não dado de negócio.
@@ -98,9 +99,7 @@ function SecaoGuia({
       <Card padding="md" className={destaque ? 'ring-2 ring-accent-green' : ''}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-xlight text-primary">
-              <Icon size={20} />
-            </div>
+            <IconeCaixa icon={Icon} tamanho="md" />
             <div>
               {!!etiqueta && (
                 <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{etiqueta}</p>
@@ -336,8 +335,9 @@ export default function GuiaPage() {
     <div>
       <PageHeader
         icon={BookOpen}
+        tom="roxo"
         title="Guia"
-        subtitle="Passo a passo para conhecer cada parte do MissãoApp"
+        subtitle="Passo a passo para conhecer cada parte do MissãoWeb"
         actions={
           <Button variant="secondary" icon={UserCircle2} onClick={() => setSeletorAberto(true)}>
             {funcaoAtual ? `Função: ${funcaoAtual.titulo}` : 'Função'}
@@ -352,7 +352,7 @@ export default function GuiaPage() {
         description="A função define a ordem do guia: você começa pelo que importa para o seu trabalho. Dá para trocar depois."
         size="lg"
       >
-        <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
+        <ul className="divide-y divide-border-soft overflow-hidden rounded-md border border-border">
           {FUNCOES_TRILHA.map((f) => (
             <li key={f.perfil}>
               <button
@@ -374,7 +374,7 @@ export default function GuiaPage() {
         </ul>
       </Modal>
 
-      <div className="mt-6 flex gap-1 border-b border-border">
+      <div className="mt-6 flex gap-1 border-b border-border-soft">
         {abaBtn('trilha', 'Minha trilha', Route)}
         {abaBtn('todos', 'Todos os módulos', BookOpen)}
         {abaBtn('glossario', 'Glossário', ListChecks)}
@@ -539,7 +539,7 @@ export default function GuiaPage() {
         <Card padding="md" className="mt-6">
           <h2 className="text-lg font-semibold text-text-primary">Glossário</h2>
           <p className="text-sm text-text-secondary">Os termos do sistema, com os nomes que a sua comunidade usa.</p>
-          <dl className="mt-4 divide-y divide-border">
+          <dl className="mt-4 divide-y divide-border-soft">
             {glossario.map((g) => (
               <div key={g.termo} className="grid gap-1 py-3 sm:grid-cols-[200px_1fr] sm:gap-4">
                 <dt className="text-sm font-semibold text-text-primary">{g.termo}</dt>

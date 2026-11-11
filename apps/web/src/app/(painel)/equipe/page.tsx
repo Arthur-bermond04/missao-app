@@ -16,10 +16,12 @@ import { NovoCargoModal } from '@/components/equipe/NovoCargoModal';
 import { buscarPessoasParaCombobox } from '@/lib/pessoas';
 import { encerrarCargo, excluirCargo, listarEquipeCargos, type EquipeCargoComVinculo } from '@/lib/equipe';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { useTermosCelula } from '@/lib/terminologia';
 import { NIVEIS_EQUIPE, type Celula, type NivelEquipe, type Pessoa, type Usuario } from '@/types/database';
 
 export default function EquipePage() {
   const { usuario } = usePainelSession();
+  const termoGrupo = useTermosCelula();
   const comunidadeId = usuario?.comunidade_id ?? null;
 
   const [cargos, setCargos] = useState<EquipeCargoComVinculo[]>([]);
@@ -128,9 +130,10 @@ export default function EquipePage() {
   const isAdmin = usuario?.perfil === 'admin';
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={Network}
+        tom="azul"
         title="Equipe"
         subtitle="Estrutura, cargos e níveis da comunidade"
         actions={
@@ -175,7 +178,7 @@ export default function EquipePage() {
         confirmLabel="Excluir"
       />
 
-      <div className="mt-6 flex flex-wrap gap-3 rounded-lg bg-bg-card p-4 shadow-card">
+      <div className="mt-6 flex flex-wrap gap-3 rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
         <div className="min-w-[220px] flex-1">
           <Input icon={Search} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou cargo" />
         </div>
@@ -187,7 +190,7 @@ export default function EquipePage() {
         <Select
           value={filtroCelula}
           onChange={(e) => setFiltroCelula(e.target.value)}
-          options={[{ value: '', label: 'Todas as células' }, ...celulas.map((c) => ({ value: c.id, label: c.nome }))]}
+          options={[{ value: '', label: `${termoGrupo.genero === 'f' ? 'Todas' : 'Todos'} ${termoGrupo.artigoPlural} ${termoGrupo.pluralMin}` }, ...celulas.map((c) => ({ value: c.id, label: c.nome }))]}
         />
         <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm text-text-secondary">
           <input type="checkbox" checked={mostrarEncerrados} onChange={(e) => setMostrarEncerrados(e.target.checked)} />
@@ -198,7 +201,7 @@ export default function EquipePage() {
       {carregando ? (
         <p className="mt-6 text-sm text-text-secondary">Carregando equipe...</p>
       ) : cargosFiltrados.length === 0 ? (
-        <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           <EmptyState
             icon={Network}
             title="Nenhum cargo cadastrado"
@@ -212,10 +215,10 @@ export default function EquipePage() {
             const lista = cargosPorNivel.get(n.valor) ?? [];
             if (lista.length === 0) return null;
             return (
-              <div key={n.valor} className="rounded-lg bg-bg-card p-6 shadow-card">
+              <div key={n.valor} className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
                 <div className="flex items-center gap-2">
                   <NivelEquipeBadge nivel={n.valor} />
-                  <h2 className="text-sm font-bold text-text-primary">{n.label}</h2>
+                  <h2 className="text-sm font-semibold text-text-primary">{n.label}</h2>
                   <span className="text-xs text-text-secondary">({lista.length})</span>
                 </div>
                 <div className="mt-3 space-y-2">
@@ -227,7 +230,7 @@ export default function EquipePage() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-xs font-bold text-primary">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-xlight text-xs font-semibold text-primary">
                           {(c.pessoa_nome ?? c.usuario_nome ?? '??').slice(0, 2).toUpperCase()}
                         </div>
                         <div>

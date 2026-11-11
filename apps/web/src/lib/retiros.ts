@@ -55,9 +55,12 @@ export async function listarInscritos(retiroId: string): Promise<InscricaoRetiro
   return (data as InscricaoRetiro[]) ?? [];
 }
 
+/** Campos de uma inscrição que a tela de retiros pode alterar. */
+export type CamposInscricaoEditaveis = Partial<Pick<InscricaoRetiro, 'pagou' | 'valor_pago' | 'grupo' | 'presente'>>;
+
 export async function atualizarInscricao(
   id: string,
-  campos: Partial<Pick<InscricaoRetiro, 'pagou' | 'valor_pago' | 'grupo' | 'presente'>>,
+  campos: CamposInscricaoEditaveis,
   // Contexto opcional para a integração com Pessoas: quando o check-in é
   // marcado (presente=true) e a inscrição tem pessoa vinculada, registra a
   // participação na jornada da pessoa automaticamente.

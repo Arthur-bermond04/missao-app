@@ -61,7 +61,7 @@ function Mapa() {
       <Rotulo x={0} y={278} forte cor="fill-text-primary">Legenda</Rotulo>
       <Rotulo x={0} y={296}>1 Menu lateral: só os módulos que o seu perfil pode ver</Rotulo>
       <Rotulo x={0} y={312}>2 Busca (Ctrl+K): vai direto a uma tela ou pessoa</Rotulo>
-      <Rotulo x={380} y={296}>3 Sino e "Para fazer": avisos e pendências</Rotulo>
+      <Rotulo x={380} y={296}>3 Sino e &quot;Para fazer&quot;: avisos e pendências</Rotulo>
       <Rotulo x={380} y={312}>4 Botão principal da tela (criar, convidar, exportar)</Rotulo>
       <Rotulo x={380} y={328}>5 Conteúdo   6 Seu nome e perfil (trocar senha e sair)</Rotulo>
     </Quadro>
@@ -155,7 +155,7 @@ function Jornada({ t }: Props) {
           </g>
         );
       })}
-      <Rotulo x={0} y={100}>Cada contato avança de etapa. Contato parado há muito tempo aparece como "travado".</Rotulo>
+      <Rotulo x={0} y={100}>Cada contato avança de etapa. Contato parado há muito tempo aparece como &quot;travado&quot;.</Rotulo>
 
       <Rotulo x={0} y={140} forte cor="fill-text-primary">Pessoas (cadastro central): em que ponto a pessoa está agora</Rotulo>
       {ETAPAS_PESSOA.map((e, i) => {
@@ -201,9 +201,9 @@ function Convite() {
         );
       })}
       <Rotulo x={0} y={116} forte cor="fill-text-primary">Se algo falhar no meio</Rotulo>
-      <Rotulo x={0} y={132}>Se a conta nascer mas o vínculo falhar, o servidor apaga a conta recém-criada. Não sobra usuário "órfão" sem comunidade.</Rotulo>
+      <Rotulo x={0} y={132}>Se a conta nascer mas o vínculo falhar, o servidor apaga a conta recém-criada. Não sobra usuário &quot;órfão&quot; sem comunidade.</Rotulo>
       <Rotulo x={0} y={156} forte cor="fill-text-primary">Pré-requisito do servidor</Rotulo>
-      <Rotulo x={0} y={172}>A chave de serviço do Supabase precisa estar configurada no servidor, senão o convite responde "não autenticado".</Rotulo>
+      <Rotulo x={0} y={172}>A chave de serviço do Supabase precisa estar configurada no servidor, senão o convite responde &quot;não autenticado&quot;.</Rotulo>
     </Quadro>
   );
 }
@@ -255,7 +255,7 @@ function Ministerio() {
       <Seta id={id} x1={345} y1={54} x2={260} y2={100} />
       <Seta id={id} x1={375} y1={54} x2={460} y2={100} />
       <Seta id={id} x1={390} y1={54} x2={640} y2={100} />
-      <Rotulo x={0} y={184}>No plano Semente, Caixa e Doações aparecem bloqueadas. O lançamento do caixa entra no Financeiro, em "Caixas de ministérios".</Rotulo>
+      <Rotulo x={0} y={184}>No plano Semente, Caixa e Doações aparecem bloqueadas. O lançamento do caixa entra no Financeiro, em &quot;Caixas de ministérios&quot;.</Rotulo>
     </Quadro>
   );
 }
@@ -323,7 +323,7 @@ function Retiro() {
       <Seta id={id} x1={150} y1={139} x2={190} y2={139} />
       <Seta id={id} x1={340} y1={139} x2={380} y2={139} />
       <Rotulo x={0} y={186} forte cor="fill-text-primary">Depois do check-in</Rotulo>
-      <Rotulo x={0} y={202}>Cada inscrito tem atalhos: "Ver em Pessoas", "Cadastrar em Pessoas" ou "Adicionar ao acompanhamento pastoral".</Rotulo>
+      <Rotulo x={0} y={202}>Cada inscrito tem atalhos: &quot;Ver em Pessoas&quot;, &quot;Cadastrar em Pessoas&quot; ou &quot;Adicionar ao acompanhamento pastoral&quot;.</Rotulo>
       <Rotulo x={0} y={226} forte cor="fill-text-primary">Atenção</Rotulo>
       <Rotulo x={0} y={242}>O formulário público de inscrição só funciona com a chave de serviço do Supabase configurada no servidor.</Rotulo>
     </Quadro>
@@ -402,7 +402,7 @@ function Financeiro() {
 function Arquitetura() {
   const id = 'arq';
   return (
-    <Quadro id={id} largura={720} altura={330} titulo="Arquitetura do MissãoApp: painel web, aplicativo mobile, Supabase e integrações">
+    <Quadro id={id} largura={720} altura={330} titulo="Arquitetura do MissãoWeb: painel web, aplicativo mobile, Supabase e integrações">
       <Caixa x={0} y={14} w={190} h={64} tom="verde" titulo="Painel web" linhas={['Next.js, TypeScript', 'líderes e coordenação']} tamanho={11.5} />
       <Caixa x={0} y={186} w={190} h={64} tom="verde" titulo="App mobile" linhas={['Expo, React Native', 'missionários em campo']} tamanho={11.5} />
       <Caixa x={250} y={14} w={190} h={64} tom="azul" titulo="Rotas do servidor" linhas={['/api/membros/convidar', '/api/inscricao']} tamanho={11} />

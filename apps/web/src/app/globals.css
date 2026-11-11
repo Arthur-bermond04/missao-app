@@ -16,7 +16,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
 
-  /* Paleta MissãoApp — Verde Missionário */
+  /* Paleta MissãoWeb — Verde Missionário */
   --color-primary: #1a7a4a; /* verde missão — cor principal */
   --color-primary-light: #2d9a63; /* verde médio — hover */
   --color-primary-xlight: #e8f5ee; /* verde suavíssimo — backgrounds */
@@ -42,33 +42,64 @@
   --color-info: #2563eb; /* azul — informações */
   --color-info-light: #dbeafe;
 
+  /* Cores por assunto — só para o recipiente dos ícones (fundo 50, traço 600).
+     Azul: pessoas e abordagem · Esmeralda: financeiro · Rosa: pastoral ·
+     Âmbar: retiros, agenda e alertas · Roxo: ministérios, grupos e comunicação. */
+  --color-azul-50: #eff6ff;
+  --color-azul-600: #2563eb;
+  --color-esmeralda-50: #ecfdf5;
+  --color-esmeralda-600: #059669;
+  --color-rosa-50: #fff1f2;
+  --color-rosa-600: #e11d48;
+  --color-ambar-50: #fffbeb;
+  --color-ambar-600: #d97706;
+  --color-roxo-50: #faf5ff;
+  --color-roxo-600: #9333ea;
+
+  /* Cor de DESTAQUE da comunidade (CT, usuário, item ativo, linha sob o logo, símbolo).
+     O valor é uma variável que o app troca em tempo de execução, a partir da cor
+     escolhida em Configurações › Aparência; sem escolha vale o padrão abaixo. */
+  --color-destaque: var(--cor-destaque, #ffb400);
+  --color-destaque-texto: var(--cor-destaque-texto, #1f2937);
+  --color-dourado: #a8812f;
+
+  /* Calendário da agenda: cabeçalho em slate médio (mais claro que o menu lateral)
+     e células num cinza suave, para destacar do fundo branco do cartão. */
+  --color-calendario-cabecalho: #ececec;
+  --color-calendario-celula: #f3f5f8;
+  /* Botões do calendário: bem mais escuros que o menu lateral, para se destacarem dele. */
+  --color-calendario-botao: #161e2a;
+  --color-calendario-botao-hover: #243042;
+  --color-calendario-celula-fora: #e9edf2;
+
   /* Neutro — pílulas e chips sem carga semântica (frio, inativo, encerrado) */
   --color-neutral: #6b7280;
   --color-neutral-light: #f3f4f6;
 
   /* Textos */
-  --color-text-primary: #111827; /* quase preto — texto principal */
-  --color-text-secondary: #6b7280; /* cinza médio — texto secundário */
-  --color-text-muted: #9ca3af; /* cinza claro — placeholders */
+  --color-text-primary: #0f172a; /* slate-900 — títulos e texto principal */
+  --color-text-secondary: #64748b; /* slate-500 — rótulos, legendas e descrições */
+  --color-text-muted: #94a3b8; /* slate-400 — só placeholders e itens desativados */
 
   /* Fundos */
   --color-bg-page: #f9fafb; /* cinza levíssimo — fundo de áreas internas */
   --color-bg-card: #ffffff; /* branco puro — cards */
-  --color-content-bg: #f4f5f7; /* cinza claro — "chão" da página, sob os cards */
+  --color-content-bg: #f9fafc; /* slate-50 suavizado — "chão" da página, sob os cards */
 
   /* Navegação escura — sidebar e topbar.
      Cinza-azulado neutro, não preto e não azul saturado: o contraste com os
      cards brancos vem do tom, e o verde da marca fica reservado para o item
      ativo e para as ações primárias. */
-  --color-sidebar-bg: #2e3446;
-  --color-sidebar-bg-hover: #3a4156;
-  --color-sidebar-border: #3a4156;
-  --color-sidebar-text: #a7adbc;
+  --color-sidebar-bg: #2e3e4e;
+  --color-sidebar-bg-hover: #3b4d60;
+  --color-sidebar-border: #3b4d60;
+  --color-sidebar-text: #a9b7c4;
   --color-sidebar-text-active: #ffffff;
-  --color-topbar-bg: #2e3446;
+  --color-topbar-bg: #2e3e4e;
 
   /* Bordas */
-  --color-border: #e5e7eb; /* cinza suave — bordas padrão */
+  --color-border: #e2e8f0; /* slate-200 — bordas de campos e controles */
+  --color-border-soft: #edf0f4; /* quase invisível — moldura de cards e divisórias internas */
   --color-border-green: #bbf7d0; /* verde suave — bordas de destaque */
 
   /* Raios e sombras */
@@ -77,13 +108,39 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.04);
+  /* Menus flutuantes (ações da linha, dropdowns): mais profundo que o card. */
+  --shadow-pop: 0 10px 24px -6px rgba(15, 23, 42, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
   --shadow-hover: 0 4px 12px rgba(22, 163, 74, 0.12);
+}
+
+/* Ícones de traço fino e uniforme em todo o app (lucide renderiza stroke-width="2"). */
+svg.lucide {
+  stroke-width: 1.75;
+}
+
+/* Escala tipográfica compacta (estilo Linear/Vercel/Notion).
+   Sobrescreve as variáveis de tamanho do Tailwind apenas dentro do conteúdo:
+   <main>, modais, painéis laterais e menus flutuantes. O menu lateral e a barra
+   superior não recebem esta classe e mantêm a escala original. A altura de
+   linha acompanha sozinha (o Tailwind define --text-*--line-height como razão). */
+.escala-compacta {
+  --text-xs: 0.75rem; /* 12px — legendas e rótulos mínimos (não desce disso) */
+  --text-sm: 0.8125rem; /* 13px (era 14) — texto de tabelas, cards e formulários */
+  --text-base: 0.9375rem; /* 15px (era 16) */
+  --text-lg: 1.0625rem; /* 17px (era 18) */
+  --text-xl: 1.1875rem; /* 19px (era 20) */
+  --text-2xl: 1.375rem; /* 22px (era 24) — números de métricas */
+  --text-3xl: 1.625rem; /* 26px (era 30) */
+  --text-4xl: 2rem; /* 32px (era 36) */
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 ::-webkit-scrollbar {
@@ -106,4 +163,38 @@ body {
 }
 .scrollbar-escura::-webkit-scrollbar-thumb {
   background: var(--color-sidebar-border);
+}
+
+/* Telas públicas de autenticação: azul institucional + dourado discreto.
+   O Tailwind (@theme inline) grava o valor literal nas utilitárias, então a
+   paleta é trocada aqui, só dentro da moldura .auth-marca. */
+.auth-marca .bg-primary {
+  background-color: #2e3e4e;
+  box-shadow: 0 1px 2px rgba(46, 62, 78, 0.25);
+}
+.auth-marca .hover\:bg-primary-dark:hover {
+  background-color: #243241;
+}
+.auth-marca .text-primary {
+  color: #2e3e4e;
+}
+.auth-marca input:focus {
+  border-color: #2e3e4e;
+  box-shadow: 0 0 0 3px rgba(46, 62, 78, 0.14);
+}
+.auth-marca :focus-visible {
+  --tw-ring-color: #c6a66b;
+}
+@keyframes auth-rosa-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.auth-rosa-gira {
+  animation: auth-rosa-gira 120s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-rosa-gira {
+    animation: none;
+  }
 }

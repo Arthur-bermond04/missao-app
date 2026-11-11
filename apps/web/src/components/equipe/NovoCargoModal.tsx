@@ -10,6 +10,7 @@ import { Combobox } from '@/components/ui/Combobox';
 import { criarCargo } from '@/lib/equipe';
 import { PERFIL_LABEL } from '@/lib/usuarios';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { useTermosCelula } from '@/lib/terminologia';
 import { CARGOS_EQUIPE_SUGERIDOS, NIVEIS_EQUIPE, type Celula, type NivelEquipe, type Pessoa, type Usuario } from '@/types/database';
 
 const CARGO_OUTRO = '__outro__';
@@ -31,6 +32,7 @@ export function NovoCargoModal({
   celulas: Celula[];
   onCriado: () => void;
 }) {
+  const termoGrupo = useTermosCelula();
   const [pessoaId, setPessoaId] = useState('');
   const [usuarioId, setUsuarioId] = useState('');
   const [cargoSelecionado, setCargoSelecionado] = useState('');
@@ -138,7 +140,7 @@ export function NovoCargoModal({
         />
 
         <Select
-          label="Célula (opcional)"
+          label={`${termoGrupo.singular} (opcional)`}
           value={celulaId}
           onChange={(e) => setCelulaId(e.target.value)}
           options={[{ value: '', label: 'Nenhuma' }, ...celulas.map((c) => ({ value: c.id, label: c.nome }))]}

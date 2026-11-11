@@ -12,17 +12,17 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div>
         {!!label && (
-          <label htmlFor={textareaId} className="mb-1 block text-xs font-semibold text-text-secondary">
+          <label htmlFor={textareaId} className="mb-1.5 block text-xs font-medium text-text-secondary">
             {label}
           </label>
         )}
         <textarea
           ref={ref}
           id={textareaId}
-          className={`w-full rounded-sm border-[1.5px] px-3 py-2.5 text-sm outline-none transition-colors ${
+          className={`min-h-24 w-full rounded-lg border bg-bg-card px-3 py-2.5 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted ${
             error
-              ? 'border-danger focus:border-danger focus:ring-[3px] focus:ring-danger/10'
-              : 'border-border focus:border-accent-green focus:ring-[3px] focus:ring-accent-green/10'
+              ? 'border-danger focus:border-danger focus:ring-2 focus:ring-danger/20'
+              : 'border-border hover:border-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20'
           } ${className}`}
           {...rest}
         />

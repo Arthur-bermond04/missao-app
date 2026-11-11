@@ -12,6 +12,8 @@ import { AbaNotificacoes } from '@/components/configuracoes/AbaNotificacoes';
 import { AbaSeguranca } from '@/components/configuracoes/AbaSeguranca';
 import { AbaDuplicatas } from '@/components/configuracoes/AbaDuplicatas';
 import { AbaPermissoes } from '@/components/configuracoes/AbaPermissoes';
+import { AbaAparencia } from '@/components/configuracoes/AbaAparencia';
+import { carregarCorDestaque } from '@/lib/aparencia';
 import { buscarComunidade } from '@/lib/comunidades';
 import type { Comunidade, Usuario } from '@/types/database';
 
@@ -22,6 +24,7 @@ type Aba =
   | 'integracoes'
   | 'notificacoes'
   | 'seguranca'
+  | 'aparencia'
   | 'permissoes'
   | 'duplicatas';
 
@@ -38,10 +41,11 @@ const ABAS: { valor: Aba; label: string }[] = [
 // UPDATE por admin, então avisamos quem não é admin antes de tentar salvar.
 const ABAS_SOMENTE_ADMIN_EDITA: Aba[] = ['comunidade', 'financeiro', 'integracoes'];
 
-const ABAS_VALIDAS = new Set<string>(['comunidade', 'plano', 'financeiro', 'integracoes', 'notificacoes', 'seguranca', 'permissoes', 'duplicatas']);
+const ABAS_VALIDAS = new Set<string>(['comunidade', 'plano', 'financeiro', 'integracoes', 'notificacoes', 'seguranca', 'aparencia', 'permissoes', 'duplicatas']);
 
 export default function ConfiguracoesPage() {
-  const { usuario } = usePainelSession();
+  const { usuario, pode, permissoes } = usePainelSession();
+  const [corDestaque, setCorDestaque] = useState<string | null>(null);
   const [aba, setAba] = useState<Aba>('comunidade');
   const [comunidade, setComunidade] = useState<Comunidade | null>(null);
   const [usuarioLocal, setUsuarioLocal] = useState<Usuario | null>(usuario ?? null);
@@ -61,20 +65,24 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     if (!usuario?.comunidade_id) return;
     buscarComunidade(usuario.comunidade_id).then(setComunidade);
+    carregarCorDestaque(usuario.comunidade_id).then(setCorDestaque);
   }, [usuario?.comunidade_id]);
 
   // Permissões aparece para todos (quem não é admin vê em modo leitura, para
   // entender por que um menu sumiu); Duplicatas continua só para admin.
+  // Aparência segue a matriz (módulo "aparencia"); se a migration ainda não rodou, só admin.
+  const veAparencia = permissoes['aparencia'] ? pode('aparencia', 'ver') : usuario?.perfil === 'admin';
+  const abasBase = veAparencia ? [...ABAS, { valor: 'aparencia' as const, label: 'Aparência' }] : ABAS;
   const abasVisiveis =
     usuario?.perfil === 'admin'
-      ? [...ABAS, { valor: 'permissoes' as const, label: 'Permissões' }, { valor: 'duplicatas' as const, label: 'Duplicatas' }]
-      : [...ABAS, { valor: 'permissoes' as const, label: 'Permissões' }];
+      ? [...abasBase, { valor: 'permissoes' as const, label: 'Permissões' }, { valor: 'duplicatas' as const, label: 'Duplicatas' }]
+      : [...abasBase, { valor: 'permissoes' as const, label: 'Permissões' }];
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader icon={Settings} title="Configurações" subtitle="Comunidade, plano, notificações e segurança" />
+      <PageHeader icon={Settings} tom="neutro" title="Configurações" subtitle="Comunidade, plano, notificações e segurança" />
 
-      <div className="mt-6 flex gap-1 border-b border-border">
+      <div className="mt-6 flex gap-1 border-b border-border-soft">
         {abasVisiveis.map((a) => (
           <button
             key={a.valor}
@@ -95,7 +103,7 @@ export default function ConfiguracoesPage() {
         </div>
       )}
 
-      <div className="mt-6 rounded-lg bg-bg-card p-6 shadow-card">
+      <div className="mt-6 rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
         {aba === 'comunidade' && (comunidade ? <AbaComunidade comunidade={comunidade} onAtualizada={setComunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
         {aba === 'plano' && (comunidade ? <AbaPlano comunidade={comunidade} /> : <p className="text-sm text-text-secondary">Carregando...</p>)}
         {aba === 'financeiro' &&
@@ -109,6 +117,12 @@ export default function ConfiguracoesPage() {
               usuario={usuarioLocal}
               onAtualizado={(campos) => setUsuarioLocal((atual) => (atual ? { ...atual, ...campos } : atual))}
             />
+          ) : (
+            <p className="text-sm text-text-secondary">Carregando...</p>
+          ))}
+        {aba === 'aparencia' &&
+          (usuario?.comunidade_id ? (
+            <AbaAparencia comunidadeId={usuario.comunidade_id} corSalva={corDestaque} onSalva={setCorDestaque} />
           ) : (
             <p className="text-sm text-text-secondary">Carregando...</p>
           ))}

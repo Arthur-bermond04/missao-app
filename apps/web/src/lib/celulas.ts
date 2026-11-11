@@ -8,6 +8,16 @@ export interface CelulaComInfo extends Celula {
 
 // Lista as células da comunidade com o nome do líder e a contagem de membros
 // vinculados (via equipe_cargos.celula_id, cargos ativos).
+type LinhaCelula = Omit<CelulaComInfo, 'lider_nome' | 'total_membros'> & { usuarios: { nome: string } | null };
+type LinhaCargoCelula = {
+  id: string;
+  cargo: string;
+  pessoa_id: string | null;
+  usuario_id: string | null;
+  pessoas: { nome: string } | null;
+  usuarios: { nome: string } | null;
+};
+
 export async function listarCelulas(comunidadeId: string): Promise<CelulaComInfo[]> {
   const { data, error } = await supabase
     .from('celulas')
@@ -16,7 +26,7 @@ export async function listarCelulas(comunidadeId: string): Promise<CelulaComInfo
     .order('nome', { ascending: true });
   if (error) throw error;
 
-  const celulas = ((data as any[]) ?? []).map((c) => ({
+  const celulas = ((data as unknown as LinhaCelula[] | null) ?? []).map((c) => ({
     id: c.id,
     comunidade_id: c.comunidade_id,
     nome: c.nome,
@@ -107,7 +117,7 @@ export async function listarMembrosDaCelula(celulaId: string): Promise<MembroCel
     .eq('celula_id', celulaId)
     .eq('ativo', true);
   if (error) throw error;
-  return ((data as any[]) ?? []).map((c) => ({
+  return ((data as unknown as LinhaCargoCelula[] | null) ?? []).map((c) => ({
     id: c.id,
     cargo: c.cargo,
     nome: c.pessoas?.nome ?? c.usuarios?.nome ?? 'Sem nome',
@@ -246,10 +256,10 @@ export async function listarFrequenciaCelula(celulaId: string, diasJanela = 90):
     .in('encontro_id', idsEncontros);
   if (error) throw error;
 
-  const presencas = ((presencasComNome as any[]) ?? []) as (CelulaPresenca & {
+  const presencas = ((presencasComNome ?? []) as unknown as (CelulaPresenca & {
     pessoas: { nome: string } | null;
     usuarios: { nome: string } | null;
-  })[];
+  })[]);
 
   const nomePorChave = new Map<string, string>();
   for (const p of presencas) {

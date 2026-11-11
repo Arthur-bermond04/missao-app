@@ -8,6 +8,12 @@ export interface EquipeCargoComVinculo extends EquipeCargo {
   celula_nome: string | null;
 }
 
+type LinhaEquipe = Omit<EquipeCargoComVinculo, 'pessoa_nome' | 'pessoa_telefone' | 'usuario_nome' | 'celula_nome'> & {
+  pessoas: { nome: string; telefone: string | null } | null;
+  usuarios: { nome: string } | null;
+  celulas: { nome: string } | null;
+};
+
 export async function listarEquipeCargos(comunidadeId: string): Promise<EquipeCargoComVinculo[]> {
   const { data, error } = await supabase
     .from('equipe_cargos')
@@ -19,7 +25,7 @@ export async function listarEquipeCargos(comunidadeId: string): Promise<EquipeCa
     .order('nivel', { ascending: true })
     .order('cargo', { ascending: true });
   if (error) throw error;
-  return ((data as any[]) ?? []).map((row) => ({
+  return ((data as unknown as LinhaEquipe[] | null) ?? []).map((row) => ({
     id: row.id,
     comunidade_id: row.comunidade_id,
     pessoa_id: row.pessoa_id,

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CORES, EIXO_GRAFICO, GRADE_GRAFICO, TOOLTIP_GRAFICO } from '@/lib/cores';
 import type { Financeiro } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
 
 const JANELAS = [
   { valor: 3, label: '3 meses' },
@@ -41,7 +42,7 @@ export function EvolucaoFinanceiraChart({ lancamentos }: { lancamentos: Financei
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold text-text-primary">Evolução</h2>
+        <TituloCard icone="tendencia">Evolução</TituloCard>
         <div className="flex gap-1">
           {JANELAS.map((j) => (
             <button

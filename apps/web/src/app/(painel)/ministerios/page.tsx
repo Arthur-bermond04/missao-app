@@ -38,6 +38,8 @@ import {
   type Pessoa,
   type Usuario,
 } from '@/types/database';
+import { TituloCard } from '@/components/ui/TituloCard';
+import { carregarPdfMake } from '@/lib/exportacao';
 
 type Aba = 'membros' | 'presenca' | 'caixa' | 'doacoes';
 const LIMITE_MINISTERIOS_SEMENTE = 2;
@@ -134,9 +136,7 @@ export default function MinisteriosPage() {
       if (f.tipo === 'receita' && f.doador_display) doadores.set(f.doador_display, (doadores.get(f.doador_display) ?? 0) + f.valor);
     }
 
-    const { default: pdfMake } = await import('pdfmake/build/pdfmake');
-    const pdfFonts: any = await import('pdfmake/build/vfs_fonts');
-    (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts.default?.vfs;
+    const pdfMake = await carregarPdfMake();
 
     pdfMake
       .createPdf({
@@ -186,6 +186,7 @@ export default function MinisteriosPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         icon={HandHeart}
+        tom="roxo"
         title="Ministérios"
         subtitle="Grupos de serviço, presença e caixa"
         actions={<Button onClick={handleNovo}>+ Novo ministério</Button>}
@@ -215,8 +216,8 @@ export default function MinisteriosPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
         {/* Lista */}
-        <div className="rounded-lg bg-bg-card p-4 shadow-card">
-          <h2 className="text-sm font-bold text-text-primary">Ministérios</h2>
+        <div className="rounded-xl border border-border-soft bg-bg-card p-4 shadow-card">
+          <TituloCard icone="ministerio">Ministérios</TituloCard>
           <div className="mt-3 space-y-2">
             {ministerios.map((m) => (
               <button
@@ -258,7 +259,7 @@ export default function MinisteriosPage() {
         </div>
 
         {/* Detalhe */}
-        <div className="rounded-lg bg-bg-card p-6 shadow-card">
+        <div className="rounded-xl border border-border-soft bg-bg-card p-5 shadow-card">
           {!selecionado ? (
             <p className="text-sm text-text-secondary">Selecione ou crie um ministério.</p>
           ) : (
@@ -266,7 +267,7 @@ export default function MinisteriosPage() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="h-4 w-4 rounded-full" style={{ backgroundColor: selecionado.cor }} />
-                  <h2 className="text-lg font-bold text-text-primary">{selecionado.nome}</h2>
+                  <h2 className="text-lg font-semibold text-text-primary">{selecionado.nome}</h2>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="secondary" icon={CalendarPlus} onClick={() => setModalAgendar(true)}>
@@ -281,7 +282,7 @@ export default function MinisteriosPage() {
                 <p className="mt-1 text-sm text-text-secondary">{selecionado.descricao}</p>
               )}
 
-              <div className="mt-4 flex gap-1 border-b border-border">
+              <div className="mt-4 flex gap-1 border-b border-border-soft">
                 {ABAS.map((a) => (
                   <button
                     key={a.valor}

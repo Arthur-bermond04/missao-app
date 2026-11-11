@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { AlertCircle } from 'lucide-react';
 import { useSession } from '@/lib/useSession';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -31,9 +32,9 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell titulo="Bem-vindo de volta" subtitulo="Painel da liderança">
+    <AuthShell titulo="Bem-vindo de volta" subtitulo="Acesse sua conta para continuar sua missão.">
       <form onSubmit={handleEntrar}>
-        <div className="mt-6">
+        <div className="mt-8">
           <Input
             label="E-mail"
             type="email"
@@ -41,36 +42,47 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="voce@exemplo.com"
             autoComplete="email"
+            autoFocus
             required
+            disabled={entrando}
+            className="h-11"
           />
         </div>
 
-        <div className="mt-4">
+        <div className="mt-5">
           <Input
             label="Senha"
             type="password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            placeholder="Sua senha"
             autoComplete="current-password"
             required
+            disabled={entrando}
+            className="h-11"
           />
         </div>
 
-        {!!erro && <p className="mt-3 text-sm text-danger">{erro}</p>}
-
-        <Button type="submit" loading={entrando} fullWidth size="lg" className="mt-6">
-          {entrando ? 'Entrando...' : 'Entrar'}
-        </Button>
-
-        <p className="mt-4 text-center text-xs">
+        <div className="mt-3 text-right text-[13px]">
           {/* Leva o e-mail já digitado, para não obrigar a redigitar. */}
           <Link
             href={email.trim() ? `/esqueci-senha?email=${encodeURIComponent(email.trim())}` : '/esqueci-senha'}
-            className="text-primary hover:underline"
+            className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-green rounded-sm"
           >
-            Esqueci minha senha
+            Esqueceu sua senha?
           </Link>
-        </p>
+        </div>
+
+        {!!erro && (
+          <div role="alert" className="mt-5 flex items-start gap-2 rounded-lg border border-danger/20 bg-danger-light px-3 py-2.5 text-[13px] text-danger">
+            <AlertCircle size={16} className="mt-px shrink-0" aria-hidden />
+            <span>{erro}</span>
+          </div>
+        )}
+
+        <Button type="submit" loading={entrando} fullWidth size="lg" className="mt-6 !shadow-sm">
+          {entrando ? 'Entrando...' : 'Entrar'}
+        </Button>
       </form>
     </AuthShell>
   );
